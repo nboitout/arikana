@@ -120,7 +120,7 @@ export default function ArikanaApp() {
                   <span>⭐ 4.9</span>
                   <span>(127 reviews)</span>
                 </div>
-                <p className="text-xs opacity-85 mt-1">Expert in reformer pilates</p>
+                <p className="text-xs opacity-85 mt-1">Expert in hardcore pilates</p>
               </div>
             </div>
           </div>
