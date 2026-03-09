@@ -106,7 +106,7 @@ export default function ArikanaApp() {
               {/* Photo Circle */}
               <div className="w-20 h-20 rounded-full bg-white flex-shrink-0 overflow-hidden border-4 border-white shadow-lg">
                 <img 
-                  src="https://media.licdn.com/dms/image/v2/D4E03AQGLz1xZ1p95Uw/profile-displayphoto-shrink_400_400/profile-displayphoto-shrink_400_400/0/1705926896640?e=1712188800&v=beta&t=abc123"
+                  src="src="https://raw.githubusercontent.com/nboitout/arikana/main/Nicolas%20Boitout.png""
                   alt="Nicolas"
                   className="w-full h-full object-cover"
                 />
