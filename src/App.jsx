@@ -156,13 +156,13 @@ export default function ArikanaApp() {
     return (
       <div className="pb-28">
         {/* Header */}
-        <div style={{ backgroundColor: ARIKANA_COLOR }} className="text-white px-6 py-6">
-          <h1 className="text-2xl font-light mb-1">Book Classes</h1>
-          <p className="text-sm opacity-90">Swipe to explore instructors →</p>
+        <div style={{ backgroundColor: ARIKANA_COLOR }} className="text-white px-6 py-4">
+          <h1 className="text-xl font-light">Book Classes</h1>
+          <p className="text-xs opacity-90 mt-1">Swipe to explore instructors →</p>
         </div>
 
         {/* Swipeable Cards Container */}
-        <div className="overflow-x-auto scrollbar-hide px-4 py-6">
+        <div className="overflow-x-auto scrollbar-hide px-4 py-4">
           <div className="flex gap-4" style={{ minWidth: 'min-content' }}>
             {/* All Instructors Card */}
             <button
@@ -171,12 +171,11 @@ export default function ArikanaApp() {
                 backgroundColor: selectedInstructor === 'all' ? ARIKANA_COLOR : '#f5f5f5',
                 color: selectedInstructor === 'all' ? '#fff' : '#333'
               }}
-              className="flex-shrink-0 w-80 rounded-2xl p-6 text-left transition-all hover:shadow-lg cursor-pointer"
+              className="flex-shrink-0 w-64 rounded-2xl p-4 text-left transition-all hover:shadow-lg cursor-pointer"
             >
-              <div className="text-5xl mb-4">🎯</div>
-              <h3 className="text-xl font-bold mb-1">All Instructors</h3>
-              <p className="text-sm opacity-80 mb-3">Browse all available classes</p>
-              <div className="text-xs opacity-70">12 classes • 3 coaches</div>
+              <div className="text-4xl mb-2">🎯</div>
+              <h3 className="text-lg font-bold mb-1">All Instructors</h3>
+              <p className="text-xs opacity-80">All available classes</p>
             </button>
 
             {/* Individual Instructor Cards */}
@@ -190,10 +189,10 @@ export default function ArikanaApp() {
                     backgroundColor: selectedInstructor === key ? ARIKANA_COLOR : '#f5f5f5',
                     color: selectedInstructor === key ? '#fff' : '#333'
                   }}
-                  className="flex-shrink-0 w-80 rounded-2xl p-6 text-left transition-all hover:shadow-lg cursor-pointer overflow-hidden"
+                  className="flex-shrink-0 w-64 rounded-2xl p-4 text-left transition-all hover:shadow-lg cursor-pointer overflow-hidden"
                 >
                   {/* Photo */}
-                  <div className="w-20 h-20 rounded-full bg-white mb-4 overflow-hidden border-2" style={{ borderColor: selectedInstructor === key ? '#fff' : ARIKANA_COLOR }}>
+                  <div className="w-16 h-16 rounded-full bg-white mb-3 overflow-hidden border-2" style={{ borderColor: selectedInstructor === key ? '#fff' : ARIKANA_COLOR }}>
                     <img 
                       src={instr.photo}
                       alt={instr.name}
@@ -202,11 +201,10 @@ export default function ArikanaApp() {
                   </div>
 
                   {/* Info */}
-                  <h3 className="text-xl font-bold mb-1">{instr.name}</h3>
-                  <p className="text-sm opacity-80 mb-2">{instr.title}</p>
-                  <div className="flex gap-2 text-xs mb-3">
+                  <h3 className="text-lg font-bold mb-1">{instr.name}</h3>
+                  <p className="text-xs opacity-80 mb-1">{instr.title}</p>
+                  <div className="flex gap-1 text-xs mb-1">
                     <span>⭐ {instr.rating}</span>
-                    <span>({instr.reviews} reviews)</span>
                   </div>
                   <p className="text-xs opacity-70">{instr.bio}</p>
                 </button>
@@ -216,24 +214,24 @@ export default function ArikanaApp() {
         </div>
 
         {/* Classes List */}
-        <div className="px-6 pb-4">
-          <h3 className="text-sm font-semibold text-stone-900 mb-4">
-            {selectedInstructor === 'all' ? '📚 All Available Classes' : `📚 ${currentData.name}'s Classes`}
+        <div className="px-6 py-2 pb-4">
+          <h3 className="text-xs font-semibold text-stone-900 mb-3 uppercase tracking-wide">
+            {selectedInstructor === 'all' ? 'All Available Classes' : `${currentData.name}'s Classes`}
           </h3>
-          <div className="space-y-3">
+          <div className="space-y-2">
             {currentData.classes.map((cls) => (
-              <div key={cls.id} className="bg-white border border-stone-200 rounded-xl p-4 hover:shadow-md transition-all">
-                <div className="flex justify-between items-start mb-2">
+              <div key={cls.id} className="bg-white border border-stone-200 rounded-lg p-3 hover:shadow-md transition-all">
+                <div className="flex justify-between items-start mb-1">
                   <div>
-                    <h4 className="font-semibold text-stone-900 text-sm">{cls.name}</h4>
+                    <h4 className="font-semibold text-stone-900 text-xs">{cls.name}</h4>
                     <p className="text-xs text-stone-600 mt-1">with {cls.instructor}</p>
                   </div>
-                  <span style={{ backgroundColor: ARIKANA_COLOR }} className="text-xs font-medium text-white px-2 py-1 rounded-full whitespace-nowrap">
+                  <span style={{ backgroundColor: ARIKANA_COLOR }} className="text-xs font-medium text-white px-2 py-0.5 rounded-full whitespace-nowrap">
                     {cls.level}
                   </span>
                 </div>
 
-                <div className="flex gap-3 text-xs text-stone-600 mb-3">
+                <div className="flex gap-3 text-xs text-stone-600 mb-2">
                   <span>⏱️ {cls.time} • {cls.duration}</span>
                   <span>👥 {cls.spots} spots</span>
                 </div>
@@ -243,7 +241,7 @@ export default function ArikanaApp() {
                     borderColor: ARIKANA_COLOR,
                     color: ARIKANA_COLOR
                   }}
-                  className="w-full border-2 text-white font-semibold py-2 rounded-lg transition-all hover:opacity-80 text-sm"
+                  className="w-full border-2 text-white font-semibold py-1.5 rounded-lg transition-all hover:opacity-80 text-xs"
                   onMouseEnter={(e) => {
                     e.target.style.backgroundColor = ARIKANA_COLOR;
                     e.target.style.color = '#fff';
