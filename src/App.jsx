@@ -80,16 +80,42 @@ export default function ArikanaApp() {
     </div>
   );
 
-  // Book Tab Content - With Instructor Photo
+  // Book Tab Content - With Multiple Instructors
   const BookTab = () => {
-    const [selectedFilter, setSelectedFilter] = useState('All');
+    const [selectedInstructor, setSelectedInstructor] = useState('nicolas');
 
-    const instructorClasses = [
-      { id: 1, name: 'Pilates Reformer', time: '09:00', duration: '60 min', level: 'All Levels', spots: 8 },
-      { id: 2, name: 'Core Strength', time: '10:30', duration: '45 min', level: 'Intermediate', spots: 12 },
-      { id: 3, name: 'Advanced Pilates', time: '18:30', duration: '60 min', level: 'Advanced', spots: 6 },
-      { id: 4, name: 'Pilates Mat', time: '17:00', duration: '50 min', level: 'Beginner', spots: 15 },
-    ];
+    const instructors = {
+      nicolas: {
+        name: 'Nicolas',
+        title: 'Pilates Specialist',
+        rating: 4.9,
+        reviews: 127,
+        bio: 'Expert in hardcore pilates',
+        photo: 'https://i.ibb.co/xKGQ2P8B/Nicolas-Boitout.png',
+        classes: [
+          { id: 1, name: 'Pilates Reformer', time: '09:00', duration: '60 min', level: 'All Levels', spots: 8 },
+          { id: 2, name: 'Core Strength', time: '10:30', duration: '45 min', level: 'Intermediate', spots: 12 },
+          { id: 3, name: 'Advanced Pilates', time: '18:30', duration: '60 min', level: 'Advanced', spots: 6 },
+          { id: 4, name: 'Pilates Mat', time: '17:00', duration: '50 min', level: 'Beginner', spots: 15 },
+        ]
+      },
+      angelina: {
+        name: 'Angelina',
+        title: 'Pilates Master',
+        rating: 5.0,
+        reviews: 48,
+        bio: 'Pelvic Curl Godness',
+        photo: 'https://i.ibb.co/8g8sMgRj/Angelina-Tricolici.png',
+        classes: [
+          { id: 1, name: 'Pelvic Curl Flow', time: '08:00', duration: '50 min', level: 'All Levels', spots: 10 },
+          { id: 2, name: 'Deep Core Activation', time: '11:00', duration: '60 min', level: 'Intermediate', spots: 9 },
+          { id: 3, name: 'Advanced Pelvic Techniques', time: '17:00', duration: '60 min', level: 'Advanced', spots: 7 },
+          { id: 4, name: 'Pilates Fusion', time: '19:00', duration: '55 min', level: 'All Levels', spots: 12 },
+        ]
+      }
+    };
+
+    const currentInstructor = instructors[selectedInstructor];
 
     return (
       <div className="pb-28">
@@ -100,59 +126,68 @@ export default function ArikanaApp() {
             <p className="text-sm opacity-90">Choose your instructor</p>
           </div>
 
+          {/* Instructor Tabs */}
+          <div className="flex gap-2 mb-4">
+            <button
+              onClick={() => setSelectedInstructor('nicolas')}
+              style={{
+                backgroundColor: selectedInstructor === 'nicolas' ? 'rgba(255, 255, 255, 0.3)' : 'rgba(255, 255, 255, 0.1)',
+                borderColor: selectedInstructor === 'nicolas' ? '#fff' : 'transparent'
+              }}
+              className="px-4 py-2 rounded-full text-xs font-medium text-white border-2 transition-all"
+            >
+              Nicolas
+            </button>
+            <button
+              onClick={() => setSelectedInstructor('angelina')}
+              style={{
+                backgroundColor: selectedInstructor === 'angelina' ? 'rgba(255, 255, 255, 0.3)' : 'rgba(255, 255, 255, 0.1)',
+                borderColor: selectedInstructor === 'angelina' ? '#fff' : 'transparent'
+              }}
+              className="px-4 py-2 rounded-full text-xs font-medium text-white border-2 transition-all"
+            >
+              Angelina
+            </button>
+          </div>
+
           {/* Instructor Card with Photo */}
           <div style={{ backgroundColor: 'rgba(255, 255, 255, 0.15)' }} className="rounded-xl p-4">
             <div className="flex gap-3">
               {/* Photo Circle */}
               <div className="w-20 h-20 rounded-full bg-white flex-shrink-0 overflow-hidden border-4 border-white shadow-lg">
                 <img 
-                  src="https://i.ibb.co/xKGQ2P8B/Nicolas-Boitout.png"
-                  alt="Nicolas"
+                  src={currentInstructor.photo}
+                  alt={currentInstructor.name}
                   className="w-full h-full object-cover"
                 />
               </div>
 
               {/* Info */}
               <div className="text-white flex-1">
-                <h2 className="text-lg font-semibold mb-1">Nicolas</h2>
-                <p className="text-sm opacity-90 mb-2">Pilates Specialist</p>
+                <h2 className="text-lg font-semibold mb-1">{currentInstructor.name}</h2>
+                <p className="text-sm opacity-90 mb-2">{currentInstructor.title}</p>
                 <div className="flex gap-2 text-xs">
-                  <span>⭐ 4.9</span>
-                  <span>(127 reviews)</span>
+                  <span>⭐ {currentInstructor.rating}</span>
+                  <span>({currentInstructor.reviews} reviews)</span>
                 </div>
-                <p className="text-xs opacity-85 mt-1">Expert in hardcore pilates</p>
+                <p className="text-xs opacity-85 mt-1">{currentInstructor.bio}</p>
               </div>
             </div>
           </div>
         </div>
 
-        {/* Filter Buttons */}
-        <div className="px-6 py-3 flex gap-2 overflow-x-auto">
-          {['All', 'Reformer', 'Mat', 'Advanced'].map((filter) => (
-            <button
-              key={filter}
-              onClick={() => setSelectedFilter(filter)}
-              style={{
-                backgroundColor: selectedFilter === filter ? ARIKANA_COLOR : '#e8e8e8',
-                color: selectedFilter === filter ? '#fff' : '#333'
-              }}
-              className="px-4 py-2 rounded-full text-xs font-medium whitespace-nowrap transition-all hover:opacity-90"
-            >
-              {filter}
-            </button>
-          ))}
-        </div>
+
 
         {/* Classes List */}
         <div className="px-6 mt-6">
           <h3 className="text-sm font-semibold text-stone-900 mb-3">Available Classes</h3>
           <div className="space-y-3">
-            {instructorClasses.map((cls) => (
+            {currentInstructor.classes.map((cls) => (
               <div key={cls.id} className="bg-white border border-stone-200 rounded-xl p-4 hover:shadow-md transition-all">
                 <div className="flex justify-between items-start mb-2">
                   <div>
                     <h4 className="font-semibold text-stone-900 text-sm">{cls.name}</h4>
-                    <p className="text-xs text-stone-600 mt-1">with Nicolas</p>
+                    <p className="text-xs text-stone-600 mt-1">with {currentInstructor.name}</p>
                   </div>
                   <span style={{ backgroundColor: ARIKANA_COLOR }} className="text-xs font-medium text-white px-2 py-1 rounded-full whitespace-nowrap">
                     {cls.level}
