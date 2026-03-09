@@ -35,7 +35,6 @@ const useCountUp = (targetValue, duration = 1500) => {
 
 export default function ArikanaApp() {
   const [activeTab, setActiveTab] = useState('home');
-  const [userName] = useState('Nicolas');
 
   // Brand color
   const ARIKANA_COLOR = '#B69B4D';
@@ -46,12 +45,6 @@ export default function ArikanaApp() {
     { id: 2, name: 'Iyengar Yoga - General Class', date: 'Monday, 09 Mar', time: '18:30', instructor: 'Maya', spots: 5 },
     { id: 3, name: 'Hatha Flow', date: 'Tuesday, 10 Mar', time: '10:00', instructor: 'Sofia', spots: 8 },
     { id: 4, name: 'Private Pilates Session', date: 'Wednesday, 11 Mar', time: '14:00', instructor: '1-on-1', spots: 1 },
-  ];
-
-  const achievements = [
-    { label: 'Total classes\nSince Feb 11, 2025', value: '172', icon: '🏅' },
-    { label: 'Classes this month\nSince Mar 1, 2026', value: '0', icon: '📅' },
-    { label: 'Last achievement\n100 classes', value: '100', icon: '🎯', badge: true },
   ];
 
   // Home Tab Content
@@ -106,33 +99,33 @@ Since Mar 1, 2026</p>
           </div>
         </div>
 
-      {/* Upcoming Booking */}
-      <div className="px-6 mb-8">
-        <h2 className="text-2xl font-bold text-stone-900 mb-4">Upcoming booking</h2>
-        <div className="bg-gray-100 rounded-3xl p-6 mb-4 text-center">
-          <p className="text-stone-700 text-base font-normal">Nothing is currently scheduled</p>
+        {/* Upcoming Booking */}
+        <div className="px-6 mb-8">
+          <h2 className="text-2xl font-bold text-stone-900 mb-4">Upcoming booking</h2>
+          <div className="bg-gray-100 rounded-3xl p-6 mb-4 text-center">
+            <p className="text-stone-700 text-base font-normal">Nothing is currently scheduled</p>
+          </div>
+          <button style={{ backgroundColor: ARIKANA_COLOR }} className="w-full text-white font-medium py-4 rounded-3xl hover:opacity-90 transition-opacity text-lg">
+            Explore
+          </button>
         </div>
-        <button style={{ backgroundColor: ARIKANA_COLOR }} className="w-full text-white font-medium py-4 rounded-3xl hover:opacity-90 transition-opacity text-lg">
-          Explore
-        </button>
-      </div>
 
-      {/* Coming Up */}
-      <div className="px-6 pb-4">
-        <h2 className="text-2xl font-bold text-stone-900 mb-4">Coming up</h2>
-        <div className="space-y-2">
-          {upcomingClasses.slice(0, 2).map((cls) => (
-            <div key={cls.id} className="border border-stone-200 rounded-2xl p-4 hover:shadow-md transition-shadow bg-white">
-              <h3 className="font-semibold text-stone-900 text-base">{cls.name}</h3>
-              <p className="text-sm text-stone-500 mt-2 font-light">{cls.date} | {cls.time}</p>
-            </div>
-          ))}
+        {/* Coming Up */}
+        <div className="px-6 pb-4">
+          <h2 className="text-2xl font-bold text-stone-900 mb-4">Coming up</h2>
+          <div className="space-y-2">
+            {upcomingClasses.slice(0, 2).map((cls) => (
+              <div key={cls.id} className="border border-stone-200 rounded-2xl p-4 hover:shadow-md transition-shadow bg-white">
+                <h3 className="font-semibold text-stone-900 text-base">{cls.name}</h3>
+                <p className="text-sm text-stone-500 mt-2 font-light">{cls.date} | {cls.time}</p>
+              </div>
+            ))}
+          </div>
         </div>
       </div>
-    </div>
-  );
+    );
+  };
 
-  // Book Tab Content - With Multiple Instructors
   // Book Tab Content - Swipeable Instructor Cards
   const BookTab = () => {
     const [selectedInstructor, setSelectedInstructor] = useState('all');
@@ -140,10 +133,6 @@ Since Mar 1, 2026</p>
     const instructorsList = {
       all: {
         name: 'All Instructors',
-        title: 'Choose Your Coach',
-        rating: null,
-        reviews: null,
-        bio: 'Browse all available classes',
         classes: [
           { id: 1, name: 'Pilates Reformer', time: '09:00', duration: '60 min', level: 'All Levels', spots: 8, instructor: 'Nicolas' },
           { id: 2, name: 'Core Strength', time: '10:30', duration: '45 min', level: 'Intermediate', spots: 12, instructor: 'Nicolas' },
@@ -313,6 +302,7 @@ Since Mar 1, 2026</p>
     );
   };
 
+  // Buy Tab Content
   const BuyTab = () => (
     <div className="pb-28">
       <div style={{ background: `linear-gradient(to bottom, ${ARIKANA_COLOR}, ${ARIKANA_COLOR}cc)` }} className="text-white px-6 py-8 rounded-b-3xl">
@@ -356,7 +346,7 @@ Since Mar 1, 2026</p>
           <div style={{ backgroundColor: `${ARIKANA_COLOR}20` }} className="w-16 h-16 mx-auto mb-4 rounded-full flex items-center justify-center">
             <User style={{ color: ARIKANA_COLOR }} className="w-8 h-8" />
           </div>
-          <h2 className="text-xl font-bold text-stone-900">{userName}</h2>
+          <h2 className="text-xl font-bold text-stone-900">Nicolas</h2>
           <p className="text-sm text-stone-600 mt-1">Active Member</p>
         </div>
 
@@ -433,8 +423,6 @@ Since Mar 1, 2026</p>
 
   return (
     <div className="bg-white h-screen flex flex-col max-w-md mx-auto relative overflow-hidden">
-
-
       {/* Main Content */}
       <div className="flex-1 overflow-y-auto scrollbar-hide">
         {tabContent[activeTab]}
