@@ -112,6 +112,20 @@ export default function ArikanaApp() {
           { id: 3, name: 'Advanced Pelvic Techniques', time: '17:00', duration: '60 min', level: 'Advanced', spots: 7 },
           { id: 4, name: 'Pilates Fusion', time: '19:00', duration: '55 min', level: 'All Levels', spots: 12 },
         ]
+      },
+      sergey: {
+        name: 'Sergey',
+        title: 'Crossfit Coach',
+        rating: 4.8,
+        reviews: 95,
+        bio: 'Siberian Crossfitter',
+        photo: 'https://i.ibb.co/nNGSPCsY/Sergey.png',
+        classes: [
+          { id: 1, name: 'Ice Skating with Grace', time: '07:00', duration: '60 min', level: 'All Levels', spots: 14 },
+          { id: 2, name: 'Speed Skating', time: '09:30', duration: '50 min', level: 'Intermediate', spots: 11 },
+          { id: 3, name: 'Ice Skating Techniques', time: '16:00', duration: '60 min', level: 'Advanced', spots: 8 },
+          { id: 4, name: 'Crossfit on Ice', time: '18:00', duration: '55 min', level: 'Advanced', spots: 6 },
+        ]
       }
     };
 
@@ -147,6 +161,16 @@ export default function ArikanaApp() {
               className="px-4 py-2 rounded-full text-xs font-medium text-white border-2 transition-all"
             >
               Angelina
+            </button>
+            <button
+              onClick={() => setSelectedInstructor('sergey')}
+              style={{
+                backgroundColor: selectedInstructor === 'sergey' ? 'rgba(255, 255, 255, 0.3)' : 'rgba(255, 255, 255, 0.1)',
+                borderColor: selectedInstructor === 'sergey' ? '#fff' : 'transparent'
+              }}
+              className="px-4 py-2 rounded-full text-xs font-medium text-white border-2 transition-all"
+            >
+              Sergey
             </button>
           </div>
 
