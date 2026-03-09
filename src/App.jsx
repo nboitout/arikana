@@ -106,7 +106,7 @@ export default function ArikanaApp() {
               {/* Photo Circle */}
               <div className="w-20 h-20 rounded-full bg-white flex-shrink-0 overflow-hidden border-4 border-white shadow-lg">
                 <img 
-                  src="src="https://raw.githubusercontent.com/nboitout/arikana/main/Nicolas%20Boitout.png""
+                  src="https://i.ibb.co/xKGQ2P8B/Nicolas-Boitout.png"
                   alt="Nicolas"
                   className="w-full h-full object-cover"
                 />
@@ -120,7 +120,7 @@ export default function ArikanaApp() {
                   <span>⭐ 4.9</span>
                   <span>(127 reviews)</span>
                 </div>
-                <p className="text-xs opacity-85 mt-1">Expert in reformer pilates</p>
+                <p className="text-xs opacity-85 mt-1">Expert in hardcore pilates</p>
               </div>
             </div>
           </div>
