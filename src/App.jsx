@@ -1,6 +1,37 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Home, Calendar, ShoppingBag, User, MoreHorizontal, ChevronRight } from 'lucide-react';
 import './App.css';
+
+// Count-up animation hook
+const useCountUp = (targetValue, duration = 1500) => {
+  const [count, setCount] = useState(0);
+
+  useEffect(() => {
+    if (targetValue === 0) {
+      setCount(0);
+      return;
+    }
+
+    let startTime = null;
+    const animate = (currentTime) => {
+      if (!startTime) startTime = currentTime;
+      const elapsed = currentTime - startTime;
+      const progress = Math.min(elapsed / duration, 1);
+      
+      setCount(Math.floor(targetValue * progress));
+      
+      if (progress < 1) {
+        requestAnimationFrame(animate);
+      } else {
+        setCount(targetValue);
+      }
+    };
+
+    requestAnimationFrame(animate);
+  }, [targetValue, duration]);
+
+  return count;
+};
 
 export default function ArikanaApp() {
   const [activeTab, setActiveTab] = useState('home');
@@ -24,35 +55,56 @@ export default function ArikanaApp() {
   ];
 
   // Home Tab Content
-  const HomeTab = () => (
-    <div className="pb-28">
-      {/* Header with gradient */}
-      <div style={{ background: `linear-gradient(to bottom, ${ARIKANA_COLOR}, ${ARIKANA_COLOR}cc)` }} className="text-white px-6 py-6">
-        <p className="text-sm font-light mb-1">Hi, Анечка</p>
-        <h1 className="text-2xl font-light">Welcome to Arikana Studio</h1>
-      </div>
+  const HomeTab = () => {
+    const count172 = useCountUp(172, 1200);
+    const count100 = useCountUp(100, 1200);
 
-      {/* Achievements Section */}
-      <div className="px-6 mt-6 mb-8">
-        <h2 className="text-2xl font-bold text-stone-900 mb-4">Achievements</h2>
-        <div className="flex gap-3 overflow-x-auto pb-2 snap-x">
-          {achievements.map((item, i) => (
+    return (
+      <div className="pb-28">
+        {/* Header with gradient */}
+        <div style={{ background: `linear-gradient(to bottom, ${ARIKANA_COLOR}, ${ARIKANA_COLOR}cc)` }} className="text-white px-6 py-6">
+          <p className="text-sm font-light mb-1">Hi, Анечка</p>
+          <h1 className="text-2xl font-light">Welcome to Arikana Studio</h1>
+        </div>
+
+        {/* Achievements Section */}
+        <div className="px-6 mt-6 mb-8">
+          <h2 className="text-2xl font-bold text-stone-900 mb-4">Achievements</h2>
+          <div className="flex gap-3 overflow-x-auto pb-2 snap-x">
+            {/* Card 1 - Animated Count */}
             <div
-              key={i}
               style={{ backgroundColor: ARIKANA_COLOR }}
               className="flex-shrink-0 w-40 text-white rounded-3xl p-5 snap-center relative"
             >
-              {item.badge && (
-                <div style={{ backgroundColor: 'white', color: ARIKANA_COLOR }} className="absolute -top-3 -right-3 rounded-full w-12 h-12 flex items-center justify-center font-bold text-lg border-4 border-white shadow-lg">
-                  ✓
-                </div>
-              )}
-              <p className="text-4xl font-bold mb-3">{item.value}</p>
-              <p className="text-xs font-light opacity-95 whitespace-pre-line leading-tight">{item.label}</p>
+              <p className="text-4xl font-bold mb-3">{count172}</p>
+              <p className="text-xs font-light opacity-95 whitespace-pre-line leading-tight">Total classes
+Since Feb 11, 2025</p>
             </div>
-          ))}
+
+            {/* Card 2 */}
+            <div
+              style={{ backgroundColor: ARIKANA_COLOR }}
+              className="flex-shrink-0 w-40 text-white rounded-3xl p-5 snap-center relative"
+            >
+              <p className="text-4xl font-bold mb-3">0</p>
+              <p className="text-xs font-light opacity-95 whitespace-pre-line leading-tight">Classes this month
+Since Mar 1, 2026</p>
+            </div>
+
+            {/* Card 3 - Animated with Badge */}
+            <div
+              style={{ backgroundColor: ARIKANA_COLOR }}
+              className="flex-shrink-0 w-40 text-white rounded-3xl p-5 snap-center relative"
+            >
+              <div style={{ backgroundColor: 'white', color: ARIKANA_COLOR }} className="absolute -top-3 -right-3 rounded-full w-12 h-12 flex items-center justify-center font-bold text-lg border-4 border-white shadow-lg">
+                ✓
+              </div>
+              <p className="text-4xl font-bold mb-3">{count100}</p>
+              <p className="text-xs font-light opacity-95 whitespace-pre-line leading-tight">Last achievement
+100 classes</p>
+            </div>
+          </div>
         </div>
-      </div>
 
       {/* Upcoming Booking */}
       <div className="px-6 mb-8">
