@@ -81,10 +81,32 @@ export default function ArikanaApp() {
   );
 
   // Book Tab Content - With Multiple Instructors
+  // Book Tab Content - Swipeable Instructor Cards
   const BookTab = () => {
-    const [selectedInstructor, setSelectedInstructor] = useState('nicolas');
+    const [selectedInstructor, setSelectedInstructor] = useState('all');
 
-    const instructors = {
+    const instructorsList = {
+      all: {
+        name: 'All Instructors',
+        title: 'Choose Your Coach',
+        rating: null,
+        reviews: null,
+        bio: 'Browse all available classes',
+        classes: [
+          { id: 1, name: 'Pilates Reformer', time: '09:00', duration: '60 min', level: 'All Levels', spots: 8, instructor: 'Nicolas' },
+          { id: 2, name: 'Core Strength', time: '10:30', duration: '45 min', level: 'Intermediate', spots: 12, instructor: 'Nicolas' },
+          { id: 3, name: 'Advanced Pilates', time: '18:30', duration: '60 min', level: 'Advanced', spots: 6, instructor: 'Nicolas' },
+          { id: 4, name: 'Pilates Mat', time: '17:00', duration: '50 min', level: 'Beginner', spots: 15, instructor: 'Nicolas' },
+          { id: 5, name: 'Pelvic Curl Flow', time: '08:00', duration: '50 min', level: 'All Levels', spots: 10, instructor: 'Angelina' },
+          { id: 6, name: 'Deep Core Activation', time: '11:00', duration: '60 min', level: 'Intermediate', spots: 9, instructor: 'Angelina' },
+          { id: 7, name: 'Advanced Pelvic Techniques', time: '17:00', duration: '60 min', level: 'Advanced', spots: 7, instructor: 'Angelina' },
+          { id: 8, name: 'Pilates Fusion', time: '19:00', duration: '55 min', level: 'All Levels', spots: 12, instructor: 'Angelina' },
+          { id: 9, name: 'Ice Skating with Grace', time: '07:00', duration: '60 min', level: 'All Levels', spots: 14, instructor: 'Sergey' },
+          { id: 10, name: 'Speed Skating', time: '09:30', duration: '50 min', level: 'Intermediate', spots: 11, instructor: 'Sergey' },
+          { id: 11, name: 'Ice Skating Techniques', time: '16:00', duration: '60 min', level: 'Advanced', spots: 8, instructor: 'Sergey' },
+          { id: 12, name: 'Crossfit on Ice', time: '18:00', duration: '55 min', level: 'Advanced', spots: 6, instructor: 'Sergey' },
+        ]
+      },
       nicolas: {
         name: 'Nicolas',
         title: 'Pilates Specialist',
@@ -93,10 +115,10 @@ export default function ArikanaApp() {
         bio: 'Expert in hardcore pilates',
         photo: 'https://i.ibb.co/xKGQ2P8B/Nicolas-Boitout.png',
         classes: [
-          { id: 1, name: 'Pilates Reformer', time: '09:00', duration: '60 min', level: 'All Levels', spots: 8 },
-          { id: 2, name: 'Core Strength', time: '10:30', duration: '45 min', level: 'Intermediate', spots: 12 },
-          { id: 3, name: 'Advanced Pilates', time: '18:30', duration: '60 min', level: 'Advanced', spots: 6 },
-          { id: 4, name: 'Pilates Mat', time: '17:00', duration: '50 min', level: 'Beginner', spots: 15 },
+          { id: 1, name: 'Pilates Reformer', time: '09:00', duration: '60 min', level: 'All Levels', spots: 8, instructor: 'Nicolas' },
+          { id: 2, name: 'Core Strength', time: '10:30', duration: '45 min', level: 'Intermediate', spots: 12, instructor: 'Nicolas' },
+          { id: 3, name: 'Advanced Pilates', time: '18:30', duration: '60 min', level: 'Advanced', spots: 6, instructor: 'Nicolas' },
+          { id: 4, name: 'Pilates Mat', time: '17:00', duration: '50 min', level: 'Beginner', spots: 15, instructor: 'Nicolas' },
         ]
       },
       angelina: {
@@ -107,10 +129,10 @@ export default function ArikanaApp() {
         bio: 'Pelvic Curl Godness',
         photo: 'https://i.ibb.co/8g8sMgRj/Angelina-Tricolici.png',
         classes: [
-          { id: 1, name: 'Pelvic Curl Flow', time: '08:00', duration: '50 min', level: 'All Levels', spots: 10 },
-          { id: 2, name: 'Deep Core Activation', time: '11:00', duration: '60 min', level: 'Intermediate', spots: 9 },
-          { id: 3, name: 'Advanced Pelvic Techniques', time: '17:00', duration: '60 min', level: 'Advanced', spots: 7 },
-          { id: 4, name: 'Pilates Fusion', time: '19:00', duration: '55 min', level: 'All Levels', spots: 12 },
+          { id: 5, name: 'Pelvic Curl Flow', time: '08:00', duration: '50 min', level: 'All Levels', spots: 10, instructor: 'Angelina' },
+          { id: 6, name: 'Deep Core Activation', time: '11:00', duration: '60 min', level: 'Intermediate', spots: 9, instructor: 'Angelina' },
+          { id: 7, name: 'Advanced Pelvic Techniques', time: '17:00', duration: '60 min', level: 'Advanced', spots: 7, instructor: 'Angelina' },
+          { id: 8, name: 'Pilates Fusion', time: '19:00', duration: '55 min', level: 'All Levels', spots: 12, instructor: 'Angelina' },
         ]
       },
       sergey: {
@@ -121,97 +143,90 @@ export default function ArikanaApp() {
         bio: 'Siberian Crossfitter',
         photo: 'https://i.ibb.co/nNGSPCsY/Sergey.png',
         classes: [
-          { id: 1, name: 'Ice Skating with Grace', time: '07:00', duration: '60 min', level: 'All Levels', spots: 14 },
-          { id: 2, name: 'Speed Skating', time: '09:30', duration: '50 min', level: 'Intermediate', spots: 11 },
-          { id: 3, name: 'Ice Skating Techniques', time: '16:00', duration: '60 min', level: 'Advanced', spots: 8 },
-          { id: 4, name: 'Crossfit on Ice', time: '18:00', duration: '55 min', level: 'Advanced', spots: 6 },
+          { id: 9, name: 'Ice Skating with Grace', time: '07:00', duration: '60 min', level: 'All Levels', spots: 14, instructor: 'Sergey' },
+          { id: 10, name: 'Speed Skating', time: '09:30', duration: '50 min', level: 'Intermediate', spots: 11, instructor: 'Sergey' },
+          { id: 11, name: 'Ice Skating Techniques', time: '16:00', duration: '60 min', level: 'Advanced', spots: 8, instructor: 'Sergey' },
+          { id: 12, name: 'Crossfit on Ice', time: '18:00', duration: '55 min', level: 'Advanced', spots: 6, instructor: 'Sergey' },
         ]
       }
     };
 
-    const currentInstructor = instructors[selectedInstructor];
+    const currentData = instructorsList[selectedInstructor];
 
     return (
       <div className="pb-28">
-        {/* Golden Header */}
+        {/* Header */}
         <div style={{ backgroundColor: ARIKANA_COLOR }} className="text-white px-6 py-6">
-          <div className="mb-4">
-            <h1 className="text-2xl font-light mb-1">Book Classes</h1>
-            <p className="text-sm opacity-90">Choose your instructor</p>
-          </div>
+          <h1 className="text-2xl font-light mb-1">Book Classes</h1>
+          <p className="text-sm opacity-90">Swipe to explore instructors →</p>
+        </div>
 
-          {/* Instructor Tabs */}
-          <div className="flex gap-2 mb-4">
+        {/* Swipeable Cards Container */}
+        <div className="overflow-x-auto scrollbar-hide px-4 py-6">
+          <div className="flex gap-4" style={{ minWidth: 'min-content' }}>
+            {/* All Instructors Card */}
             <button
-              onClick={() => setSelectedInstructor('nicolas')}
+              onClick={() => setSelectedInstructor('all')}
               style={{
-                backgroundColor: selectedInstructor === 'nicolas' ? 'rgba(255, 255, 255, 0.3)' : 'rgba(255, 255, 255, 0.1)',
-                borderColor: selectedInstructor === 'nicolas' ? '#fff' : 'transparent'
+                backgroundColor: selectedInstructor === 'all' ? ARIKANA_COLOR : '#f5f5f5',
+                color: selectedInstructor === 'all' ? '#fff' : '#333'
               }}
-              className="px-4 py-2 rounded-full text-xs font-medium text-white border-2 transition-all"
+              className="flex-shrink-0 w-80 rounded-2xl p-6 text-left transition-all hover:shadow-lg cursor-pointer"
             >
-              Nicolas
+              <div className="text-5xl mb-4">🎯</div>
+              <h3 className="text-xl font-bold mb-1">All Instructors</h3>
+              <p className="text-sm opacity-80 mb-3">Browse all available classes</p>
+              <div className="text-xs opacity-70">12 classes • 3 coaches</div>
             </button>
-            <button
-              onClick={() => setSelectedInstructor('angelina')}
-              style={{
-                backgroundColor: selectedInstructor === 'angelina' ? 'rgba(255, 255, 255, 0.3)' : 'rgba(255, 255, 255, 0.1)',
-                borderColor: selectedInstructor === 'angelina' ? '#fff' : 'transparent'
-              }}
-              className="px-4 py-2 rounded-full text-xs font-medium text-white border-2 transition-all"
-            >
-              Angelina
-            </button>
-            <button
-              onClick={() => setSelectedInstructor('sergey')}
-              style={{
-                backgroundColor: selectedInstructor === 'sergey' ? 'rgba(255, 255, 255, 0.3)' : 'rgba(255, 255, 255, 0.1)',
-                borderColor: selectedInstructor === 'sergey' ? '#fff' : 'transparent'
-              }}
-              className="px-4 py-2 rounded-full text-xs font-medium text-white border-2 transition-all"
-            >
-              Sergey
-            </button>
-          </div>
 
-          {/* Instructor Card with Photo */}
-          <div style={{ backgroundColor: 'rgba(255, 255, 255, 0.15)' }} className="rounded-xl p-4">
-            <div className="flex gap-3">
-              {/* Photo Circle */}
-              <div className="w-20 h-20 rounded-full bg-white flex-shrink-0 overflow-hidden border-4 border-white shadow-lg">
-                <img 
-                  src={currentInstructor.photo}
-                  alt={currentInstructor.name}
-                  className="w-full h-full object-cover"
-                />
-              </div>
+            {/* Individual Instructor Cards */}
+            {['nicolas', 'angelina', 'sergey'].map((key) => {
+              const instr = instructorsList[key];
+              return (
+                <button
+                  key={key}
+                  onClick={() => setSelectedInstructor(key)}
+                  style={{
+                    backgroundColor: selectedInstructor === key ? ARIKANA_COLOR : '#f5f5f5',
+                    color: selectedInstructor === key ? '#fff' : '#333'
+                  }}
+                  className="flex-shrink-0 w-80 rounded-2xl p-6 text-left transition-all hover:shadow-lg cursor-pointer overflow-hidden"
+                >
+                  {/* Photo */}
+                  <div className="w-20 h-20 rounded-full bg-white mb-4 overflow-hidden border-2" style={{ borderColor: selectedInstructor === key ? '#fff' : ARIKANA_COLOR }}>
+                    <img 
+                      src={instr.photo}
+                      alt={instr.name}
+                      className="w-full h-full object-cover"
+                    />
+                  </div>
 
-              {/* Info */}
-              <div className="text-white flex-1">
-                <h2 className="text-lg font-semibold mb-1">{currentInstructor.name}</h2>
-                <p className="text-sm opacity-90 mb-2">{currentInstructor.title}</p>
-                <div className="flex gap-2 text-xs">
-                  <span>⭐ {currentInstructor.rating}</span>
-                  <span>({currentInstructor.reviews} reviews)</span>
-                </div>
-                <p className="text-xs opacity-85 mt-1">{currentInstructor.bio}</p>
-              </div>
-            </div>
+                  {/* Info */}
+                  <h3 className="text-xl font-bold mb-1">{instr.name}</h3>
+                  <p className="text-sm opacity-80 mb-2">{instr.title}</p>
+                  <div className="flex gap-2 text-xs mb-3">
+                    <span>⭐ {instr.rating}</span>
+                    <span>({instr.reviews} reviews)</span>
+                  </div>
+                  <p className="text-xs opacity-70">{instr.bio}</p>
+                </button>
+              );
+            })}
           </div>
         </div>
 
-
-
         {/* Classes List */}
-        <div className="px-6 mt-6">
-          <h3 className="text-sm font-semibold text-stone-900 mb-3">Available Classes</h3>
+        <div className="px-6 pb-4">
+          <h3 className="text-sm font-semibold text-stone-900 mb-4">
+            {selectedInstructor === 'all' ? '📚 All Available Classes' : `📚 ${currentData.name}'s Classes`}
+          </h3>
           <div className="space-y-3">
-            {currentInstructor.classes.map((cls) => (
+            {currentData.classes.map((cls) => (
               <div key={cls.id} className="bg-white border border-stone-200 rounded-xl p-4 hover:shadow-md transition-all">
                 <div className="flex justify-between items-start mb-2">
                   <div>
                     <h4 className="font-semibold text-stone-900 text-sm">{cls.name}</h4>
-                    <p className="text-xs text-stone-600 mt-1">with {currentInstructor.name}</p>
+                    <p className="text-xs text-stone-600 mt-1">with {cls.instructor}</p>
                   </div>
                   <span style={{ backgroundColor: ARIKANA_COLOR }} className="text-xs font-medium text-white px-2 py-1 rounded-full whitespace-nowrap">
                     {cls.level}
@@ -248,7 +263,6 @@ export default function ArikanaApp() {
     );
   };
 
-  // Buy Tab Content
   const BuyTab = () => (
     <div className="pb-28">
       <div style={{ background: `linear-gradient(to bottom, ${ARIKANA_COLOR}, ${ARIKANA_COLOR}cc)` }} className="text-white px-6 py-8 rounded-b-3xl">
