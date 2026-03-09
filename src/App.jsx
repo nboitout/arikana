@@ -167,7 +167,7 @@ Since Mar 1, 2026</p>
         title: 'Pilates Master',
         rating: 5.0,
         reviews: 48,
-        bio: 'Pelvic Curl Godness',
+        bio: 'Pelvic Curl Goddess',
         photo: 'https://i.ibb.co/8g8sMgRj/Angelina-Tricolici.png',
         classes: [
           { id: 5, name: 'Pelvic Curl Flow', time: '08:00', duration: '50 min', level: 'All Levels', spots: 10, instructor: 'Angelina' },
@@ -232,22 +232,32 @@ Since Mar 1, 2026</p>
                   }}
                   className="flex-shrink-0 w-64 rounded-2xl p-4 text-left transition-all hover:shadow-lg cursor-pointer overflow-hidden"
                 >
-                  {/* Photo */}
-                  <div className="w-16 h-16 rounded-full bg-white mb-3 overflow-hidden border-2" style={{ borderColor: selectedInstructor === key ? '#fff' : ARIKANA_COLOR }}>
-                    <img 
-                      src={instr.photo}
-                      alt={instr.name}
-                      className="w-full h-full object-cover"
-                    />
-                  </div>
+                  <div className="flex gap-3 h-32">
+                    {/* Left: Photo + Name */}
+                    <div className="flex flex-col items-center flex-shrink-0">
+                      {/* Photo */}
+                      <div className="w-16 h-16 rounded-full bg-white mb-2 overflow-hidden border-2" style={{ borderColor: selectedInstructor === key ? '#fff' : ARIKANA_COLOR }}>
+                        <img 
+                          src={instr.photo}
+                          alt={instr.name}
+                          className="w-full h-full object-cover"
+                        />
+                      </div>
+                      {/* Name below photo */}
+                      <h3 className="text-sm font-bold text-center">{instr.name}</h3>
+                    </div>
 
-                  {/* Info */}
-                  <h3 className="text-lg font-bold mb-1">{instr.name}</h3>
-                  <p className="text-xs opacity-80 mb-1">{instr.title}</p>
-                  <div className="flex gap-1 text-xs mb-1">
-                    <span>⭐ {instr.rating}</span>
+                    {/* Right: Title, Rating, Bio */}
+                    <div className="flex flex-col justify-between flex-1 min-w-0">
+                      <div>
+                        <p className="text-xs opacity-80 mb-1">{instr.title}</p>
+                        <div className="flex gap-1 text-xs mb-1">
+                          <span>⭐ {instr.rating}</span>
+                        </div>
+                      </div>
+                      <p className="text-xs opacity-70 line-clamp-2">{instr.bio}</p>
+                    </div>
                   </div>
-                  <p className="text-xs opacity-70">{instr.bio}</p>
                 </button>
               );
             })}
