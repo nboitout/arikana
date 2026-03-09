@@ -80,47 +80,114 @@ export default function ArikanaApp() {
     </div>
   );
 
-  // Book Tab Content
-  const BookTab = () => (
-    <div className="pb-28">
-      <div style={{ background: `linear-gradient(to bottom, ${ARIKANA_COLOR}, ${ARIKANA_COLOR}cc)` }} className="text-white px-6 py-8 rounded-b-3xl">
-        <h1 className="text-2xl font-light">Book a Class</h1>
-      </div>
+  // Book Tab Content - With Instructor Photo
+  const BookTab = () => {
+    const [selectedFilter, setSelectedFilter] = useState('All');
 
-      <div className="px-6 mt-8">
-        <div className="mb-6">
-          <label className="block text-sm font-semibold text-stone-900 mb-2">Filter by type</label>
-          <div className="flex gap-2 flex-wrap">
-            {['All', 'Yoga', 'Pilates', 'Mindfulness'].map((type) => (
-              <button
-                key={type}
-                className="px-4 py-2 rounded-full border border-stone-300 text-sm font-medium hover:bg-stone-50 transition-colors"
-              >
-                {type}
-              </button>
-            ))}
+    const instructorClasses = [
+      { id: 1, name: 'Pilates Reformer', time: '09:00', duration: '60 min', level: 'All Levels', spots: 8 },
+      { id: 2, name: 'Core Strength', time: '10:30', duration: '45 min', level: 'Intermediate', spots: 12 },
+      { id: 3, name: 'Advanced Pilates', time: '18:30', duration: '60 min', level: 'Advanced', spots: 6 },
+      { id: 4, name: 'Pilates Mat', time: '17:00', duration: '50 min', level: 'Beginner', spots: 15 },
+    ];
+
+    return (
+      <div className="pb-28">
+        {/* Golden Header */}
+        <div style={{ backgroundColor: ARIKANA_COLOR }} className="text-white px-6 py-6">
+          <div className="mb-4">
+            <h1 className="text-2xl font-light mb-1">Book Classes</h1>
+            <p className="text-sm opacity-90">Choose your instructor</p>
+          </div>
+
+          {/* Instructor Card with Photo */}
+          <div style={{ backgroundColor: 'rgba(255, 255, 255, 0.15)' }} className="rounded-xl p-4">
+            <div className="flex gap-3">
+              {/* Photo Circle */}
+              <div className="w-20 h-20 rounded-full bg-white flex-shrink-0 overflow-hidden border-4 border-white shadow-lg">
+                <img 
+                  src="https://media.licdn.com/dms/image/v2/D4E03AQGLz1xZ1p95Uw/profile-displayphoto-shrink_400_400/profile-displayphoto-shrink_400_400/0/1705926896640?e=1712188800&v=beta&t=abc123"
+                  alt="Nicolas"
+                  className="w-full h-full object-cover"
+                />
+              </div>
+
+              {/* Info */}
+              <div className="text-white flex-1">
+                <h2 className="text-lg font-semibold mb-1">Nicolas</h2>
+                <p className="text-sm opacity-90 mb-2">Pilates Specialist</p>
+                <div className="flex gap-2 text-xs">
+                  <span>⭐ 4.9</span>
+                  <span>(127 reviews)</span>
+                </div>
+                <p className="text-xs opacity-85 mt-1">Expert in reformer pilates</p>
+              </div>
+            </div>
           </div>
         </div>
 
-        <div className="space-y-3">
-          {upcomingClasses.map((cls) => (
-            <div key={cls.id} className="border border-stone-200 rounded-2xl p-4 hover:bg-stone-50 cursor-pointer transition-colors">
-              <div className="flex justify-between items-start mb-2">
-                <h3 className="font-semibold text-stone-900">{cls.name}</h3>
-                <span style={{ backgroundColor: `${ARIKANA_COLOR}20`, color: ARIKANA_COLOR }} className="text-xs font-semibold px-2 py-1 rounded-full">
-                  {cls.spots} spots
-                </span>
-              </div>
-              <p className="text-sm text-stone-600 mb-3">{cls.date} at {cls.time}</p>
-              <button style={{ backgroundColor: ARIKANA_COLOR }} className="w-full text-white py-2 rounded-lg font-medium hover:opacity-90 transition-opacity text-sm">
-                Book Now
-              </button>
-            </div>
+        {/* Filter Buttons */}
+        <div className="px-6 py-3 flex gap-2 overflow-x-auto">
+          {['All', 'Reformer', 'Mat', 'Advanced'].map((filter) => (
+            <button
+              key={filter}
+              onClick={() => setSelectedFilter(filter)}
+              style={{
+                backgroundColor: selectedFilter === filter ? ARIKANA_COLOR : '#e8e8e8',
+                color: selectedFilter === filter ? '#fff' : '#333'
+              }}
+              className="px-4 py-2 rounded-full text-xs font-medium whitespace-nowrap transition-all hover:opacity-90"
+            >
+              {filter}
+            </button>
           ))}
         </div>
+
+        {/* Classes List */}
+        <div className="px-6 mt-6">
+          <h3 className="text-sm font-semibold text-stone-900 mb-3">Available Classes</h3>
+          <div className="space-y-3">
+            {instructorClasses.map((cls) => (
+              <div key={cls.id} className="bg-white border border-stone-200 rounded-xl p-4 hover:shadow-md transition-all">
+                <div className="flex justify-between items-start mb-2">
+                  <div>
+                    <h4 className="font-semibold text-stone-900 text-sm">{cls.name}</h4>
+                    <p className="text-xs text-stone-600 mt-1">with Nicolas</p>
+                  </div>
+                  <span style={{ backgroundColor: ARIKANA_COLOR }} className="text-xs font-medium text-white px-2 py-1 rounded-full whitespace-nowrap">
+                    {cls.level}
+                  </span>
+                </div>
+
+                <div className="flex gap-3 text-xs text-stone-600 mb-3">
+                  <span>⏱️ {cls.time} • {cls.duration}</span>
+                  <span>👥 {cls.spots} spots</span>
+                </div>
+
+                <button
+                  style={{ 
+                    borderColor: ARIKANA_COLOR,
+                    color: ARIKANA_COLOR
+                  }}
+                  className="w-full border-2 text-white font-semibold py-2 rounded-lg transition-all hover:opacity-80 text-sm"
+                  onMouseEnter={(e) => {
+                    e.target.style.backgroundColor = ARIKANA_COLOR;
+                    e.target.style.color = '#fff';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.target.style.backgroundColor = 'transparent';
+                    e.target.style.color = ARIKANA_COLOR;
+                  }}
+                >
+                  Book Now →
+                </button>
+              </div>
+            ))}
+          </div>
+        </div>
       </div>
-    </div>
-  );
+    );
+  };
 
   // Buy Tab Content
   const BuyTab = () => (
