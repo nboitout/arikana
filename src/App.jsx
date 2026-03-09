@@ -28,7 +28,7 @@ export default function ArikanaApp() {
     <div className="pb-28">
       {/* Header with gradient */}
       <div style={{ background: `linear-gradient(to bottom, ${ARIKANA_COLOR}, ${ARIKANA_COLOR}cc)` }} className="text-white px-6 py-6">
-        <p className="text-sm font-light mb-1">Hi, {userName}</p>
+        <p className="text-sm font-light mb-1">Hi, Анечка</p>
         <h1 className="text-2xl font-light">Welcome to Arikana Studio</h1>
       </div>
 
@@ -345,14 +345,7 @@ export default function ArikanaApp() {
 
   return (
     <div className="bg-white h-screen flex flex-col max-w-md mx-auto relative overflow-hidden">
-      {/* Status Bar Simulation */}
-      <div style={{ background: `linear-gradient(to bottom, ${ARIKANA_COLOR}, ${ARIKANA_COLOR}cc)` }} className="text-white px-6 pt-3 pb-2 flex justify-between items-center text-xs font-semibold">
-        <span>12:36</span>
-        <div className="flex gap-1 items-center">
-          <span>📶 5G</span>
-          <span className="bg-black bg-opacity-40 px-2 py-1 rounded">27</span>
-        </div>
-      </div>
+
 
       {/* Main Content */}
       <div className="flex-1 overflow-y-auto scrollbar-hide">
