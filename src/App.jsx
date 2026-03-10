@@ -634,9 +634,10 @@ Since Mar 1, 2026</p>
     const [selectedDate, setSelectedDate] = useState(today);
     const [selectedInstructor, setSelectedInstructor] = useState('all');
     const [selectedBookingClass, setSelectedBookingClass] = useState(null);
-    const [showConfirmation, setShowConfirmation] = useState(false);
+    
+    // Main view state - controls what is displayed
+    const [view, setView] = useState('classes'); // 'classes', 'detail', 'confirmation', 'warning'
     const [lastBookedClass, setLastBookedClass] = useState(null);
-    const [confirmPastBooking, setConfirmPastBooking] = useState(false);
 
     // Class descriptions
     const classDescriptions = {
@@ -755,8 +756,8 @@ Since Mar 1, 2026</p>
     // Handle booking confirmation
     const handleBooking = () => {
       // Check if session is in the past and user hasn't confirmed yet
-      if (isSessionInPast() && !confirmPastBooking) {
-        setConfirmPastBooking(true);
+      if (isSessionInPast() && view !== 'warning') {
+        setView('warning');
         return;
       }
 
@@ -788,13 +789,13 @@ Since Mar 1, 2026</p>
       // Save to localStorage
       localStorage.setItem('arikanaBookings', JSON.stringify(updatedBookings));
 
-      // Show confirmation
+      // Show confirmation page
       setLastBookedClass(newBooking);
-      setShowConfirmation(true);
+      setView('confirmation');
     };
 
-    // CONFIRMATION PAGE - SHOW FIRST
-    if (showConfirmation && lastBookedClass) {
+    // CONFIRMATION PAGE - shown when view === 'confirmation'
+    if (view === 'confirmation' && lastBookedClass) {
       return (
         <div className="pb-28 h-screen flex flex-col bg-white">
           {/* Header */}
@@ -855,10 +856,9 @@ Since Mar 1, 2026</p>
               style={{ backgroundColor: ARIKANA_COLOR }}
               className="w-full text-white py-5 rounded-2xl font-bold hover:opacity-90 transition-opacity text-lg"
               onClick={() => {
-                setShowConfirmation(false);
-                setLastBookedClass(null);
+                setView('classes');
                 setSelectedBookingClass(null);
-                setConfirmPastBooking(false);
+                setLastBookedClass(null);
               }}
             >
               Back to Booking Calendar
@@ -868,73 +868,73 @@ Since Mar 1, 2026</p>
       );
     }
 
-    // Booking Detail View
-    if (selectedBookingClass) {
+    // WARNING PAGE - shown when view === 'warning'
+    if (view === 'warning' && selectedBookingClass) {
+      return (
+        <div className="pb-28">
+          {/* Header */}
+          <div style={{ backgroundColor: ARIKANA_COLOR }} className="text-white px-6 py-4 flex justify-between items-center">
+            <button onClick={() => { setView('detail'); }} className="text-2xl">←</button>
+            <h1 className="text-lg font-light flex-1 text-center">Warning</h1>
+            <div className="w-8"></div>
+          </div>
+
+          {/* Warning Content */}
+          <div className="px-6 py-8">
+            <div className="text-center mb-6">
+              <div className="text-6xl mb-4">⚠️</div>
+              <h2 className="text-2xl font-bold text-stone-900 mb-2">Session in the Past</h2>
+              <p className="text-stone-600 text-base">This class has already started or passed.</p>
+            </div>
+
+            {/* Session Details */}
+            <div className="bg-orange-50 border-2 border-orange-200 rounded-2xl p-4 mb-6">
+              <p className="text-sm font-semibold text-stone-900 mb-2">{selectedBookingClass.name}</p>
+              <p className="text-xs text-stone-600">{formatDateDetail(selectedDate)} • {selectedBookingClass.time}</p>
+              <p className="text-xs text-stone-500 mt-2">with {selectedBookingClass.instructor}</p>
+            </div>
+
+            {/* Warning Message */}
+            <div className="bg-amber-50 border border-amber-300 rounded-lg p-4 mb-8">
+              <p className="text-sm text-amber-900">You can still book this session if you'd like to add it to your history, but it won't appear in your upcoming bookings.</p>
+            </div>
+          </div>
+
+          {/* Buttons */}
+          <div className="fixed bottom-24 left-0 right-0 max-w-md mx-auto px-6 pb-4 flex gap-3">
+            <button 
+              style={{ borderColor: ARIKANA_COLOR, color: ARIKANA_COLOR }}
+              className="flex-1 border-2 py-3 rounded-lg font-semibold hover:opacity-80 transition-opacity"
+              onClick={() => {
+                setView('classes');
+                setSelectedBookingClass(null);
+              }}
+            >
+              Cancel
+            </button>
+            <button 
+              style={{ backgroundColor: ARIKANA_COLOR }}
+              className="flex-1 text-white py-3 rounded-lg font-semibold hover:opacity-90 transition-opacity"
+              onClick={handleBooking}
+            >
+              Book Anyway
+            </button>
+          </div>
+        </div>
+      );
+    }
+
+    // BOOKING DETAIL VIEW - shown when view === 'detail'
+    if (view === 'detail' && selectedBookingClass) {
       const instructor = getInstructorData(selectedBookingClass.instructor);
       const description = classDescriptions[selectedBookingClass.name] || 'Professional class instruction.';
       const sessionInPast = isSessionInPast();
-
-      // Show past session warning
-      if (sessionInPast && confirmPastBooking) {
-        return (
-          <div className="pb-28">
-            {/* Header */}
-            <div style={{ backgroundColor: ARIKANA_COLOR }} className="text-white px-6 py-4 flex justify-between items-center">
-              <button onClick={() => { setSelectedBookingClass(null); setConfirmPastBooking(false); }} className="text-2xl">←</button>
-              <h1 className="text-lg font-light flex-1 text-center">Warning</h1>
-              <div className="w-8"></div>
-            </div>
-
-            {/* Warning Content */}
-            <div className="px-6 py-8">
-              <div className="text-center mb-6">
-                <div className="text-6xl mb-4">⚠️</div>
-                <h2 className="text-2xl font-bold text-stone-900 mb-2">Session in the Past</h2>
-                <p className="text-stone-600 text-base">This class has already started or passed.</p>
-              </div>
-
-              {/* Session Details */}
-              <div className="bg-orange-50 border-2 border-orange-200 rounded-2xl p-4 mb-6">
-                <p className="text-sm font-semibold text-stone-900 mb-2">{selectedBookingClass.name}</p>
-                <p className="text-xs text-stone-600">{formatDateDetail(selectedDate)} • {selectedBookingClass.time}</p>
-                <p className="text-xs text-stone-500 mt-2">with {selectedBookingClass.instructor}</p>
-              </div>
-
-              {/* Warning Message */}
-              <div className="bg-amber-50 border border-amber-300 rounded-lg p-4 mb-8">
-                <p className="text-sm text-amber-900">You can still book this session if you'd like to add it to your history, but it won't appear in your upcoming bookings.</p>
-              </div>
-            </div>
-
-            {/* Buttons */}
-            <div className="fixed bottom-24 left-0 right-0 max-w-md mx-auto px-6 pb-4 flex gap-3">
-              <button 
-                style={{ borderColor: ARIKANA_COLOR, color: ARIKANA_COLOR }}
-                className="flex-1 border-2 py-3 rounded-lg font-semibold hover:opacity-80 transition-opacity"
-                onClick={() => {
-                  setSelectedBookingClass(null);
-                  setConfirmPastBooking(false);
-                }}
-              >
-                Cancel
-              </button>
-              <button 
-                style={{ backgroundColor: ARIKANA_COLOR }}
-                className="flex-1 text-white py-3 rounded-lg font-semibold hover:opacity-90 transition-opacity"
-                onClick={handleBooking}
-              >
-                Book Anyway
-              </button>
-            </div>
-          </div>
-        );
-      }
 
       return (
         <div className="pb-28">
           {/* Header */}
           <div style={{ backgroundColor: ARIKANA_COLOR }} className="text-white px-6 py-4 flex justify-between items-center">
-            <button onClick={() => setSelectedBookingClass(null)} className="text-2xl">←</button>
+            <button onClick={() => setView('classes')} className="text-2xl">←</button>
             <h1 className="text-lg font-light flex-1 text-center">Book Class</h1>
             <button className="text-2xl">⬆️</button>
           </div>
@@ -1121,7 +1121,10 @@ Since Mar 1, 2026</p>
                   </div>
 
                   <button
-                    onClick={() => setSelectedBookingClass(cls)}
+                    onClick={() => {
+                      setSelectedBookingClass(cls);
+                      setView('detail');
+                    }}
                     style={{ 
                       borderColor: ARIKANA_COLOR,
                       color: ARIKANA_COLOR
