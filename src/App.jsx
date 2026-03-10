@@ -569,21 +569,31 @@ Since Mar 1, 2026</p>
         {/* Upcoming Booking */}
         <div className="px-6 mb-8">
           <h2 className="text-2xl font-bold text-stone-900 mb-4">Upcoming booking</h2>
-          {bookings.length > 0 ? (
-            <div className="space-y-2 mb-4">
-              {bookings.slice(0, 2).map((booking) => (
-                <div key={booking.id} className="bg-gradient-to-r rounded-3xl p-5 text-white" style={{ background: `linear-gradient(135deg, ${ARIKANA_COLOR}, ${ARIKANA_COLOR}dd)` }}>
-                  <h3 className="font-semibold text-lg">{booking.className}</h3>
-                  <p className="text-sm opacity-90 mt-2">{booking.displayDate} | {booking.time}</p>
-                  <p className="text-xs opacity-80 mt-1">with {booking.instructor}</p>
+          {(() => {
+            const now = new Date();
+            // Filter out past bookings
+            const futureBookings = bookings.filter(b => b.dateObj > now);
+            
+            if (futureBookings.length > 0) {
+              return (
+                <div className="space-y-2 mb-4">
+                  {futureBookings.slice(0, 2).map((booking) => (
+                    <div key={booking.id} className="bg-gradient-to-r rounded-3xl p-5 text-white" style={{ background: `linear-gradient(135deg, ${ARIKANA_COLOR}, ${ARIKANA_COLOR}dd)` }}>
+                      <h3 className="font-semibold text-lg">{booking.className}</h3>
+                      <p className="text-sm opacity-90 mt-2">{booking.displayDate} | {booking.time}</p>
+                      <p className="text-xs opacity-80 mt-1">with {booking.instructor}</p>
+                    </div>
+                  ))}
                 </div>
-              ))}
-            </div>
-          ) : (
-            <div className="bg-gray-100 rounded-3xl p-6 mb-4 text-center">
-              <p className="text-stone-700 text-base font-normal">Nothing is currently scheduled</p>
-            </div>
-          )}
+              );
+            } else {
+              return (
+                <div className="bg-gray-100 rounded-3xl p-6 mb-4 text-center">
+                  <p className="text-stone-700 text-base font-normal">Nothing is currently scheduled</p>
+                </div>
+              );
+            }
+          })()}
           <button 
             onClick={() => setActiveTab('book')}
             style={{ backgroundColor: ARIKANA_COLOR }} 
@@ -624,7 +634,10 @@ Since Mar 1, 2026</p>
     const [selectedDate, setSelectedDate] = useState(today);
     const [selectedInstructor, setSelectedInstructor] = useState('all');
     const [selectedBookingClass, setSelectedBookingClass] = useState(null);
-    const [bookingConfirmed, setBookingConfirmed] = useState(false);
+    
+    // Main view state - controls what is displayed
+    const [view, setView] = useState('classes'); // 'classes', 'detail', 'confirmation', 'warning'
+    const [lastBookedClass, setLastBookedClass] = useState(null);
 
     // Class descriptions
     const classDescriptions = {
@@ -731,17 +744,32 @@ Since Mar 1, 2026</p>
       return `${days[date.getDay()]}, ${date.getDate()} Mar`;
     };
 
+    // Check if session is in the past
+    const isSessionInPast = () => {
+      const now = new Date();
+      const sessionDateTime = new Date(selectedDate);
+      const [hours, minutes] = selectedBookingClass.time.split(':').map(Number);
+      sessionDateTime.setHours(hours, minutes, 0, 0);
+      return sessionDateTime <= now;
+    };
+
     // Handle booking confirmation
     const handleBooking = () => {
+      // Check if session is in the past and user hasn't confirmed yet
+      if (isSessionInPast() && view !== 'warning') {
+        setView('warning');
+        return;
+      }
+
       // Create booking object
       const newBooking = {
-        id: Date.now(), // unique ID
+        id: Date.now(),
         className: selectedBookingClass.name,
         instructor: selectedBookingClass.instructor,
         time: selectedBookingClass.time,
         duration: selectedBookingClass.duration,
         displayDate: formatDateDetail(selectedDate),
-        dateObj: new Date(selectedDate), // for sorting
+        dateObj: new Date(selectedDate),
         classId: selectedBookingClass.id,
       };
 
@@ -761,58 +789,76 @@ Since Mar 1, 2026</p>
       // Save to localStorage
       localStorage.setItem('arikanaBookings', JSON.stringify(updatedBookings));
 
-      setBookingConfirmed(true);
+      // Show confirmation page
+      setLastBookedClass(newBooking);
+      setView('confirmation');
     };
 
-    // Booking Confirmation View
-    if (selectedBookingClass && bookingConfirmed) {
+    // CONFIRMATION PAGE - shown when view === 'confirmation'
+    if (view === 'confirmation' && lastBookedClass) {
       return (
-        <div className="pb-28">
+        <div className="pb-28 h-screen flex flex-col bg-white">
           {/* Header */}
-          <div style={{ backgroundColor: ARIKANA_COLOR }} className="text-white px-6 py-3">
-            <h1 className="text-lg font-light text-center">Booking Confirmation</h1>
+          <div style={{ backgroundColor: ARIKANA_COLOR }} className="text-white px-6 py-4">
+            <h1 className="text-xl font-light text-center">Booking Confirmation</h1>
           </div>
 
-          {/* Success Message - Compact */}
-          <div className="px-6 py-4 text-center">
-            <div className="text-5xl mb-2">✅</div>
-            <h2 className="text-xl font-bold text-stone-900 mb-1">You're Booked!</h2>
-            <p className="text-sm text-stone-600 mb-4">Your spot is confirmed. See you soon!</p>
+          {/* Content */}
+          <div className="flex-1 px-6 py-8 flex flex-col items-center justify-center">
+            {/* Success Icon */}
+            <div className="text-8xl mb-6">✅</div>
+            
+            {/* Success Message */}
+            <h2 className="text-3xl font-bold text-stone-900 mb-2">You're Booked!</h2>
+            <p className="text-lg text-stone-600 mb-10">Your spot is confirmed. See you soon!</p>
 
-            {/* Booking Details - Compact Grid */}
-            <div className="bg-stone-50 rounded-lg p-3 mb-3 text-left text-sm grid grid-cols-2 gap-3">
-              <div>
-                <p className="text-xs text-stone-500 uppercase tracking-wide mb-0.5">Class</p>
-                <p className="font-bold text-stone-900">{selectedBookingClass.name}</p>
-              </div>
-              <div>
-                <p className="text-xs text-stone-500 uppercase tracking-wide mb-0.5">Instructor</p>
-                <p className="font-bold text-stone-900">{selectedBookingClass.instructor}</p>
-              </div>
-              <div>
-                <p className="text-xs text-stone-500 uppercase tracking-wide mb-0.5">Date & Time</p>
-                <p className="text-stone-900">{formatDateDetail(selectedDate)} • {selectedBookingClass.time}</p>
-              </div>
-              <div>
-                <p className="text-xs text-stone-500 uppercase tracking-wide mb-0.5">Duration</p>
-                <p className="text-stone-900">{selectedBookingClass.duration}</p>
+            {/* Booking Details - 2 Column Grid */}
+            <div className="w-full bg-stone-100 rounded-3xl p-8 mb-8">
+              <div className="grid grid-cols-2 gap-6">
+                {/* Class */}
+                <div>
+                  <p className="text-xs text-stone-500 uppercase tracking-widest font-bold mb-3">Class</p>
+                  <p className="text-lg font-bold text-stone-900">{lastBookedClass.className}</p>
+                </div>
+                
+                {/* Instructor */}
+                <div>
+                  <p className="text-xs text-stone-500 uppercase tracking-widest font-bold mb-3">Instructor</p>
+                  <p className="text-lg font-bold text-stone-900">{lastBookedClass.instructor}</p>
+                </div>
+
+                {/* Date & Time */}
+                <div>
+                  <p className="text-xs text-stone-500 uppercase tracking-widest font-bold mb-3">Date & Time</p>
+                  <p className="text-lg text-stone-900 font-semibold">{lastBookedClass.displayDate}</p>
+                  <p className="text-lg font-bold text-stone-900">{lastBookedClass.time}</p>
+                </div>
+
+                {/* Duration */}
+                <div>
+                  <p className="text-xs text-stone-500 uppercase tracking-widest font-bold mb-3">Duration</p>
+                  <p className="text-lg font-bold text-stone-900">{lastBookedClass.duration}</p>
+                </div>
               </div>
             </div>
 
-            {/* Info Message - Compact */}
-            <div className="bg-blue-50 border border-blue-200 rounded-lg p-2 mb-4 text-xs">
-              <p className="text-blue-900">📧 Confirmation email sent to your account</p>
+            {/* Info Box */}
+            <div className="w-full bg-blue-50 border-2 border-blue-300 rounded-2xl p-5 mb-8">
+              <p className="text-base text-blue-900 font-semibold">
+                <span className="text-2xl mr-3">📧</span>Confirmation email sent to your account
+              </p>
             </div>
           </div>
 
-          {/* Button - Visible */}
-          <div className="fixed bottom-24 left-0 right-0 max-w-md mx-auto px-6 pb-4">
+          {/* Button */}
+          <div className="px-6 pb-8">
             <button
               style={{ backgroundColor: ARIKANA_COLOR }}
-              className="w-full text-white py-3 rounded-lg font-semibold hover:opacity-90 transition-opacity"
+              className="w-full text-white py-5 rounded-2xl font-bold hover:opacity-90 transition-opacity text-lg"
               onClick={() => {
+                setView('classes');
                 setSelectedBookingClass(null);
-                setBookingConfirmed(false);
+                setLastBookedClass(null);
               }}
             >
               Back to Booking Calendar
@@ -822,16 +868,73 @@ Since Mar 1, 2026</p>
       );
     }
 
-    // Booking Detail View
-    if (selectedBookingClass) {
+    // WARNING PAGE - shown when view === 'warning'
+    if (view === 'warning' && selectedBookingClass) {
+      return (
+        <div className="pb-28">
+          {/* Header */}
+          <div style={{ backgroundColor: ARIKANA_COLOR }} className="text-white px-6 py-4 flex justify-between items-center">
+            <button onClick={() => { setView('detail'); }} className="text-2xl">←</button>
+            <h1 className="text-lg font-light flex-1 text-center">Warning</h1>
+            <div className="w-8"></div>
+          </div>
+
+          {/* Warning Content */}
+          <div className="px-6 py-8">
+            <div className="text-center mb-6">
+              <div className="text-6xl mb-4">⚠️</div>
+              <h2 className="text-2xl font-bold text-stone-900 mb-2">Session in the Past</h2>
+              <p className="text-stone-600 text-base">This class has already started or passed.</p>
+            </div>
+
+            {/* Session Details */}
+            <div className="bg-orange-50 border-2 border-orange-200 rounded-2xl p-4 mb-6">
+              <p className="text-sm font-semibold text-stone-900 mb-2">{selectedBookingClass.name}</p>
+              <p className="text-xs text-stone-600">{formatDateDetail(selectedDate)} • {selectedBookingClass.time}</p>
+              <p className="text-xs text-stone-500 mt-2">with {selectedBookingClass.instructor}</p>
+            </div>
+
+            {/* Warning Message */}
+            <div className="bg-amber-50 border border-amber-300 rounded-lg p-4 mb-8">
+              <p className="text-sm text-amber-900">You can still book this session if you'd like to add it to your history, but it won't appear in your upcoming bookings.</p>
+            </div>
+          </div>
+
+          {/* Buttons */}
+          <div className="fixed bottom-24 left-0 right-0 max-w-md mx-auto px-6 pb-4 flex gap-3">
+            <button 
+              style={{ borderColor: ARIKANA_COLOR, color: ARIKANA_COLOR }}
+              className="flex-1 border-2 py-3 rounded-lg font-semibold hover:opacity-80 transition-opacity"
+              onClick={() => {
+                setView('classes');
+                setSelectedBookingClass(null);
+              }}
+            >
+              Cancel
+            </button>
+            <button 
+              style={{ backgroundColor: ARIKANA_COLOR }}
+              className="flex-1 text-white py-3 rounded-lg font-semibold hover:opacity-90 transition-opacity"
+              onClick={handleBooking}
+            >
+              Book Anyway
+            </button>
+          </div>
+        </div>
+      );
+    }
+
+    // BOOKING DETAIL VIEW - shown when view === 'detail'
+    if (view === 'detail' && selectedBookingClass) {
       const instructor = getInstructorData(selectedBookingClass.instructor);
       const description = classDescriptions[selectedBookingClass.name] || 'Professional class instruction.';
+      const sessionInPast = isSessionInPast();
 
       return (
         <div className="pb-28">
           {/* Header */}
           <div style={{ backgroundColor: ARIKANA_COLOR }} className="text-white px-6 py-4 flex justify-between items-center">
-            <button onClick={() => setSelectedBookingClass(null)} className="text-2xl">←</button>
+            <button onClick={() => setView('classes')} className="text-2xl">←</button>
             <h1 className="text-lg font-light flex-1 text-center">Book Class</h1>
             <button className="text-2xl">⬆️</button>
           </div>
@@ -845,6 +948,13 @@ Since Mar 1, 2026</p>
             <p className="text-stone-600 text-base mb-6">
               {formatDateDetail(selectedDate)} • {selectedBookingClass.time} ({selectedBookingClass.duration})
             </p>
+
+            {/* Past Session Warning Badge */}
+            {sessionInPast && (
+              <div className="bg-orange-100 border-l-4 border-orange-500 p-3 mb-6 rounded">
+                <p className="text-orange-800 text-sm font-semibold">⚠️ This session is in the past</p>
+              </div>
+            )}
 
             {/* Staff Section */}
             <div className="mb-8">
@@ -1011,7 +1121,10 @@ Since Mar 1, 2026</p>
                   </div>
 
                   <button
-                    onClick={() => setSelectedBookingClass(cls)}
+                    onClick={() => {
+                      setSelectedBookingClass(cls);
+                      setView('detail');
+                    }}
                     style={{ 
                       borderColor: ARIKANA_COLOR,
                       color: ARIKANA_COLOR
