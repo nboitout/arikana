@@ -63,6 +63,7 @@ export default function ArikanaApp() {
   const [currentUser, setCurrentUser] = useState(null);
   const [authMode, setAuthMode] = useState('signup'); // 'signup' or 'signin'
   const [isLoading, setIsLoading] = useState(true);
+  const [bookings, setBookings] = useState([]);
 
   // Brand color
   const ARIKANA_COLOR = '#B69B4D';
@@ -76,6 +77,13 @@ export default function ArikanaApp() {
     if (savedUser) {
       setCurrentUser(JSON.parse(savedUser));
     }
+
+    // Load bookings from localStorage
+    const savedBookings = localStorage.getItem('arikanaBookings');
+    if (savedBookings) {
+      setBookings(JSON.parse(savedBookings));
+    }
+
     setIsLoading(false);
   }, []);
 
@@ -561,9 +569,21 @@ Since Mar 1, 2026</p>
         {/* Upcoming Booking */}
         <div className="px-6 mb-8">
           <h2 className="text-2xl font-bold text-stone-900 mb-4">Upcoming booking</h2>
-          <div className="bg-gray-100 rounded-3xl p-6 mb-4 text-center">
-            <p className="text-stone-700 text-base font-normal">Nothing is currently scheduled</p>
-          </div>
+          {bookings.length > 0 ? (
+            <div className="space-y-2 mb-4">
+              {bookings.slice(0, 2).map((booking) => (
+                <div key={booking.id} className="bg-gradient-to-r rounded-3xl p-5 text-white" style={{ background: `linear-gradient(135deg, ${ARIKANA_COLOR}, ${ARIKANA_COLOR}dd)` }}>
+                  <h3 className="font-semibold text-lg">{booking.className}</h3>
+                  <p className="text-sm opacity-90 mt-2">{booking.displayDate} | {booking.time}</p>
+                  <p className="text-xs opacity-80 mt-1">with {booking.instructor}</p>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="bg-gray-100 rounded-3xl p-6 mb-4 text-center">
+              <p className="text-stone-700 text-base font-normal">Nothing is currently scheduled</p>
+            </div>
+          )}
           <button 
             onClick={() => setActiveTab('book')}
             style={{ backgroundColor: ARIKANA_COLOR }} 
@@ -713,19 +733,35 @@ Since Mar 1, 2026</p>
 
     // Handle booking confirmation
     const handleBooking = () => {
+      // Create booking object
+      const newBooking = {
+        id: Date.now(), // unique ID
+        className: selectedBookingClass.name,
+        instructor: selectedBookingClass.instructor,
+        time: selectedBookingClass.time,
+        duration: selectedBookingClass.duration,
+        displayDate: formatDateDetail(selectedDate),
+        dateObj: new Date(selectedDate), // for sorting
+        classId: selectedBookingClass.id,
+      };
+
+      // Add time to dateObj for accurate sorting
+      const [hours, minutes] = selectedBookingClass.time.split(':').map(Number);
+      newBooking.dateObj.setHours(hours, minutes, 0, 0);
+
+      // Add to bookings array
+      const updatedBookings = [...bookings, newBooking];
+
+      // Sort by date/time (closest first)
+      updatedBookings.sort((a, b) => a.dateObj - b.dateObj);
+
+      // Save to state
+      setBookings(updatedBookings);
+
+      // Save to localStorage
+      localStorage.setItem('arikanaBookings', JSON.stringify(updatedBookings));
+
       setBookingConfirmed(true);
-      // Here we would send booking data to backend/email service
-      // Example:
-      // fetch('/api/booking', {
-      //   method: 'POST',
-      //   body: JSON.stringify({
-      //     classId: selectedBookingClass.id,
-      //     className: selectedBookingClass.name,
-      //     date: selectedDate,
-      //     instructor: selectedBookingClass.instructor,
-      //     userEmail: 'user@example.com' // Would get from user profile
-      //   })
-      // })
     };
 
     // Booking Confirmation View
