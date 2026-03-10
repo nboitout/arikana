@@ -628,6 +628,7 @@ Since Mar 1, 2026</p>
 
   // Book Tab Content - Calendar + Classes by Date
   const BookTab = () => {
+    console.log('BookTab rendering');
     // Initialize with today's date
     const today = new Date();
     today.setHours(0, 0, 0, 0);
@@ -636,6 +637,8 @@ Since Mar 1, 2026</p>
     const [selectedBookingClass, setSelectedBookingClass] = useState(null);
     const [bookingConfirmed, setBookingConfirmed] = useState(false);
     const [confirmPastBooking, setConfirmPastBooking] = useState(false);
+    
+    console.log('BookTab state:', { selectedBookingClass: selectedBookingClass?.name, bookingConfirmed });
 
     // Class descriptions
     const classDescriptions = {
@@ -753,6 +756,8 @@ Since Mar 1, 2026</p>
 
     // Handle booking confirmation
     const handleBooking = () => {
+      console.log('handleBooking called', { selectedBookingClass, isSessionInPast: isSessionInPast(), confirmPastBooking });
+      
       // Check if session is in the past and user hasn't confirmed yet
       if (isSessionInPast() && !confirmPastBooking) {
         setConfirmPastBooking(true);
@@ -761,13 +766,13 @@ Since Mar 1, 2026</p>
 
       // Create booking object
       const newBooking = {
-        id: Date.now(), // unique ID
+        id: Date.now(),
         className: selectedBookingClass.name,
         instructor: selectedBookingClass.instructor,
         time: selectedBookingClass.time,
         duration: selectedBookingClass.duration,
         displayDate: formatDateDetail(selectedDate),
-        dateObj: new Date(selectedDate), // for sorting
+        dateObj: new Date(selectedDate),
         classId: selectedBookingClass.id,
       };
 
@@ -787,12 +792,16 @@ Since Mar 1, 2026</p>
       // Save to localStorage
       localStorage.setItem('arikanaBookings', JSON.stringify(updatedBookings));
 
+      // CRITICAL: Set confirmation LAST to ensure state updates happen
       setBookingConfirmed(true);
       setConfirmPastBooking(false);
+      
+      console.log('Booking confirmed, should show confirmation page');
     };
 
     // Booking Confirmation View - CHECK FIRST
     if (selectedBookingClass && bookingConfirmed) {
+      console.log('SHOWING CONFIRMATION PAGE', { selectedBookingClass: selectedBookingClass.name, bookingConfirmed });
       return (
         <div className="pb-28 h-screen flex flex-col">
           {/* Header */}
@@ -866,6 +875,7 @@ Since Mar 1, 2026</p>
 
     // Booking Detail View
     if (selectedBookingClass) {
+      console.log('SHOWING BOOKING DETAIL VIEW', { class: selectedBookingClass.name, bookingConfirmed });
       const instructor = getInstructorData(selectedBookingClass.instructor);
       const description = classDescriptions[selectedBookingClass.name] || 'Professional class instruction.';
       const sessionInPast = isSessionInPast();
