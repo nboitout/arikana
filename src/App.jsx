@@ -133,6 +133,23 @@ Since Mar 1, 2026</p>
     today.setHours(0, 0, 0, 0);
     const [selectedDate, setSelectedDate] = useState(today);
     const [selectedInstructor, setSelectedInstructor] = useState('all');
+    const [selectedBookingClass, setSelectedBookingClass] = useState(null);
+
+    // Class descriptions
+    const classDescriptions = {
+      'Pilates Reformer': 'Challenge your body with our dynamic reformer pilates classes. Using state-of-the-art equipment, build strength, flexibility, and endurance while improving posture and alignment.',
+      'Pilates Mat': 'Master core strength through controlled movements on the mat. Perfect for all levels, this class focuses on building a strong foundation and improving body awareness.',
+      'Core Strength': 'Intensive core training designed to strengthen your abdominal muscles and deep stabilizers. Expect a challenging workout that builds power and stability.',
+      'Advanced Pilates': 'For experienced practitioners, this advanced class combines complex movements with intense focus on precision and control.',
+      'Pelvic Curl Flow': 'Gentle flowing movements that engage the pelvic floor and core. Created with expertise to enhance mobility and strength in these crucial areas.',
+      'Deep Core Activation': 'Activate and strengthen your deepest core muscles through targeted exercises and mindful breathing techniques.',
+      'Advanced Pelvic Techniques': 'Advanced training for pelvic floor strength and control, designed for those with prior experience.',
+      'Pilates Fusion': 'Combines pilates with elements of dance and yoga for a dynamic full-body workout that\'s both challenging and enjoyable.',
+      'Ice Skating with Grace': 'Learn the fundamentals of ice skating with an emphasis on grace, balance, and control on the ice.',
+      'Speed Skating': 'High-intensity ice skating focused on speed, agility, and power development for intermediate to advanced skaters.',
+      'Ice Skating Techniques': 'Master advanced ice skating techniques including jumps, spins, and transitions with professional instruction.',
+      'Crossfit on Ice': 'Combine crossfit intensity with ice skating challenges for a unique full-body workout experience.',
+    };
 
     // Class schedule by date (mapping dates to classes)
     // Sunday (2026-03-08) - NO CLASSES (Rest day)
@@ -211,6 +228,85 @@ Since Mar 1, 2026</p>
       return days[date.getDay()];
     };
 
+    // Get instructor data
+    const getInstructorData = (instructorName) => {
+      const key = instructorName.toLowerCase();
+      return instructors[key] || null;
+    };
+
+    // Format date for class detail view
+    const formatDateDetail = (date) => {
+      const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+      return `${days[date.getDay()]}, ${date.getDate()} Mar`;
+    };
+
+    // Booking Detail View
+    if (selectedBookingClass) {
+      const instructor = getInstructorData(selectedBookingClass.instructor);
+      const description = classDescriptions[selectedBookingClass.name] || 'Professional class instruction.';
+
+      return (
+        <div className="pb-28">
+          {/* Header */}
+          <div style={{ backgroundColor: ARIKANA_COLOR }} className="text-white px-6 py-4 flex justify-between items-center">
+            <button onClick={() => setSelectedBookingClass(null)} className="text-2xl">←</button>
+            <h1 className="text-lg font-light flex-1 text-center">Book Class</h1>
+            <button className="text-2xl">⬆️</button>
+          </div>
+
+          {/* Class Details */}
+          <div className="px-6 py-6">
+            {/* Class Title */}
+            <h2 className="text-2xl font-bold text-stone-900 mb-2">{selectedBookingClass.name}</h2>
+
+            {/* Date and Time */}
+            <p className="text-stone-600 text-base mb-6">
+              {formatDateDetail(selectedDate)} • {selectedBookingClass.time} ({selectedBookingClass.duration})
+            </p>
+
+            {/* Staff Section */}
+            <div className="mb-8">
+              <p className="text-xs text-stone-500 uppercase tracking-wide mb-3">Staff</p>
+              <div className="flex items-center gap-3">
+                <img 
+                  src={instructor?.photo} 
+                  alt={selectedBookingClass.instructor}
+                  className="w-14 h-14 rounded-full object-cover"
+                />
+                <h3 className="text-xl font-semibold text-stone-900">{selectedBookingClass.instructor}</h3>
+              </div>
+            </div>
+
+            {/* Description */}
+            <div className="mb-8">
+              <p className="text-xs text-stone-500 uppercase tracking-wide mb-3">Description</p>
+              <p className="text-base text-stone-700 leading-relaxed mb-2">{description}</p>
+              <button className="text-base font-semibold text-stone-900 underline">Read more</button>
+            </div>
+          </div>
+
+          {/* Buttons */}
+          <div className="fixed bottom-24 left-0 right-0 max-w-md mx-auto px-6 pb-4 flex gap-3">
+            <button 
+              style={{ borderColor: ARIKANA_COLOR, color: ARIKANA_COLOR }}
+              className="flex-1 border-2 py-3 rounded-lg font-semibold text-stone-600 opacity-50 cursor-not-allowed"
+              disabled
+            >
+              Book Multiple
+            </button>
+            <button 
+              style={{ backgroundColor: ARIKANA_COLOR }}
+              className="flex-1 text-white py-3 rounded-lg font-semibold hover:opacity-90 transition-opacity"
+              onClick={() => setSelectedBookingClass(null)}
+            >
+              Book
+            </button>
+          </div>
+        </div>
+      );
+    }
+
+    // Classes List View
     return (
       <div className="pb-28">
         {/* Header */}
@@ -304,7 +400,13 @@ Since Mar 1, 2026</p>
             {selectedDate.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
           </h3>
 
-          {filteredClasses.length === 0 ? (
+          {selectedDate.getDay() === 0 ? (
+            <div className="text-center py-12">
+              <div className="text-5xl mb-3">😌</div>
+              <p className="text-lg font-semibold text-stone-900 mb-2">Rest Day</p>
+              <p className="text-sm text-stone-600">Take a break, recharge, and come back stronger tomorrow!</p>
+            </div>
+          ) : filteredClasses.length === 0 ? (
             <div className="text-center py-8">
               <p className="text-stone-500 text-sm">No classes available for this day</p>
             </div>
@@ -327,6 +429,7 @@ Since Mar 1, 2026</p>
                   </div>
 
                   <button
+                    onClick={() => setSelectedBookingClass(cls)}
                     style={{ 
                       borderColor: ARIKANA_COLOR,
                       color: ARIKANA_COLOR
