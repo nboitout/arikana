@@ -136,35 +136,38 @@ Since Mar 1, 2026</p>
 
     // Class schedule by date (mapping dates to classes)
     const classSchedule = {
-      '2026-03-10': [ // Tuesday
-        { id: 1, name: 'Pilates Mat', time: '18:30', duration: '60 min', instructor: 'Angelina', spots: 5 },
-        { id: 2, name: 'Pilates Reformer', time: '18:30', duration: '60 min', instructor: 'Nicolas', spots: 3 },
+      '2026-03-10': [ // Tuesday - Today
+        { id: 1, name: 'Pilates Mat', time: '09:00', duration: '60 min', instructor: 'Angelina', spots: 8 },
+        { id: 2, name: 'Core Strength', time: '10:30', duration: '45 min', instructor: 'Nicolas', spots: 12 },
+        { id: 3, name: 'Pilates Reformer', time: '18:30', duration: '60 min', instructor: 'Nicolas', spots: 5 },
       ],
       '2026-03-11': [ // Wednesday
-        { id: 3, name: 'Ice Skating with Grace', time: '07:00', duration: '60 min', instructor: 'Sergey', spots: 14 },
-        { id: 4, name: 'Core Strength', time: '10:30', duration: '45 min', instructor: 'Nicolas', spots: 12 },
+        { id: 4, name: 'Ice Skating with Grace', time: '07:00', duration: '60 min', instructor: 'Sergey', spots: 14 },
+        { id: 5, name: 'Pelvic Curl Flow', time: '08:00', duration: '50 min', instructor: 'Angelina', spots: 10 },
+        { id: 6, name: 'Advanced Pilates', time: '18:30', duration: '60 min', instructor: 'Nicolas', spots: 6 },
       ],
       '2026-03-12': [ // Thursday
-        { id: 5, name: 'Pilates Mat', time: '09:00', duration: '60 min', instructor: 'Angelina', spots: 8 },
-        { id: 6, name: 'Speed Skating', time: '09:30', duration: '50 min', instructor: 'Sergey', spots: 11 },
+        { id: 7, name: 'Speed Skating', time: '09:30', duration: '50 min', instructor: 'Sergey', spots: 11 },
+        { id: 8, name: 'Deep Core Activation', time: '11:00', duration: '60 min', instructor: 'Angelina', spots: 9 },
+        { id: 9, name: 'Pilates Mat', time: '17:00', duration: '50 min', instructor: 'Nicolas', spots: 15 },
       ],
       '2026-03-13': [ // Friday
-        { id: 7, name: 'Pilates Mat', time: '09:00', duration: '60 min', instructor: 'Angelina', spots: 9 },
-        { id: 8, name: 'Pilates Reformer', time: '09:00', duration: '60 min', instructor: 'Nicolas', spots: 7 },
-        { id: 9, name: 'Advanced Pilates', time: '18:30', duration: '60 min', instructor: 'Nicolas', spots: 5 },
+        { id: 10, name: 'Ice Skating Techniques', time: '16:00', duration: '60 min', instructor: 'Sergey', spots: 8 },
+        { id: 11, name: 'Pilates Fusion', time: '19:00', duration: '55 min', instructor: 'Angelina', spots: 12 },
       ],
       '2026-03-14': [ // Saturday
-        { id: 10, name: 'Pelvic Curl Flow', time: '10:30', duration: '50 min', instructor: 'Angelina', spots: 6 },
+        { id: 12, name: 'Pelvic Curl Flow', time: '10:30', duration: '50 min', instructor: 'Angelina', spots: 6 },
+        { id: 13, name: 'Crossfit on Ice', time: '18:00', duration: '55 min', instructor: 'Sergey', spots: 6 },
       ],
       '2026-03-16': [ // Monday
-        { id: 11, name: 'Pilates Mat', time: '09:00', duration: '60 min', instructor: 'Angelina', spots: 8 },
-        { id: 12, name: 'Pilates Reformer', time: '18:30', duration: '60 min', instructor: 'Nicolas', spots: 4 },
-        { id: 13, name: 'Iyengar Yoga', time: '18:30', duration: '90 min', instructor: 'Angelina', spots: 10 },
+        { id: 14, name: 'Advanced Pelvic Techniques', time: '17:00', duration: '60 min', instructor: 'Angelina', spots: 7 },
+        { id: 15, name: 'Core Strength', time: '10:30', duration: '45 min', instructor: 'Nicolas', spots: 12 },
+        { id: 16, name: 'Speed Skating', time: '09:30', duration: '50 min', instructor: 'Sergey', spots: 11 },
       ],
     };
 
     const instructors = {
-      nicolas: { name: 'Nicolas', title: 'Pilates Specialist', rating: 4.9, reviews: 127, bio: 'Expert in hardcore pilates', photo: 'https://i.ibb.co/xKGQ2P8B/Nicolas-Boitout.png' },
+      nicolas: { name: 'Nicolas', title: 'Pilates Specialist', rating: 4.9, reviews: 127, bio: 'Pilates and Pushups', photo: 'https://i.ibb.co/xKGQ2P8B/Nicolas-Boitout.png' },
       angelina: { name: 'Angelina', title: 'Pilates Master', rating: 5.0, reviews: 48, bio: 'Pelvic Curl Goddess', photo: 'https://i.ibb.co/8g8sMgRj/Angelina-Tricolici.png' },
       sergey: { name: 'Sergey', title: 'Crossfit Coach', rating: 4.8, reviews: 95, bio: 'Siberian Crossfitter', photo: 'https://i.ibb.co/nNGSPCsY/Sergey.png' },
     };
@@ -239,7 +242,7 @@ Since Mar 1, 2026</p>
               className="flex-shrink-0 w-56 rounded-2xl p-3 text-left transition-all hover:shadow-lg cursor-pointer"
             >
               <div className="text-3xl mb-1">🎯</div>
-              <h3 className="text-base font-bold mb-0.5">All</h3>
+              <h3 className="text-sm font-bold">All</h3>
               <p className="text-xs opacity-80">All instructors</p>
             </button>
 
@@ -256,7 +259,7 @@ Since Mar 1, 2026</p>
                   }}
                   className="flex-shrink-0 w-56 rounded-2xl p-3 text-left transition-all hover:shadow-lg cursor-pointer overflow-hidden"
                 >
-                  <div className="flex gap-2 h-24">
+                  <div className="flex gap-2 h-20">
                     {/* Left: Photo + Name */}
                     <div className="flex flex-col items-center flex-shrink-0">
                       <div className="w-12 h-12 rounded-full bg-white mb-1 overflow-hidden border-2" style={{ borderColor: selectedInstructor === key ? '#fff' : ARIKANA_COLOR }}>
@@ -266,14 +269,12 @@ Since Mar 1, 2026</p>
                     </div>
 
                     {/* Right: Title, Rating, Bio */}
-                    <div className="flex flex-col justify-between flex-1 min-w-0">
-                      <div>
-                        <p className="text-xs opacity-80 mb-0.5">{instr.title}</p>
-                        <div className="flex gap-1 text-xs mb-0.5">
-                          <span>⭐ {instr.rating}</span>
-                        </div>
+                    <div className="flex flex-col justify-start flex-1 min-w-0 gap-0.5">
+                      <p className="text-xs opacity-80">{instr.title}</p>
+                      <div className="flex gap-1 text-xs">
+                        <span>⭐ {instr.rating}</span>
                       </div>
-                      <p className="text-xs opacity-70 line-clamp-2">{instr.bio}</p>
+                      <p className="text-xs opacity-70">{instr.bio}</p>
                     </div>
                   </div>
                 </button>
