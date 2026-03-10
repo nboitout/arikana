@@ -563,49 +563,124 @@ Since Mar 1, 2026</p>
   );
 
   // Profile Tab Content
-  const ProfileTab = () => (
-    <div className="pb-28">
-      <div style={{ background: `linear-gradient(to bottom, ${ARIKANA_COLOR}, ${ARIKANA_COLOR}cc)` }} className="text-white px-6 py-8 rounded-b-3xl">
-        <h1 className="text-2xl font-light">My Profile</h1>
-      </div>
+  const ProfileTab = () => {
+    const [profileTab, setProfileTab] = useState('wallet');
 
-      <div className="px-6 mt-8">
-        {/* User Card */}
-        <div className="bg-white border-2 border-stone-200 rounded-2xl p-6 mb-6 text-center">
-          <div style={{ backgroundColor: `${ARIKANA_COLOR}20` }} className="w-16 h-16 mx-auto mb-4 rounded-full flex items-center justify-center">
-            <User style={{ color: ARIKANA_COLOR }} className="w-8 h-8" />
+    const paymentMethods = [
+      { type: 'Mastercard', last4: '9909', expires: '09/2029' },
+    ];
+
+    const purchaseHistory = [
+      { name: 'M&F Classes - 1 Month', price: '295,00 RON', date: 'Purchased 20.01.2026' },
+      { name: 'M&F Classes - 1 Month', price: '295,00 RON', date: 'Purchased 20.01.2026' },
+    ];
+
+    return (
+      <div className="pb-28">
+        {/* Header */}
+        <div style={{ background: `linear-gradient(to bottom, ${ARIKANA_COLOR}, ${ARIKANA_COLOR}cc)` }} className="text-white px-6 py-4 pb-12 rounded-b-3xl">
+          <div className="flex justify-between items-start mb-6">
+            <h1 className="text-2xl font-light">Profile</h1>
+            <button className="text-lg">Edit</button>
           </div>
-          <h2 className="text-xl font-bold text-stone-900">Nicolas</h2>
-          <p className="text-sm text-stone-600 mt-1">Active Member</p>
+
+          {/* User Card */}
+          <div className="text-center">
+            <div className="w-24 h-24 mx-auto mb-4 rounded-full bg-white bg-opacity-90 flex items-center justify-center border-4 border-white shadow-lg">
+              <span className="text-3xl font-light text-stone-900">AG</span>
+            </div>
+            <h2 className="text-2xl font-semibold text-white mb-1">Anya Glushkova</h2>
+            <p className="text-white text-opacity-90">172 classes attended</p>
+          </div>
         </div>
 
-        {/* Menu Items */}
-        <div className="space-y-2">
+        {/* Tabs */}
+        <div className="flex gap-0 border-b border-stone-200 px-6">
           {[
-            { label: 'My Bookings', icon: '📅' },
-            { label: 'Membership', icon: '🎫' },
-            { label: 'Payment Methods', icon: '💳' },
-            { label: 'Notifications', icon: '🔔' },
-            { label: 'Preferences', icon: '⚙️' },
-            { label: 'Help & Support', icon: '❓' },
-            { label: 'About Arikana', icon: 'ℹ️' },
-          ].map((item, i) => (
-            <button key={i} className="w-full text-left border border-stone-200 rounded-xl p-4 hover:bg-stone-50 transition-colors flex items-center justify-between">
-              <span className="flex items-center gap-3">
-                <span className="text-xl">{item.icon}</span>
-                <span className="font-medium text-stone-900">{item.label}</span>
-              </span>
-              <ChevronRight className="w-5 h-5 text-stone-400" />
+            { id: 'schedule', label: 'SCHEDULE' },
+            { id: 'passes', label: 'PASSES' },
+            { id: 'wallet', label: 'WALLET' },
+          ].map((tab) => (
+            <button
+              key={tab.id}
+              onClick={() => setProfileTab(tab.id)}
+              className={`flex-1 py-4 text-sm font-medium border-b-2 transition-colors ${
+                profileTab === tab.id
+                  ? `border-stone-900 text-stone-900`
+                  : `border-transparent text-stone-500 hover:text-stone-700`
+              }`}
+            >
+              {tab.label}
             </button>
           ))}
         </div>
 
-        <button style={{ color: ARIKANA_COLOR, borderColor: ARIKANA_COLOR }} className="w-full font-medium py-3 border-2 rounded-xl hover:opacity-80 transition-opacity mt-6">
-          Sign Out
-        </button>
+        {/* Content */}
+        {profileTab === 'wallet' && (
+          <div className="px-6 py-6">
+            {/* Payment Methods */}
+            <div className="mb-8">
+              <h3 className="text-lg font-bold text-stone-900 mb-4">Payment Methods</h3>
+              <div className="space-y-4">
+                {paymentMethods.map((card, i) => (
+                  <div key={i} className="flex items-center justify-between bg-white border border-stone-200 rounded-lg p-4">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 bg-black rounded flex items-center justify-center">
+                        <span className="text-red-500 font-bold">●●</span>
+                      </div>
+                      <div>
+                        <p className="font-medium text-stone-900">{card.type}</p>
+                        <p className="text-sm text-stone-600">•••• •••• •••• {card.last4}</p>
+                        <p className="text-xs text-stone-500">Expires {card.expires}</p>
+                      </div>
+                    </div>
+                    <button className="text-stone-400 hover:text-red-600 transition-colors">🗑️</button>
+                  </div>
+                ))}
+              </div>
+
+              <button
+                style={{ backgroundColor: ARIKANA_COLOR }}
+                className="w-full text-white font-medium py-3 rounded-lg mt-4 hover:opacity-90 transition-opacity"
+              >
+                Add a Card
+              </button>
+            </div>
+
+            {/* Purchase History */}
+            <div>
+              <h3 className="text-lg font-bold text-stone-900 mb-4">Purchase History</h3>
+              <div className="space-y-4">
+                {purchaseHistory.map((item, i) => (
+                  <div key={i} className="border-b border-stone-200 pb-4">
+                    <div className="flex justify-between items-start">
+                      <div>
+                        <p className="font-bold text-stone-900">{item.name}</p>
+                        <p className="text-sm text-stone-500">{item.date}</p>
+                      </div>
+                      <p className="font-bold text-stone-900">{item.price}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {profileTab === 'schedule' && (
+          <div className="px-6 py-6 text-center text-stone-500">
+            <p>Schedule coming soon</p>
+          </div>
+        )}
+
+        {profileTab === 'passes' && (
+          <div className="px-6 py-6 text-center text-stone-500">
+            <p>Passes information coming soon</p>
+          </div>
+        )}
       </div>
-    </div>
-  );
+    );
+  };
 
   // More Tab Content
   const MoreTab = () => (
