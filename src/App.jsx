@@ -569,21 +569,31 @@ Since Mar 1, 2026</p>
         {/* Upcoming Booking */}
         <div className="px-6 mb-8">
           <h2 className="text-2xl font-bold text-stone-900 mb-4">Upcoming booking</h2>
-          {bookings.length > 0 ? (
-            <div className="space-y-2 mb-4">
-              {bookings.slice(0, 2).map((booking) => (
-                <div key={booking.id} className="bg-gradient-to-r rounded-3xl p-5 text-white" style={{ background: `linear-gradient(135deg, ${ARIKANA_COLOR}, ${ARIKANA_COLOR}dd)` }}>
-                  <h3 className="font-semibold text-lg">{booking.className}</h3>
-                  <p className="text-sm opacity-90 mt-2">{booking.displayDate} | {booking.time}</p>
-                  <p className="text-xs opacity-80 mt-1">with {booking.instructor}</p>
+          {(() => {
+            const now = new Date();
+            // Filter out past bookings
+            const futureBookings = bookings.filter(b => b.dateObj > now);
+            
+            if (futureBookings.length > 0) {
+              return (
+                <div className="space-y-2 mb-4">
+                  {futureBookings.slice(0, 2).map((booking) => (
+                    <div key={booking.id} className="bg-gradient-to-r rounded-3xl p-5 text-white" style={{ background: `linear-gradient(135deg, ${ARIKANA_COLOR}, ${ARIKANA_COLOR}dd)` }}>
+                      <h3 className="font-semibold text-lg">{booking.className}</h3>
+                      <p className="text-sm opacity-90 mt-2">{booking.displayDate} | {booking.time}</p>
+                      <p className="text-xs opacity-80 mt-1">with {booking.instructor}</p>
+                    </div>
+                  ))}
                 </div>
-              ))}
-            </div>
-          ) : (
-            <div className="bg-gray-100 rounded-3xl p-6 mb-4 text-center">
-              <p className="text-stone-700 text-base font-normal">Nothing is currently scheduled</p>
-            </div>
-          )}
+              );
+            } else {
+              return (
+                <div className="bg-gray-100 rounded-3xl p-6 mb-4 text-center">
+                  <p className="text-stone-700 text-base font-normal">Nothing is currently scheduled</p>
+                </div>
+              );
+            }
+          })()}
           <button 
             onClick={() => setActiveTab('book')}
             style={{ backgroundColor: ARIKANA_COLOR }} 
@@ -625,6 +635,7 @@ Since Mar 1, 2026</p>
     const [selectedInstructor, setSelectedInstructor] = useState('all');
     const [selectedBookingClass, setSelectedBookingClass] = useState(null);
     const [bookingConfirmed, setBookingConfirmed] = useState(false);
+    const [confirmPastBooking, setConfirmPastBooking] = useState(false);
 
     // Class descriptions
     const classDescriptions = {
@@ -731,8 +742,23 @@ Since Mar 1, 2026</p>
       return `${days[date.getDay()]}, ${date.getDate()} Mar`;
     };
 
+    // Check if session is in the past
+    const isSessionInPast = () => {
+      const now = new Date();
+      const sessionDateTime = new Date(selectedDate);
+      const [hours, minutes] = selectedBookingClass.time.split(':').map(Number);
+      sessionDateTime.setHours(hours, minutes, 0, 0);
+      return sessionDateTime <= now;
+    };
+
     // Handle booking confirmation
     const handleBooking = () => {
+      // Check if session is in the past and user hasn't confirmed yet
+      if (isSessionInPast() && !confirmPastBooking) {
+        setConfirmPastBooking(true);
+        return; // Show warning instead of booking
+      }
+
       // Create booking object
       const newBooking = {
         id: Date.now(), // unique ID
@@ -762,6 +788,7 @@ Since Mar 1, 2026</p>
       localStorage.setItem('arikanaBookings', JSON.stringify(updatedBookings));
 
       setBookingConfirmed(true);
+      setConfirmPastBooking(false);
     };
 
     // Booking Confirmation View
@@ -826,6 +853,63 @@ Since Mar 1, 2026</p>
     if (selectedBookingClass) {
       const instructor = getInstructorData(selectedBookingClass.instructor);
       const description = classDescriptions[selectedBookingClass.name] || 'Professional class instruction.';
+      const sessionInPast = isSessionInPast();
+
+      // Show past session warning
+      if (sessionInPast && confirmPastBooking) {
+        return (
+          <div className="pb-28">
+            {/* Header */}
+            <div style={{ backgroundColor: ARIKANA_COLOR }} className="text-white px-6 py-4 flex justify-between items-center">
+              <button onClick={() => { setSelectedBookingClass(null); setConfirmPastBooking(false); }} className="text-2xl">←</button>
+              <h1 className="text-lg font-light flex-1 text-center">Warning</h1>
+              <div className="w-8"></div>
+            </div>
+
+            {/* Warning Content */}
+            <div className="px-6 py-8">
+              <div className="text-center mb-6">
+                <div className="text-6xl mb-4">⚠️</div>
+                <h2 className="text-2xl font-bold text-stone-900 mb-2">Session in the Past</h2>
+                <p className="text-stone-600 text-base">This class has already started or passed.</p>
+              </div>
+
+              {/* Session Details */}
+              <div className="bg-orange-50 border-2 border-orange-200 rounded-2xl p-4 mb-6">
+                <p className="text-sm font-semibold text-stone-900 mb-2">{selectedBookingClass.name}</p>
+                <p className="text-xs text-stone-600">{formatDateDetail(selectedDate)} • {selectedBookingClass.time}</p>
+                <p className="text-xs text-stone-500 mt-2">with {selectedBookingClass.instructor}</p>
+              </div>
+
+              {/* Warning Message */}
+              <div className="bg-amber-50 border border-amber-300 rounded-lg p-4 mb-8">
+                <p className="text-sm text-amber-900">You can still book this session if you'd like to add it to your history, but it won't appear in your upcoming bookings.</p>
+              </div>
+            </div>
+
+            {/* Buttons */}
+            <div className="fixed bottom-24 left-0 right-0 max-w-md mx-auto px-6 pb-4 flex gap-3">
+              <button 
+                style={{ borderColor: ARIKANA_COLOR, color: ARIKANA_COLOR }}
+                className="flex-1 border-2 py-3 rounded-lg font-semibold hover:opacity-80 transition-opacity"
+                onClick={() => {
+                  setSelectedBookingClass(null);
+                  setConfirmPastBooking(false);
+                }}
+              >
+                Cancel
+              </button>
+              <button 
+                style={{ backgroundColor: ARIKANA_COLOR }}
+                className="flex-1 text-white py-3 rounded-lg font-semibold hover:opacity-90 transition-opacity"
+                onClick={handleBooking}
+              >
+                Book Anyway
+              </button>
+            </div>
+          </div>
+        );
+      }
 
       return (
         <div className="pb-28">
@@ -845,6 +929,13 @@ Since Mar 1, 2026</p>
             <p className="text-stone-600 text-base mb-6">
               {formatDateDetail(selectedDate)} • {selectedBookingClass.time} ({selectedBookingClass.duration})
             </p>
+
+            {/* Past Session Warning Badge */}
+            {sessionInPast && (
+              <div className="bg-orange-100 border-l-4 border-orange-500 p-3 mb-6 rounded">
+                <p className="text-orange-800 text-sm font-semibold">⚠️ This session is in the past</p>
+              </div>
+            )}
 
             {/* Staff Section */}
             <div className="mb-8">
