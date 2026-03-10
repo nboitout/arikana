@@ -535,29 +535,27 @@ Since Mar 1, 2026</p>
   const BuyTab = () => (
     <div className="pb-28">
       <div style={{ background: `linear-gradient(to bottom, ${ARIKANA_COLOR}, ${ARIKANA_COLOR}cc)` }} className="text-white px-6 py-8 rounded-b-3xl">
-        <h1 className="text-2xl font-light">Buy Classes & Packages</h1>
+        <h1 className="text-2xl font-light">Memberships & Packages</h1>
       </div>
 
-      <div className="px-6 mt-6">
-        <div className="space-y-2">
+      <div className="px-6 mt-8">
+        <div className="space-y-4">
           {[
-            { name: 'Events', icon: '🎉' },
-            { name: 'Mat & Floor Classes', icon: '🧘' },
-            { name: 'Personal Training', icon: '💪' },
-            { name: 'Reformer Group Classes', icon: '⚙️' },
-            { name: 'Special Classes', icon: '✨' },
-            { name: 'Autopays', icon: '🔄' },
-          ].map((item, i) => (
-            <button
-              key={i}
-              className="w-full text-left border border-stone-200 rounded-xl p-4 hover:bg-stone-50 transition-colors flex items-center justify-between"
-            >
-              <span className="flex items-center gap-3">
-                <span className="text-2xl">{item.icon}</span>
-                <span className="font-semibold text-stone-900 text-lg">{item.name}</span>
-              </span>
-              <ChevronRight className="w-6 h-6 text-stone-400" />
-            </button>
+            { name: 'Unlimited Classes', price: '$199/month', desc: 'All yoga & pilates classes' },
+            { name: '8-Class Pack', price: '$149', desc: 'Valid for 3 months' },
+            { name: '4-Class Pack', price: '$89', desc: 'Valid for 3 months' },
+            { name: 'Private Session', price: '$120', desc: 'One-on-one coaching' },
+          ].map((pkg, i) => (
+            <div key={i} className="border border-stone-200 rounded-2xl p-4 hover:border-stone-300 transition-colors">
+              <div className="flex justify-between items-start mb-2">
+                <h3 className="font-semibold text-stone-900">{pkg.name}</h3>
+                <span style={{ color: ARIKANA_COLOR }} className="font-bold">{pkg.price}</span>
+              </div>
+              <p className="text-sm text-stone-600 mb-3">{pkg.desc}</p>
+              <button style={{ borderColor: ARIKANA_COLOR, color: ARIKANA_COLOR }} className="w-full border-2 py-2 rounded-lg font-medium hover:opacity-80 transition-opacity text-sm">
+                Learn More
+              </button>
+            </div>
           ))}
         </div>
       </div>
