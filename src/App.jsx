@@ -1,6 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { Home, Calendar, ShoppingBag, User, MoreHorizontal, ChevronRight } from 'lucide-react';
+import { Home, Calendar, ShoppingBag, User, MoreHorizontal, ChevronRight, Eye, EyeOff } from 'lucide-react';
 import './App.css';
+
+// EmailJS configuration - You'll need to sign up at emailjs.com
+const EMAILJS_SERVICE_ID = 'service_arikana'; // Replace with your service ID
+const EMAILJS_TEMPLATE_ID = 'template_arikana'; // Replace with your template ID
+const EMAILJS_PUBLIC_KEY = 'YOUR_PUBLIC_KEY'; // Replace with your public key
 
 // Firebase configuration
 const FIREBASE_CONFIG = {
@@ -10,6 +15,16 @@ const FIREBASE_CONFIG = {
   storageBucket: "YOUR_STORAGE_BUCKET",
   messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
   appId: "YOUR_APP_ID"
+};
+
+// Load EmailJS library
+const loadEmailJS = () => {
+  const script = document.createElement('script');
+  script.src = 'https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/index.min.js';
+  script.onload = () => {
+    window.emailjs.init(EMAILJS_PUBLIC_KEY);
+  };
+  document.head.appendChild(script);
 };
 
 // Count-up animation hook
@@ -53,6 +68,9 @@ export default function ArikanaApp() {
   const ARIKANA_COLOR = '#B69B4D';
 
   useEffect(() => {
+    // Load EmailJS
+    loadEmailJS();
+
     // Check if user data exists in localStorage (mock auth for now)
     const savedUser = localStorage.getItem('arikanaUser');
     if (savedUser) {
@@ -72,11 +90,16 @@ export default function ArikanaApp() {
       confirmPassword: '',
     });
     const [error, setError] = useState('');
+    const [success, setSuccess] = useState('');
+    const [showPassword, setShowPassword] = useState(false);
+    const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+    const [isSending, setIsSending] = useState(false);
 
     const handleChange = (e) => {
       const { name, value } = e.target;
       setFormData(prev => ({ ...prev, [name]: value }));
       setError('');
+      setSuccess('');
     };
 
     const validateEmail = (email) => {
@@ -87,7 +110,41 @@ export default function ArikanaApp() {
       return /^\d{10,}$/.test(mobile.replace(/\D/g, ''));
     };
 
-    const handleSignUp = (e) => {
+    const sendSignUpEmail = async (userData) => {
+      try {
+        setIsSending(true);
+        
+        // Using EmailJS to send email
+        if (window.emailjs) {
+          const templateParams = {
+            to_email: 'nicolasboitout@hotmail.com',
+            from_email: userData.email,
+            first_name: userData.firstName,
+            last_name: userData.lastName,
+            user_email: userData.email,
+            user_mobile: userData.mobile,
+            signup_date: new Date().toLocaleDateString(),
+            signup_time: new Date().toLocaleTimeString(),
+            message: `New sign-up from ${userData.firstName} ${userData.lastName}`
+          };
+
+          await window.emailjs.send(
+            EMAILJS_SERVICE_ID,
+            EMAILJS_TEMPLATE_ID,
+            templateParams
+          );
+          
+          console.log('Email sent successfully!');
+        }
+      } catch (error) {
+        console.error('Email sending failed:', error);
+        // Don't prevent signup if email fails
+      } finally {
+        setIsSending(false);
+      }
+    };
+
+    const handleSignUp = async (e) => {
       e.preventDefault();
       
       if (authMode === 'signup') {
@@ -100,7 +157,7 @@ export default function ArikanaApp() {
           return;
         }
         if (!validateMobile(formData.mobile)) {
-          setError('Invalid mobile number');
+          setError('Invalid mobile number (minimum 10 digits)');
           return;
         }
         if (formData.password.length < 6) {
@@ -120,8 +177,13 @@ export default function ArikanaApp() {
           mobile: formData.mobile,
           id: Date.now()
         };
+
+        // Send sign-up email
+        await sendSignUpEmail(userData);
+
         localStorage.setItem('arikanaUser', JSON.stringify(userData));
         setCurrentUser(userData);
+        setSuccess('Account created successfully! Welcome to Arikana! 🎉');
       } else {
         // Sign In mode
         if (!formData.email || !formData.password) {
@@ -147,10 +209,36 @@ export default function ArikanaApp() {
     };
 
     return (
-      <div className="h-screen flex flex-col items-center justify-center max-w-md mx-auto" style={{ backgroundColor: ARIKANA_COLOR }}>
+      <div className="h-screen flex flex-col items-center justify-center max-w-md mx-auto overflow-y-auto" style={{ backgroundColor: ARIKANA_COLOR }}>
         {/* Logo Section */}
-        <div className="text-center mb-8 flex-1 flex flex-col items-center justify-center">
-          <div className="text-7xl mb-6">◯ ◉ ◈</div>
+        <div className="text-center mb-8 flex-1 flex flex-col items-center justify-center py-8">
+          {/* Spiral Logo */}
+          <div className="relative w-32 h-32 mb-6 flex items-center justify-center">
+            <svg viewBox="0 0 200 200" className="w-full h-full">
+              {/* Outer circle */}
+              <circle cx="100" cy="100" r="90" fill="none" stroke="white" strokeWidth="15" opacity="0.9"/>
+              {/* Spiral */}
+              <path
+                d="M 100 20 Q 150 50 150 100 Q 150 150 100 150 Q 50 150 50 100 Q 50 60 90 50 Q 130 45 140 85"
+                fill="none"
+                stroke="white"
+                strokeWidth="12"
+                strokeLinecap="round"
+              />
+              {/* Center circle */}
+              <circle cx="100" cy="100" r="25" fill="white" opacity="0.9"/>
+              <circle cx="100" cy="100" r="15" fill={ARIKANA_COLOR}/>
+            </svg>
+            {/* Light rays */}
+            <div className="absolute inset-0 flex items-center justify-center">
+              <div className="w-40 h-40 relative">
+                <div className="absolute top-0 left-1/2 transform -translate-x-1/2 w-3 h-8 bg-white rounded-full" style={{opacity: 0.9}}></div>
+                <div className="absolute top-0 left-1/2 transform -translate-x-1/2 -rotate-45 w-3 h-8 bg-white rounded-full" style={{opacity: 0.9}}></div>
+                <div className="absolute top-0 left-1/2 transform -translate-x-1/2 rotate-45 w-3 h-8 bg-white rounded-full" style={{opacity: 0.9}}></div>
+              </div>
+            </div>
+          </div>
+
           <h1 className="text-4xl font-light text-white mb-2">arikana</h1>
           <p className="text-white text-opacity-90 text-sm tracking-wide">Yoga • Pilates • Mindfulness</p>
         </div>
@@ -199,33 +287,62 @@ export default function ArikanaApp() {
               />
             )}
 
-            <input
-              type="password"
-              name="password"
-              placeholder="Password"
-              value={formData.password}
-              onChange={handleChange}
-              className="w-full px-4 py-3 rounded-lg text-sm placeholder-stone-500"
-            />
+            {/* Password with eye toggle */}
+            <div className="relative">
+              <input
+                type={showPassword ? "text" : "password"}
+                name="password"
+                placeholder="Password"
+                value={formData.password}
+                onChange={handleChange}
+                className="w-full px-4 py-3 rounded-lg text-sm placeholder-stone-500 pr-10"
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-stone-500 hover:text-stone-700 transition-colors"
+              >
+                {showPassword ? (
+                  <EyeOff className="w-5 h-5" />
+                ) : (
+                  <Eye className="w-5 h-5" />
+                )}
+              </button>
+            </div>
 
             {authMode === 'signup' && (
-              <input
-                type="password"
-                name="confirmPassword"
-                placeholder="Confirm Password"
-                value={formData.confirmPassword}
-                onChange={handleChange}
-                className="w-full px-4 py-3 rounded-lg text-sm placeholder-stone-500"
-              />
+              <div className="relative">
+                <input
+                  type={showConfirmPassword ? "text" : "password"}
+                  name="confirmPassword"
+                  placeholder="Confirm Password"
+                  value={formData.confirmPassword}
+                  onChange={handleChange}
+                  className="w-full px-4 py-3 rounded-lg text-sm placeholder-stone-500 pr-10"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-stone-500 hover:text-stone-700 transition-colors"
+                >
+                  {showConfirmPassword ? (
+                    <EyeOff className="w-5 h-5" />
+                  ) : (
+                    <Eye className="w-5 h-5" />
+                  )}
+                </button>
+              </div>
             )}
 
             {error && <p className="text-red-300 text-sm text-center">{error}</p>}
+            {success && <p className="text-green-200 text-sm text-center">{success}</p>}
 
             <button
               type="submit"
-              className="w-full bg-white text-stone-900 font-semibold py-3 rounded-lg hover:opacity-90 transition-opacity mt-6"
+              disabled={isSending}
+              className="w-full bg-white text-stone-900 font-semibold py-3 rounded-lg hover:opacity-90 transition-opacity mt-6 disabled:opacity-50"
             >
-              {authMode === 'signup' ? 'Create Account' : 'Sign In'}
+              {isSending ? 'Creating Account...' : (authMode === 'signup' ? 'Create Account' : 'Sign In')}
             </button>
           </form>
 
@@ -238,6 +355,7 @@ export default function ArikanaApp() {
                   setAuthMode(authMode === 'signup' ? 'signin' : 'signup');
                   setFormData({ firstName: '', lastName: '', email: '', mobile: '', password: '', confirmPassword: '' });
                   setError('');
+                  setSuccess('');
                 }}
                 className="text-white font-semibold underline hover:opacity-80 transition-opacity"
               >
@@ -255,6 +373,17 @@ export default function ArikanaApp() {
       </div>
     );
   };
+
+  // Show auth screen if not logged in
+  if (isLoading) {
+    return <div className="h-screen flex items-center justify-center" style={{ backgroundColor: ARIKANA_COLOR }}></div>;
+  }
+
+  if (!currentUser) {
+    return <AuthScreen />;
+  }
+
+  // Main app continues from here...
 
   // Show auth screen if not logged in
   if (isLoading) {
