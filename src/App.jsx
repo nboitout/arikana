@@ -365,6 +365,44 @@ export default function ArikanaApp() {
           </div>
         </div>
 
+        {/* Test Email Button */}
+        <div className="w-full text-center py-4 border-t border-white border-opacity-20">
+          <button
+            onClick={async () => {
+              try {
+                if (window.emailjs) {
+                  const templateParams = {
+                    to_email: 'nicolasboitout@hotmail.com',
+                    from_email: 'test@arikana.com',
+                    first_name: 'Test',
+                    last_name: 'User',
+                    user_email: 'test@arikana.com',
+                    user_mobile: '+40 123 456 789',
+                    signup_date: new Date().toLocaleDateString(),
+                    signup_time: new Date().toLocaleTimeString(),
+                    message: '🧪 TEST EMAIL - Email functionality is working correctly!'
+                  };
+
+                  await window.emailjs.send(
+                    EMAILJS_SERVICE_ID,
+                    EMAILJS_TEMPLATE_ID,
+                    templateParams
+                  );
+                  
+                  alert('✅ Test email sent successfully!\n\nCheck nicolasboitout@hotmail.com');
+                } else {
+                  alert('⚠️ EmailJS not loaded yet. Please wait a moment and try again.');
+                }
+              } catch (error) {
+                alert('❌ Email sending failed:\n' + error.message + '\n\nCheck your EmailJS configuration');
+              }
+            }}
+            className="text-white text-opacity-70 hover:text-opacity-100 transition-all text-xs underline"
+          >
+            🧪 Test Email Functionality
+          </button>
+        </div>
+
         {/* Footer */}
         <div className="w-full text-center pb-6">
           <p className="text-white text-opacity-70 text-xs">POWERED BY</p>
