@@ -532,35 +532,107 @@ Since Mar 1, 2026</p>
   };
 
   // Buy Tab Content
-  const BuyTab = () => (
-    <div className="pb-28">
-      <div style={{ background: `linear-gradient(to bottom, ${ARIKANA_COLOR}, ${ARIKANA_COLOR}cc)` }} className="text-white px-6 py-8 rounded-b-3xl">
-        <h1 className="text-2xl font-light">Memberships & Packages</h1>
-      </div>
+  const BuyTab = () => {
+    const [selectedPackage, setSelectedPackage] = useState(null);
 
-      <div className="px-6 mt-8">
-        <div className="space-y-4">
-          {[
-            { name: 'Mat & Floor Classes', price: null, desc: null },
-            { name: '8-Class Pack', price: '$149', desc: 'Valid for 3 months' },
-            { name: '4-Class Pack', price: '$89', desc: 'Valid for 3 months' },
-            { name: 'Private Session', price: '$120', desc: 'One-on-one coaching' },
-          ].map((pkg, i) => (
-            <div key={i} className="border border-stone-200 rounded-2xl p-4 hover:border-stone-300 transition-colors">
-              <div className="flex justify-between items-start mb-2">
-                <h3 className="font-semibold text-stone-900">{pkg.name}</h3>
-                {pkg.price && <span style={{ color: ARIKANA_COLOR }} className="font-bold">{pkg.price}</span>}
+    // Mat & Floor Classes Detail
+    if (selectedPackage === 'mat-floor') {
+      const autopays = [
+        { name: 'Arikana Commitment M&F', sessions: '9 sessions ☆', price: '245,00 RON' },
+        { name: 'Arikana Commitment M&F', sessions: '16 sessions ☆', price: '295,00 RON' },
+        { name: 'Arikana Commitment M&F 1 month', sessions: 'unlimited ☆', price: '395,00 RON' },
+      ];
+
+      const pricing = [
+        { name: 'Mat&Floor - 1 session', price: '120,00 RON' },
+        { name: 'Mat&Floor Classes - 9 sessions', price: '290,00 RON' },
+        { name: 'Mat&Floor Classes - 16 sessions', price: '350,00 RON' },
+        { name: 'Mat&Floor Classes 1 month - Unlimited', price: '450,00 RON' },
+      ];
+
+      return (
+        <div className="pb-28">
+          {/* Header */}
+          <div style={{ backgroundColor: ARIKANA_COLOR }} className="text-white px-6 py-4 flex items-center gap-3">
+            <button onClick={() => setSelectedPackage(null)} className="text-2xl">←</button>
+            <h1 className="text-2xl font-light">Mat & Floor Classes</h1>
+          </div>
+
+          {/* Content */}
+          <div className="px-6 py-6">
+            {/* Autopays Section */}
+            <div className="mb-8">
+              <h2 className="text-2xl font-bold text-stone-900 mb-4">Autopays</h2>
+              <div className="space-y-4">
+                {autopays.map((item, i) => (
+                  <div key={i} className="border-b border-stone-200 pb-4">
+                    <div className="flex justify-between items-start">
+                      <div>
+                        <p className="font-bold text-stone-900">{item.name}</p>
+                        <p className="text-sm text-stone-600">{item.sessions}</p>
+                        <p className="text-xs text-stone-500 mt-1">Autopay</p>
+                      </div>
+                      <p className="font-bold text-stone-900">{item.price}</p>
+                    </div>
+                  </div>
+                ))}
               </div>
-              {pkg.desc && <p className="text-sm text-stone-600 mb-3">{pkg.desc}</p>}
-              <button style={{ borderColor: ARIKANA_COLOR, color: ARIKANA_COLOR }} className="w-full border-2 py-2 rounded-lg font-medium hover:opacity-80 transition-opacity text-sm">
-                Learn More
-              </button>
             </div>
-          ))}
+
+            {/* Pricing Options Section */}
+            <div>
+              <h2 className="text-2xl font-bold text-stone-900 mb-4">Pricing Options</h2>
+              <div className="space-y-4">
+                {pricing.map((item, i) => (
+                  <div key={i} className="border-b border-stone-200 pb-4">
+                    <div className="flex justify-between items-start">
+                      <p className="font-bold text-stone-900">{item.name}</p>
+                      <p className="font-bold text-stone-900">{item.price}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    // Main Buy Tab
+    return (
+      <div className="pb-28">
+        <div style={{ background: `linear-gradient(to bottom, ${ARIKANA_COLOR}, ${ARIKANA_COLOR}cc)` }} className="text-white px-6 py-8 rounded-b-3xl">
+          <h1 className="text-2xl font-light">Memberships & Packages</h1>
+        </div>
+
+        <div className="px-6 mt-8">
+          <div className="space-y-4">
+            {[
+              { name: 'Mat & Floor Classes', price: null, desc: null, id: 'mat-floor' },
+              { name: '8-Class Pack', price: '$149', desc: 'Valid for 3 months', id: '8-pack' },
+              { name: '4-Class Pack', price: '$89', desc: 'Valid for 3 months', id: '4-pack' },
+              { name: 'Private Session', price: '$120', desc: 'One-on-one coaching', id: 'private' },
+            ].map((pkg, i) => (
+              <div key={i} className="border border-stone-200 rounded-2xl p-4 hover:border-stone-300 transition-colors">
+                <div className="flex justify-between items-start mb-2">
+                  <h3 className="font-semibold text-stone-900">{pkg.name}</h3>
+                  {pkg.price && <span style={{ color: ARIKANA_COLOR }} className="font-bold">{pkg.price}</span>}
+                </div>
+                {pkg.desc && <p className="text-sm text-stone-600 mb-3">{pkg.desc}</p>}
+                <button 
+                  onClick={() => setSelectedPackage(pkg.id)}
+                  style={{ borderColor: ARIKANA_COLOR, color: ARIKANA_COLOR }} 
+                  className="w-full border-2 py-2 rounded-lg font-medium hover:opacity-80 transition-opacity text-sm"
+                >
+                  Learn More
+                </button>
+              </div>
+            ))}
+          </div>
         </div>
       </div>
-    </div>
-  );
+    );
+  };
 
   // Profile Tab Content
   const ProfileTab = () => {
