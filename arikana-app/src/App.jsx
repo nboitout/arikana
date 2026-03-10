@@ -1,10 +1,40 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Home, Calendar, ShoppingBag, User, MoreHorizontal, ChevronRight } from 'lucide-react';
 import './App.css';
 
+// Count-up animation hook
+const useCountUp = (targetValue, duration = 1500) => {
+  const [count, setCount] = useState(0);
+
+  useEffect(() => {
+    if (targetValue === 0) {
+      setCount(0);
+      return;
+    }
+
+    let startTime = null;
+    const animate = (currentTime) => {
+      if (!startTime) startTime = currentTime;
+      const elapsed = currentTime - startTime;
+      const progress = Math.min(elapsed / duration, 1);
+      
+      setCount(Math.floor(targetValue * progress));
+      
+      if (progress < 1) {
+        requestAnimationFrame(animate);
+      } else {
+        setCount(targetValue);
+      }
+    };
+
+    requestAnimationFrame(animate);
+  }, [targetValue, duration]);
+
+  return count;
+};
+
 export default function ArikanaApp() {
   const [activeTab, setActiveTab] = useState('home');
-  const [userName] = useState('Nicolas');
 
   // Brand color
   const ARIKANA_COLOR = '#B69B4D';
@@ -17,208 +47,291 @@ export default function ArikanaApp() {
     { id: 4, name: 'Private Pilates Session', date: 'Wednesday, 11 Mar', time: '14:00', instructor: '1-on-1', spots: 1 },
   ];
 
-  const achievements = [
-    { label: 'Total classes\nSince Feb 11, 2025', value: '172', icon: '🏅' },
-    { label: 'Classes this month\nSince Mar 1, 2026', value: '0', icon: '📅' },
-    { label: 'Last achievement\n100 classes', value: '100', icon: '🎯', badge: true },
-  ];
-
   // Home Tab Content
-  const HomeTab = () => (
-    <div className="pb-28">
-      {/* Header with gradient */}
-      <div style={{ background: `linear-gradient(to bottom, ${ARIKANA_COLOR}, ${ARIKANA_COLOR}cc)` }} className="text-white px-6 py-6">
-        <p className="text-sm font-light mb-1">Hi, {userName}</p>
-        <h1 className="text-2xl font-light">Welcome to Arikana Studio</h1>
-      </div>
-
-      {/* Achievements Section */}
-      <div className="px-6 mt-6 mb-8">
-        <h2 className="text-2xl font-bold text-stone-900 mb-4">Achievements</h2>
-        <div className="flex gap-3 overflow-x-auto pb-2 snap-x">
-          {achievements.map((item, i) => (
-            <div
-              key={i}
-              style={{ backgroundColor: ARIKANA_COLOR }}
-              className="flex-shrink-0 w-40 text-white rounded-3xl p-5 snap-center relative"
-            >
-              {item.badge && (
-                <div style={{ backgroundColor: 'white', color: ARIKANA_COLOR }} className="absolute -top-3 -right-3 rounded-full w-12 h-12 flex items-center justify-center font-bold text-lg border-4 border-white shadow-lg">
-                  ✓
-                </div>
-              )}
-              <p className="text-4xl font-bold mb-3">{item.value}</p>
-              <p className="text-xs font-light opacity-95 whitespace-pre-line leading-tight">{item.label}</p>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      {/* Upcoming Booking */}
-      <div className="px-6 mb-8">
-        <h2 className="text-2xl font-bold text-stone-900 mb-4">Upcoming booking</h2>
-        <div className="bg-gray-100 rounded-3xl p-6 mb-4 text-center">
-          <p className="text-stone-700 text-base font-normal">Nothing is currently scheduled</p>
-        </div>
-        <button style={{ backgroundColor: ARIKANA_COLOR }} className="w-full text-white font-medium py-4 rounded-3xl hover:opacity-90 transition-opacity text-lg">
-          Explore
-        </button>
-      </div>
-
-      {/* Coming Up */}
-      <div className="px-6 pb-4">
-        <h2 className="text-2xl font-bold text-stone-900 mb-4">Coming up</h2>
-        <div className="space-y-2">
-          {upcomingClasses.slice(0, 2).map((cls) => (
-            <div key={cls.id} className="border border-stone-200 rounded-2xl p-4 hover:shadow-md transition-shadow bg-white">
-              <h3 className="font-semibold text-stone-900 text-base">{cls.name}</h3>
-              <p className="text-sm text-stone-500 mt-2 font-light">{cls.date} | {cls.time}</p>
-            </div>
-          ))}
-        </div>
-      </div>
-    </div>
-  );
-
-  // Book Tab Content - With Multiple Instructors
-  const BookTab = () => {
-    const [selectedInstructor, setSelectedInstructor] = useState('nicolas');
-
-    const instructors = {
-      nicolas: {
-        name: 'Nicolas',
-        title: 'Pilates Specialist',
-        rating: 4.9,
-        reviews: 127,
-        bio: 'Expert in hardcore pilates',
-        photo: 'https://i.ibb.co/xKGQ2P8B/Nicolas-Boitout.png',
-        classes: [
-          { id: 1, name: 'Pilates Reformer', time: '09:00', duration: '60 min', level: 'All Levels', spots: 8 },
-          { id: 2, name: 'Core Strength', time: '10:30', duration: '45 min', level: 'Intermediate', spots: 12 },
-          { id: 3, name: 'Advanced Pilates', time: '18:30', duration: '60 min', level: 'Advanced', spots: 6 },
-          { id: 4, name: 'Pilates Mat', time: '17:00', duration: '50 min', level: 'Beginner', spots: 15 },
-        ]
-      },
-      angelina: {
-        name: 'Angelina',
-        title: 'Pilates Master',
-        rating: 5.0,
-        reviews: 48,
-        bio: 'Pelvic Curl Godness',
-        photo: 'https://i.ibb.co/8g8sMgRj/Angelina-Tricolici.png',
-        classes: [
-          { id: 1, name: 'Pelvic Curl Flow', time: '08:00', duration: '50 min', level: 'All Levels', spots: 10 },
-          { id: 2, name: 'Deep Core Activation', time: '11:00', duration: '60 min', level: 'Intermediate', spots: 9 },
-          { id: 3, name: 'Advanced Pelvic Techniques', time: '17:00', duration: '60 min', level: 'Advanced', spots: 7 },
-          { id: 4, name: 'Pilates Fusion', time: '19:00', duration: '55 min', level: 'All Levels', spots: 12 },
-        ]
-      }
-    };
-
-    const currentInstructor = instructors[selectedInstructor];
+  const HomeTab = () => {
+    const count172 = useCountUp(172, 1200);
+    const count100 = useCountUp(100, 1200);
 
     return (
       <div className="pb-28">
-        {/* Golden Header */}
-        <div style={{ backgroundColor: ARIKANA_COLOR }} className="text-white px-6 py-6">
-          <div className="mb-4">
-            <h1 className="text-2xl font-light mb-1">Book Classes</h1>
-            <p className="text-sm opacity-90">Choose your instructor</p>
-          </div>
+        {/* Header with gradient */}
+        <div style={{ background: `linear-gradient(to bottom, ${ARIKANA_COLOR}, ${ARIKANA_COLOR}cc)` }} className="text-white px-6 py-6">
+          <p className="text-sm font-light mb-1">Hi, Анечка</p>
+          <h1 className="text-2xl font-light">Welcome to Arikana Studio</h1>
+        </div>
 
-          {/* Instructor Tabs */}
-          <div className="flex gap-2 mb-4">
-            <button
-              onClick={() => setSelectedInstructor('nicolas')}
-              style={{
-                backgroundColor: selectedInstructor === 'nicolas' ? 'rgba(255, 255, 255, 0.3)' : 'rgba(255, 255, 255, 0.1)',
-                borderColor: selectedInstructor === 'nicolas' ? '#fff' : 'transparent'
-              }}
-              className="px-4 py-2 rounded-full text-xs font-medium text-white border-2 transition-all"
+        {/* Achievements Section */}
+        <div className="px-6 mt-6 mb-8">
+          <h2 className="text-2xl font-bold text-stone-900 mb-4">Achievements</h2>
+          <div className="flex gap-3 overflow-x-auto pb-2 snap-x">
+            {/* Card 1 - Animated Count */}
+            <div
+              style={{ backgroundColor: ARIKANA_COLOR }}
+              className="flex-shrink-0 w-40 text-white rounded-3xl p-5 snap-center relative"
             >
-              Nicolas
-            </button>
-            <button
-              onClick={() => setSelectedInstructor('angelina')}
-              style={{
-                backgroundColor: selectedInstructor === 'angelina' ? 'rgba(255, 255, 255, 0.3)' : 'rgba(255, 255, 255, 0.1)',
-                borderColor: selectedInstructor === 'angelina' ? '#fff' : 'transparent'
-              }}
-              className="px-4 py-2 rounded-full text-xs font-medium text-white border-2 transition-all"
+              <p className="text-4xl font-bold mb-3">{count172}</p>
+              <p className="text-xs font-light opacity-95 whitespace-pre-line leading-tight">Total classes
+Since Feb 11, 2025</p>
+            </div>
+
+            {/* Card 2 */}
+            <div
+              style={{ backgroundColor: ARIKANA_COLOR }}
+              className="flex-shrink-0 w-40 text-white rounded-3xl p-5 snap-center relative"
             >
-              Angelina
-            </button>
-          </div>
+              <p className="text-4xl font-bold mb-3">0</p>
+              <p className="text-xs font-light opacity-95 whitespace-pre-line leading-tight">Classes this month
+Since Mar 1, 2026</p>
+            </div>
 
-          {/* Instructor Card with Photo */}
-          <div style={{ backgroundColor: 'rgba(255, 255, 255, 0.15)' }} className="rounded-xl p-4">
-            <div className="flex gap-3">
-              {/* Photo Circle */}
-              <div className="w-20 h-20 rounded-full bg-white flex-shrink-0 overflow-hidden border-4 border-white shadow-lg">
-                <img 
-                  src={currentInstructor.photo}
-                  alt={currentInstructor.name}
-                  className="w-full h-full object-cover"
-                />
+            {/* Card 3 - Animated with Badge */}
+            <div
+              style={{ backgroundColor: ARIKANA_COLOR }}
+              className="flex-shrink-0 w-40 text-white rounded-3xl p-5 snap-center relative"
+            >
+              <div style={{ backgroundColor: 'white', color: ARIKANA_COLOR }} className="absolute -top-3 -right-3 rounded-full w-12 h-12 flex items-center justify-center font-bold text-lg border-4 border-white shadow-lg">
+                ✓
               </div>
-
-              {/* Info */}
-              <div className="text-white flex-1">
-                <h2 className="text-lg font-semibold mb-1">{currentInstructor.name}</h2>
-                <p className="text-sm opacity-90 mb-2">{currentInstructor.title}</p>
-                <div className="flex gap-2 text-xs">
-                  <span>⭐ {currentInstructor.rating}</span>
-                  <span>({currentInstructor.reviews} reviews)</span>
-                </div>
-                <p className="text-xs opacity-85 mt-1">{currentInstructor.bio}</p>
-              </div>
+              <p className="text-4xl font-bold mb-3">{count100}</p>
+              <p className="text-xs font-light opacity-95 whitespace-pre-line leading-tight">Last achievement
+100 classes</p>
             </div>
           </div>
         </div>
 
+        {/* Upcoming Booking */}
+        <div className="px-6 mb-8">
+          <h2 className="text-2xl font-bold text-stone-900 mb-4">Upcoming booking</h2>
+          <div className="bg-gray-100 rounded-3xl p-6 mb-4 text-center">
+            <p className="text-stone-700 text-base font-normal">Nothing is currently scheduled</p>
+          </div>
+          <button style={{ backgroundColor: ARIKANA_COLOR }} className="w-full text-white font-medium py-4 rounded-3xl hover:opacity-90 transition-opacity text-lg">
+            Explore
+          </button>
+        </div>
 
-
-        {/* Classes List */}
-        <div className="px-6 mt-6">
-          <h3 className="text-sm font-semibold text-stone-900 mb-3">Available Classes</h3>
-          <div className="space-y-3">
-            {currentInstructor.classes.map((cls) => (
-              <div key={cls.id} className="bg-white border border-stone-200 rounded-xl p-4 hover:shadow-md transition-all">
-                <div className="flex justify-between items-start mb-2">
-                  <div>
-                    <h4 className="font-semibold text-stone-900 text-sm">{cls.name}</h4>
-                    <p className="text-xs text-stone-600 mt-1">with {currentInstructor.name}</p>
-                  </div>
-                  <span style={{ backgroundColor: ARIKANA_COLOR }} className="text-xs font-medium text-white px-2 py-1 rounded-full whitespace-nowrap">
-                    {cls.level}
-                  </span>
-                </div>
-
-                <div className="flex gap-3 text-xs text-stone-600 mb-3">
-                  <span>⏱️ {cls.time} • {cls.duration}</span>
-                  <span>👥 {cls.spots} spots</span>
-                </div>
-
-                <button
-                  style={{ 
-                    borderColor: ARIKANA_COLOR,
-                    color: ARIKANA_COLOR
-                  }}
-                  className="w-full border-2 text-white font-semibold py-2 rounded-lg transition-all hover:opacity-80 text-sm"
-                  onMouseEnter={(e) => {
-                    e.target.style.backgroundColor = ARIKANA_COLOR;
-                    e.target.style.color = '#fff';
-                  }}
-                  onMouseLeave={(e) => {
-                    e.target.style.backgroundColor = 'transparent';
-                    e.target.style.color = ARIKANA_COLOR;
-                  }}
-                >
-                  Book Now →
-                </button>
+        {/* Coming Up */}
+        <div className="px-6 pb-4">
+          <h2 className="text-2xl font-bold text-stone-900 mb-4">Coming up</h2>
+          <div className="space-y-2">
+            {upcomingClasses.slice(0, 2).map((cls) => (
+              <div key={cls.id} className="border border-stone-200 rounded-2xl p-4 hover:shadow-md transition-shadow bg-white">
+                <h3 className="font-semibold text-stone-900 text-base">{cls.name}</h3>
+                <p className="text-sm text-stone-500 mt-2 font-light">{cls.date} | {cls.time}</p>
               </div>
             ))}
           </div>
+        </div>
+      </div>
+    );
+  };
+
+  // Book Tab Content - Calendar + Classes by Date
+  const BookTab = () => {
+    // Initialize with today's date
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const [selectedDate, setSelectedDate] = useState(today);
+    const [selectedInstructor, setSelectedInstructor] = useState('all');
+
+    // Class schedule by date (mapping dates to classes)
+    const classSchedule = {
+      '2026-03-10': [ // Tuesday - Today
+        { id: 1, name: 'Pilates Mat', time: '09:00', duration: '60 min', instructor: 'Angelina', spots: 8 },
+        { id: 2, name: 'Core Strength', time: '10:30', duration: '45 min', instructor: 'Nicolas', spots: 12 },
+        { id: 3, name: 'Pilates Reformer', time: '18:30', duration: '60 min', instructor: 'Nicolas', spots: 5 },
+      ],
+      '2026-03-11': [ // Wednesday
+        { id: 4, name: 'Ice Skating with Grace', time: '07:00', duration: '60 min', instructor: 'Sergey', spots: 14 },
+        { id: 5, name: 'Pelvic Curl Flow', time: '08:00', duration: '50 min', instructor: 'Angelina', spots: 10 },
+        { id: 6, name: 'Advanced Pilates', time: '18:30', duration: '60 min', instructor: 'Nicolas', spots: 6 },
+      ],
+      '2026-03-12': [ // Thursday
+        { id: 7, name: 'Speed Skating', time: '09:30', duration: '50 min', instructor: 'Sergey', spots: 11 },
+        { id: 8, name: 'Deep Core Activation', time: '11:00', duration: '60 min', instructor: 'Angelina', spots: 9 },
+        { id: 9, name: 'Pilates Mat', time: '17:00', duration: '50 min', instructor: 'Nicolas', spots: 15 },
+      ],
+      '2026-03-13': [ // Friday
+        { id: 10, name: 'Ice Skating Techniques', time: '16:00', duration: '60 min', instructor: 'Sergey', spots: 8 },
+        { id: 11, name: 'Pilates Fusion', time: '19:00', duration: '55 min', instructor: 'Angelina', spots: 12 },
+      ],
+      '2026-03-14': [ // Saturday
+        { id: 12, name: 'Pelvic Curl Flow', time: '10:30', duration: '50 min', instructor: 'Angelina', spots: 6 },
+        { id: 13, name: 'Crossfit on Ice', time: '18:00', duration: '55 min', instructor: 'Sergey', spots: 6 },
+      ],
+      '2026-03-16': [ // Monday
+        { id: 14, name: 'Advanced Pelvic Techniques', time: '17:00', duration: '60 min', instructor: 'Angelina', spots: 7 },
+        { id: 15, name: 'Core Strength', time: '10:30', duration: '45 min', instructor: 'Nicolas', spots: 12 },
+        { id: 16, name: 'Speed Skating', time: '09:30', duration: '50 min', instructor: 'Sergey', spots: 11 },
+      ],
+    };
+
+    const instructors = {
+      nicolas: { name: 'Nicolas', title: 'Pilates Specialist', rating: 4.9, reviews: 127, bio: 'Pilates and Pushups', photo: 'https://i.ibb.co/xKGQ2P8B/Nicolas-Boitout.png' },
+      angelina: { name: 'Angelina', title: 'Pilates Master', rating: 5.0, reviews: 48, bio: 'Pelvic Curl Goddess', photo: 'https://i.ibb.co/8g8sMgRj/Angelina-Tricolici.png' },
+      sergey: { name: 'Sergey', title: 'Crossfit Coach', rating: 4.8, reviews: 95, bio: 'Siberian Crossfitter', photo: 'https://i.ibb.co/nNGSPCsY/Sergey.png' },
+    };
+
+    // Generate 7 days starting from today
+    const getDayDates = () => {
+      const dates = [];
+      for (let i = 0; i < 7; i++) {
+        const d = new Date(today);
+        d.setDate(d.getDate() + i);
+        dates.push(d);
+      }
+      return dates;
+    };
+
+    const dayDates = getDayDates();
+
+    // Get classes for selected date
+    const dateStr = selectedDate.toISOString().split('T')[0];
+    const classesForDay = classSchedule[dateStr] || [];
+    const filteredClasses = selectedInstructor === 'all' 
+      ? classesForDay 
+      : classesForDay.filter(c => c.instructor.toLowerCase() === selectedInstructor);
+
+    // Format date for display
+    const formatDate = (date) => {
+      const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+      return days[date.getDay()];
+    };
+
+    return (
+      <div className="pb-28">
+        {/* Header */}
+        <div style={{ backgroundColor: ARIKANA_COLOR }} className="text-white px-6 py-4">
+          <h1 className="text-xl font-light">Book Classes</h1>
+        </div>
+
+        {/* Calendar Day Picker */}
+        <div className="px-4 py-4 overflow-x-auto scrollbar-hide">
+          <div className="flex gap-2" style={{ minWidth: 'min-content' }}>
+            {dayDates.map((date, idx) => {
+              const isSelected = date.toDateString() === selectedDate.toDateString();
+              return (
+                <button
+                  key={idx}
+                  onClick={() => setSelectedDate(date)}
+                  style={{
+                    backgroundColor: isSelected ? ARIKANA_COLOR : '#f5f5f5',
+                    color: isSelected ? '#fff' : '#333',
+                    borderColor: isSelected ? ARIKANA_COLOR : '#ddd'
+                  }}
+                  className="flex-shrink-0 w-14 h-14 rounded-full flex flex-col items-center justify-center border-2 transition-all text-xs font-semibold"
+                >
+                  <span className="text-sm">{date.getDate()}</span>
+                  <span className="text-xs opacity-80">{formatDate(date)}</span>
+                </button>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* Swipeable Instructor Cards */}
+        <div className="overflow-x-auto scrollbar-hide px-4 py-2">
+          <div className="flex gap-4" style={{ minWidth: 'min-content' }}>
+            {/* All Instructors Card */}
+            <button
+              onClick={() => setSelectedInstructor('all')}
+              style={{
+                backgroundColor: selectedInstructor === 'all' ? ARIKANA_COLOR : '#f5f5f5',
+                color: selectedInstructor === 'all' ? '#fff' : '#333'
+              }}
+              className="flex-shrink-0 w-56 rounded-2xl p-3 text-left transition-all hover:shadow-lg cursor-pointer"
+            >
+              <div className="text-3xl mb-1">🎯</div>
+              <h3 className="text-sm font-bold">All</h3>
+              <p className="text-xs opacity-80">All instructors</p>
+            </button>
+
+            {/* Individual Instructor Cards */}
+            {['nicolas', 'angelina', 'sergey'].map((key) => {
+              const instr = instructors[key];
+              return (
+                <button
+                  key={key}
+                  onClick={() => setSelectedInstructor(key)}
+                  style={{
+                    backgroundColor: selectedInstructor === key ? ARIKANA_COLOR : '#f5f5f5',
+                    color: selectedInstructor === key ? '#fff' : '#333'
+                  }}
+                  className="flex-shrink-0 w-56 rounded-2xl p-3 text-left transition-all hover:shadow-lg cursor-pointer overflow-hidden"
+                >
+                  <div className="flex gap-2 h-20">
+                    {/* Left: Photo + Name */}
+                    <div className="flex flex-col items-center flex-shrink-0">
+                      <div className="w-12 h-12 rounded-full bg-white mb-1 overflow-hidden border-2" style={{ borderColor: selectedInstructor === key ? '#fff' : ARIKANA_COLOR }}>
+                        <img src={instr.photo} alt={instr.name} className="w-full h-full object-cover" />
+                      </div>
+                      <h3 className="text-xs font-bold text-center">{instr.name}</h3>
+                    </div>
+
+                    {/* Right: Title, Rating, Bio */}
+                    <div className="flex flex-col justify-start flex-1 min-w-0 gap-0.5">
+                      <p className="text-xs opacity-80">{instr.title}</p>
+                      <div className="flex gap-1 text-xs">
+                        <span>⭐ {instr.rating}</span>
+                      </div>
+                      <p className="text-xs opacity-70">{instr.bio}</p>
+                    </div>
+                  </div>
+                </button>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* Date Display + Classes */}
+        <div className="px-6 py-3 pb-4">
+          <h3 className="text-sm font-bold text-stone-900 mb-3">
+            {selectedDate.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
+          </h3>
+
+          {filteredClasses.length === 0 ? (
+            <div className="text-center py-8">
+              <p className="text-stone-500 text-sm">No classes available for this day</p>
+            </div>
+          ) : (
+            <div className="space-y-2">
+              {filteredClasses.map((cls) => (
+                <div key={cls.id} className="bg-white border border-stone-200 rounded-lg p-3 hover:shadow-md transition-all">
+                  <div className="flex justify-between items-start mb-1">
+                    <div>
+                      <h4 className="font-semibold text-stone-900 text-xs">{cls.name}</h4>
+                      <p className="text-xs text-stone-600 mt-1">with {cls.instructor}</p>
+                    </div>
+                    <span style={{ backgroundColor: ARIKANA_COLOR }} className="text-xs font-medium text-white px-2 py-0.5 rounded-full whitespace-nowrap">
+                      {cls.spots} spots
+                    </span>
+                  </div>
+
+                  <div className="flex gap-3 text-xs text-stone-600 mb-2">
+                    <span>⏱️ {cls.time} • {cls.duration}</span>
+                  </div>
+
+                  <button
+                    style={{ 
+                      borderColor: ARIKANA_COLOR,
+                      color: ARIKANA_COLOR
+                    }}
+                    className="w-full border-2 text-white font-semibold py-1.5 rounded-lg transition-all hover:opacity-80 text-xs"
+                    onMouseEnter={(e) => {
+                      e.target.style.backgroundColor = ARIKANA_COLOR;
+                      e.target.style.color = '#fff';
+                    }}
+                    onMouseLeave={(e) => {
+                      e.target.style.backgroundColor = 'transparent';
+                      e.target.style.color = ARIKANA_COLOR;
+                    }}
+                  >
+                    Book Now →
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       </div>
     );
@@ -268,7 +381,7 @@ export default function ArikanaApp() {
           <div style={{ backgroundColor: `${ARIKANA_COLOR}20` }} className="w-16 h-16 mx-auto mb-4 rounded-full flex items-center justify-center">
             <User style={{ color: ARIKANA_COLOR }} className="w-8 h-8" />
           </div>
-          <h2 className="text-xl font-bold text-stone-900">{userName}</h2>
+          <h2 className="text-xl font-bold text-stone-900">Nicolas</h2>
           <p className="text-sm text-stone-600 mt-1">Active Member</p>
         </div>
 
@@ -345,15 +458,6 @@ export default function ArikanaApp() {
 
   return (
     <div className="bg-white h-screen flex flex-col max-w-md mx-auto relative overflow-hidden">
-      {/* Status Bar Simulation */}
-      <div style={{ background: `linear-gradient(to bottom, ${ARIKANA_COLOR}, ${ARIKANA_COLOR}cc)` }} className="text-white px-6 pt-3 pb-2 flex justify-between items-center text-xs font-semibold">
-        <span>12:36</span>
-        <div className="flex gap-1 items-center">
-          <span>📶 5G</span>
-          <span className="bg-black bg-opacity-40 px-2 py-1 rounded">27</span>
-        </div>
-      </div>
-
       {/* Main Content */}
       <div className="flex-1 overflow-y-auto scrollbar-hide">
         {tabContent[activeTab]}
