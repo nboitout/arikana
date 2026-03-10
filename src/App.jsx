@@ -267,9 +267,6 @@ export default function ArikanaApp() {
 
   // Main app continues from here...
 
-  // Brand color
-  const ARIKANA_COLOR = '#B69B4D';
-
   // Mock data
   const upcomingClasses = [
     { id: 1, name: 'Pilates Reformer', date: 'Monday, 09 Mar', time: '18:30', instructor: 'Anna', spots: 3 },
