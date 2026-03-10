@@ -263,45 +263,44 @@ Since Mar 1, 2026</p>
       return (
         <div className="pb-28">
           {/* Header */}
-          <div style={{ backgroundColor: ARIKANA_COLOR }} className="text-white px-6 py-4">
+          <div style={{ backgroundColor: ARIKANA_COLOR }} className="text-white px-6 py-3">
             <h1 className="text-lg font-light text-center">Booking Confirmation</h1>
           </div>
 
-          {/* Success Message */}
-          <div className="px-6 py-12 text-center">
-            <div className="text-6xl mb-6">✅</div>
-            <h2 className="text-2xl font-bold text-stone-900 mb-2">You're Booked!</h2>
-            <p className="text-stone-600 mb-8">Your spot is confirmed. See you soon!</p>
+          {/* Success Message - Compact */}
+          <div className="px-6 py-4 text-center">
+            <div className="text-5xl mb-2">✅</div>
+            <h2 className="text-xl font-bold text-stone-900 mb-1">You're Booked!</h2>
+            <p className="text-sm text-stone-600 mb-4">Your spot is confirmed. See you soon!</p>
 
-            {/* Booking Details */}
-            <div className="bg-stone-50 rounded-2xl p-6 mb-8 text-left">
-              <div className="mb-4">
-                <p className="text-xs text-stone-500 uppercase tracking-wide mb-1">Class</p>
-                <p className="text-lg font-bold text-stone-900">{selectedBookingClass.name}</p>
-              </div>
-
-              <div className="mb-4">
-                <p className="text-xs text-stone-500 uppercase tracking-wide mb-1">Date & Time</p>
-                <p className="text-base text-stone-900">{formatDateDetail(selectedDate)} • {selectedBookingClass.time}</p>
-              </div>
-
-              <div className="mb-4">
-                <p className="text-xs text-stone-500 uppercase tracking-wide mb-1">Instructor</p>
-                <p className="text-base text-stone-900">{selectedBookingClass.instructor}</p>
-              </div>
-
+            {/* Booking Details - Compact Grid */}
+            <div className="bg-stone-50 rounded-lg p-3 mb-3 text-left text-sm grid grid-cols-2 gap-3">
               <div>
-                <p className="text-xs text-stone-500 uppercase tracking-wide mb-1">Duration</p>
-                <p className="text-base text-stone-900">{selectedBookingClass.duration}</p>
+                <p className="text-xs text-stone-500 uppercase tracking-wide mb-0.5">Class</p>
+                <p className="font-bold text-stone-900">{selectedBookingClass.name}</p>
+              </div>
+              <div>
+                <p className="text-xs text-stone-500 uppercase tracking-wide mb-0.5">Instructor</p>
+                <p className="font-bold text-stone-900">{selectedBookingClass.instructor}</p>
+              </div>
+              <div>
+                <p className="text-xs text-stone-500 uppercase tracking-wide mb-0.5">Date & Time</p>
+                <p className="text-stone-900">{formatDateDetail(selectedDate)} • {selectedBookingClass.time}</p>
+              </div>
+              <div>
+                <p className="text-xs text-stone-500 uppercase tracking-wide mb-0.5">Duration</p>
+                <p className="text-stone-900">{selectedBookingClass.duration}</p>
               </div>
             </div>
 
-            {/* Info Message */}
-            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-8">
-              <p className="text-sm text-blue-900">📧 A confirmation email has been sent to your registered email address.</p>
+            {/* Info Message - Compact */}
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-2 mb-4 text-xs">
+              <p className="text-blue-900">📧 Confirmation email sent to your account</p>
             </div>
+          </div>
 
-            {/* Back Button */}
+          {/* Button - Visible */}
+          <div className="fixed bottom-24 left-0 right-0 max-w-md mx-auto px-6 pb-4">
             <button
               style={{ backgroundColor: ARIKANA_COLOR }}
               className="w-full text-white py-3 rounded-lg font-semibold hover:opacity-90 transition-opacity"
@@ -310,7 +309,7 @@ Since Mar 1, 2026</p>
                 setBookingConfirmed(false);
               }}
             >
-              Back to Calendar
+              Back to Booking Calendar
             </button>
           </div>
         </div>
