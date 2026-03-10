@@ -535,19 +535,115 @@ Since Mar 1, 2026</p>
   const BuyTab = () => {
     const [selectedPackage, setSelectedPackage] = useState(null);
     const [selectedAutopay, setSelectedAutopay] = useState(null);
+    const [selectedCheckout, setSelectedCheckout] = useState(null);
 
     const autopays = [
-      { name: 'Arikana Commitment M&F', sessions: '9 sessions ☆', price: '245 RON', id: 'autopay-9' },
-      { name: 'Arikana Commitment M&F', sessions: '16 sessions ☆', price: '295 RON', id: 'autopay-16' },
-      { name: 'Arikana Commitment M&F 1 month', sessions: 'unlimited ☆', price: '395 RON', id: 'autopay-unlimited' },
+      { name: 'Arikana Commitment M&F', sessions: '9 sessions ☆', price: '245 RON', id: 'autopay-9', checkoutName: 'Mat&Floor Classes - 9 sessions', checkoutPrice: '290 RON' },
+      { name: 'Arikana Commitment M&F', sessions: '16 sessions ☆', price: '295 RON', id: 'autopay-16', checkoutName: 'Mat&Floor Classes - 16 sessions', checkoutPrice: '350 RON' },
+      { name: 'Arikana Commitment M&F 1 month', sessions: 'unlimited ☆', price: '395 RON', id: 'autopay-unlimited', checkoutName: 'Mat&Floor Classes 1 month - Unlimited', checkoutPrice: '450 RON' },
     ];
 
     const pricing = [
-      { name: 'Mat&Floor - 1 session', price: '120 RON' },
-      { name: 'Mat&Floor Classes - 9 sessions', price: '290 RON' },
-      { name: 'Mat&Floor Classes - 16 sessions', price: '350 RON' },
-      { name: 'Mat&Floor Classes 1 month - Unlimited', price: '450 RON' },
+      { name: 'Mat&Floor - 1 session', price: '120 RON', id: 'pricing-1' },
+      { name: 'Mat&Floor Classes - 9 sessions', price: '290 RON', id: 'pricing-9' },
+      { name: 'Mat&Floor Classes - 16 sessions', price: '350 RON', id: 'pricing-16' },
+      { name: 'Mat&Floor Classes 1 month - Unlimited', price: '450 RON', id: 'pricing-unlimited' },
     ];
+
+    // Checkout Page
+    if (selectedCheckout) {
+      const checkoutData = {
+        'autopay-9': { name: 'Mat&Floor Classes - 9 sessions', price: '290 RON' },
+        'autopay-16': { name: 'Mat&Floor Classes - 16 sessions', price: '350 RON' },
+        'autopay-unlimited': { name: 'Mat&Floor Classes 1 month - Unlimited', price: '450 RON' },
+        'pricing-1': { name: 'Mat&Floor - 1 session', price: '120 RON' },
+        'pricing-9': { name: 'Mat&Floor Classes - 9 sessions', price: '290 RON' },
+        'pricing-16': { name: 'Mat&Floor Classes - 16 sessions', price: '350 RON' },
+        'pricing-unlimited': { name: 'Mat&Floor Classes 1 month - Unlimited', price: '450 RON' },
+      };
+
+      const data = checkoutData[selectedCheckout];
+      const priceValue = parseInt(data.price.split(' ')[0]);
+
+      return (
+        <div className="pb-28">
+          {/* Header */}
+          <div style={{ backgroundColor: ARIKANA_COLOR }} className="text-white px-6 py-4 flex items-center justify-between rounded-b-3xl">
+            <button onClick={() => setSelectedCheckout(null)} className="text-3xl font-light">×</button>
+            <h1 className="text-2xl font-light">Checkout</h1>
+            <div className="w-8"></div>
+          </div>
+
+          {/* Content */}
+          <div className="px-6 py-6">
+            {/* Product Name */}
+            <div className="bg-stone-100 rounded-lg p-4 mb-6">
+              <h2 className="text-xl font-semibold text-stone-900">{data.name}</h2>
+            </div>
+
+            {/* Promo Code */}
+            <button className="w-full flex items-center gap-3 py-4 border-b border-stone-200 hover:bg-stone-50 transition-colors">
+              <span style={{ color: ARIKANA_COLOR }} className="text-2xl">⊕</span>
+              <span className="font-semibold text-stone-900 text-lg">Promo code</span>
+            </button>
+
+            {/* Gift Card */}
+            <button className="w-full flex items-center gap-3 py-4 border-b border-stone-200 hover:bg-stone-50 transition-colors">
+              <span style={{ color: ARIKANA_COLOR }} className="text-2xl">⊕</span>
+              <span className="font-semibold text-stone-900 text-lg">Gift card</span>
+            </button>
+
+            {/* Payment Method */}
+            <div className="py-6 border-b border-stone-200">
+              <div className="flex justify-between items-center">
+                <div className="flex items-center gap-3">
+                  <div className="w-12 h-8 bg-black rounded flex items-center justify-center">
+                    <span className="text-red-500 font-bold text-sm">●●</span>
+                  </div>
+                  <span className="font-semibold text-stone-900">••••• 9909</span>
+                </div>
+                <button style={{ color: ARIKANA_COLOR }} className="font-semibold hover:opacity-80 transition-opacity">
+                  Change
+                </button>
+              </div>
+            </div>
+
+            {/* Subtotal */}
+            <div className="flex justify-between py-4 border-b-2 border-stone-300 mb-4">
+              <span className="text-stone-900 font-semibold">Subtotal</span>
+              <span className="text-stone-900 font-semibold">{data.price}</span>
+            </div>
+
+            {/* Today's Total */}
+            <div className="mb-8">
+              <div className="flex justify-between mb-2">
+                <span className="text-stone-900 font-bold text-lg">Today's Total</span>
+                <span className="text-stone-900 font-bold text-lg">{data.price}</span>
+              </div>
+              <div className="flex justify-between text-sm">
+                <span className="text-stone-600">Tax is included</span>
+                <span className="text-stone-600">0 RON</span>
+              </div>
+            </div>
+
+            {/* Info Message */}
+            <div className="text-center text-stone-600 mb-8 py-8">
+              <p>You will be charged Today's Total when you tap Buy</p>
+            </div>
+          </div>
+
+          {/* Buy Button */}
+          <div className="fixed bottom-6 left-0 right-0 max-w-md mx-auto px-6">
+            <button
+              style={{ backgroundColor: ARIKANA_COLOR }}
+              className="w-full text-white py-4 rounded-lg font-semibold hover:opacity-90 transition-opacity text-lg"
+            >
+              Buy
+            </button>
+          </div>
+        </div>
+      );
+    }
 
     // Autopay Detail View
     if (selectedAutopay) {
@@ -649,6 +745,7 @@ Since Mar 1, 2026</p>
           {/* Next Button */}
           <div className="fixed bottom-6 left-0 right-0 max-w-md mx-auto px-6">
             <button
+              onClick={() => setSelectedCheckout(selectedAutopay)}
               style={{ backgroundColor: ARIKANA_COLOR }}
               className="w-full text-white py-4 rounded-lg font-semibold hover:opacity-90 transition-opacity text-lg"
             >
@@ -699,12 +796,16 @@ Since Mar 1, 2026</p>
               <h2 className="text-2xl font-bold text-stone-900 mb-4">Pricing Options</h2>
               <div className="space-y-4">
                 {pricing.map((item, i) => (
-                  <div key={i} className="border-b border-stone-200 pb-4">
+                  <button
+                    key={i}
+                    onClick={() => setSelectedCheckout(item.id)}
+                    className="w-full text-left border-b border-stone-200 pb-4 hover:opacity-80 transition-opacity"
+                  >
                     <div className="flex justify-between items-start">
                       <p className="font-bold text-stone-900">{item.name}</p>
                       <p className="font-bold text-stone-900">{item.price}</p>
                     </div>
-                  </div>
+                  </button>
                 ))}
               </div>
             </div>
