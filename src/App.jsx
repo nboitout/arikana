@@ -564,7 +564,11 @@ Since Mar 1, 2026</p>
           <div className="bg-gray-100 rounded-3xl p-6 mb-4 text-center">
             <p className="text-stone-700 text-base font-normal">Nothing is currently scheduled</p>
           </div>
-          <button style={{ backgroundColor: ARIKANA_COLOR }} className="w-full text-white font-medium py-4 rounded-3xl hover:opacity-90 transition-opacity text-lg">
+          <button 
+            onClick={() => setActiveTab('book')}
+            style={{ backgroundColor: ARIKANA_COLOR }} 
+            className="w-full text-white font-medium py-4 rounded-3xl hover:opacity-90 transition-opacity text-lg"
+          >
             Explore
           </button>
         </div>
