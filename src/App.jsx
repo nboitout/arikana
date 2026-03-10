@@ -134,6 +134,7 @@ Since Mar 1, 2026</p>
     const [selectedDate, setSelectedDate] = useState(today);
     const [selectedInstructor, setSelectedInstructor] = useState('all');
     const [selectedBookingClass, setSelectedBookingClass] = useState(null);
+    const [bookingConfirmed, setBookingConfirmed] = useState(false);
 
     // Class descriptions
     const classDescriptions = {
@@ -240,6 +241,82 @@ Since Mar 1, 2026</p>
       return `${days[date.getDay()]}, ${date.getDate()} Mar`;
     };
 
+    // Handle booking confirmation
+    const handleBooking = () => {
+      setBookingConfirmed(true);
+      // Here we would send booking data to backend/email service
+      // Example:
+      // fetch('/api/booking', {
+      //   method: 'POST',
+      //   body: JSON.stringify({
+      //     classId: selectedBookingClass.id,
+      //     className: selectedBookingClass.name,
+      //     date: selectedDate,
+      //     instructor: selectedBookingClass.instructor,
+      //     userEmail: 'user@example.com' // Would get from user profile
+      //   })
+      // })
+    };
+
+    // Booking Confirmation View
+    if (selectedBookingClass && bookingConfirmed) {
+      return (
+        <div className="pb-28">
+          {/* Header */}
+          <div style={{ backgroundColor: ARIKANA_COLOR }} className="text-white px-6 py-4">
+            <h1 className="text-lg font-light text-center">Booking Confirmation</h1>
+          </div>
+
+          {/* Success Message */}
+          <div className="px-6 py-12 text-center">
+            <div className="text-6xl mb-6">✅</div>
+            <h2 className="text-2xl font-bold text-stone-900 mb-2">You're Booked!</h2>
+            <p className="text-stone-600 mb-8">Your spot is confirmed. See you soon!</p>
+
+            {/* Booking Details */}
+            <div className="bg-stone-50 rounded-2xl p-6 mb-8 text-left">
+              <div className="mb-4">
+                <p className="text-xs text-stone-500 uppercase tracking-wide mb-1">Class</p>
+                <p className="text-lg font-bold text-stone-900">{selectedBookingClass.name}</p>
+              </div>
+
+              <div className="mb-4">
+                <p className="text-xs text-stone-500 uppercase tracking-wide mb-1">Date & Time</p>
+                <p className="text-base text-stone-900">{formatDateDetail(selectedDate)} • {selectedBookingClass.time}</p>
+              </div>
+
+              <div className="mb-4">
+                <p className="text-xs text-stone-500 uppercase tracking-wide mb-1">Instructor</p>
+                <p className="text-base text-stone-900">{selectedBookingClass.instructor}</p>
+              </div>
+
+              <div>
+                <p className="text-xs text-stone-500 uppercase tracking-wide mb-1">Duration</p>
+                <p className="text-base text-stone-900">{selectedBookingClass.duration}</p>
+              </div>
+            </div>
+
+            {/* Info Message */}
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-8">
+              <p className="text-sm text-blue-900">📧 A confirmation email has been sent to your registered email address.</p>
+            </div>
+
+            {/* Back Button */}
+            <button
+              style={{ backgroundColor: ARIKANA_COLOR }}
+              className="w-full text-white py-3 rounded-lg font-semibold hover:opacity-90 transition-opacity"
+              onClick={() => {
+                setSelectedBookingClass(null);
+                setBookingConfirmed(false);
+              }}
+            >
+              Back to Calendar
+            </button>
+          </div>
+        </div>
+      );
+    }
+
     // Booking Detail View
     if (selectedBookingClass) {
       const instructor = getInstructorData(selectedBookingClass.instructor);
@@ -297,7 +374,7 @@ Since Mar 1, 2026</p>
             <button 
               style={{ backgroundColor: ARIKANA_COLOR }}
               className="flex-1 text-white py-3 rounded-lg font-semibold hover:opacity-90 transition-opacity"
-              onClick={() => setSelectedBookingClass(null)}
+              onClick={handleBooking}
             >
               Book
             </button>
@@ -305,6 +382,155 @@ Since Mar 1, 2026</p>
         </div>
       );
     }
+
+    // Classes List View
+    return (
+      <div className="pb-28">
+        {/* Header */}
+        <div style={{ backgroundColor: ARIKANA_COLOR }} className="text-white px-6 py-4">
+          <h1 className="text-xl font-light">Book Classes</h1>
+        </div>
+
+        {/* Calendar Day Picker */}
+        <div className="px-4 py-4 overflow-x-auto scrollbar-hide">
+          <div className="flex gap-2" style={{ minWidth: 'min-content' }}>
+            {dayDates.map((date, idx) => {
+              const isSelected = date.toDateString() === selectedDate.toDateString();
+              return (
+                <button
+                  key={idx}
+                  onClick={() => setSelectedDate(date)}
+                  style={{
+                    backgroundColor: isSelected ? ARIKANA_COLOR : '#f5f5f5',
+                    color: isSelected ? '#fff' : '#333',
+                    borderColor: isSelected ? ARIKANA_COLOR : '#ddd'
+                  }}
+                  className="flex-shrink-0 w-14 h-14 rounded-full flex flex-col items-center justify-center border-2 transition-all text-xs font-semibold"
+                >
+                  <span className="text-sm">{date.getDate()}</span>
+                  <span className="text-xs opacity-80">{formatDate(date)}</span>
+                </button>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* Swipeable Instructor Cards */}
+        <div className="overflow-x-auto scrollbar-hide px-4 py-2">
+          <div className="flex gap-4" style={{ minWidth: 'min-content' }}>
+            {/* All Instructors Card */}
+            <button
+              onClick={() => setSelectedInstructor('all')}
+              style={{
+                backgroundColor: selectedInstructor === 'all' ? ARIKANA_COLOR : '#f5f5f5',
+                color: selectedInstructor === 'all' ? '#fff' : '#333'
+              }}
+              className="flex-shrink-0 w-48 rounded-2xl p-2 text-left transition-all hover:shadow-lg cursor-pointer flex items-center gap-2"
+            >
+              <div className="text-2xl">🎯</div>
+              <div className="min-w-0">
+                <h3 className="text-xs font-bold">All</h3>
+                <p className="text-xs opacity-80">Instructors</p>
+              </div>
+            </button>
+
+            {/* Individual Instructor Cards */}
+            {['nicolas', 'angelina', 'sergey'].map((key) => {
+              const instr = instructors[key];
+              return (
+                <button
+                  key={key}
+                  onClick={() => setSelectedInstructor(key)}
+                  style={{
+                    backgroundColor: selectedInstructor === key ? ARIKANA_COLOR : '#f5f5f5',
+                    color: selectedInstructor === key ? '#fff' : '#333'
+                  }}
+                  className="flex-shrink-0 w-56 rounded-2xl p-3 text-left transition-all hover:shadow-lg cursor-pointer overflow-hidden"
+                >
+                  <div className="flex gap-2 h-20">
+                    {/* Left: Photo + Name */}
+                    <div className="flex flex-col items-center flex-shrink-0">
+                      <div className="w-12 h-12 rounded-full bg-white mb-1 overflow-hidden border-2" style={{ borderColor: selectedInstructor === key ? '#fff' : ARIKANA_COLOR }}>
+                        <img src={instr.photo} alt={instr.name} className="w-full h-full object-cover" />
+                      </div>
+                      <h3 className="text-xs font-bold text-center">{instr.name}</h3>
+                    </div>
+
+                    {/* Right: Title, Rating, Bio */}
+                    <div className="flex flex-col justify-start flex-1 min-w-0 gap-0.5">
+                      <p className="text-xs opacity-80">{instr.title}</p>
+                      <div className="flex gap-1 text-xs">
+                        <span>⭐ {instr.rating}</span>
+                      </div>
+                      <p className="text-xs opacity-70">{instr.bio}</p>
+                    </div>
+                  </div>
+                </button>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* Date Display + Classes */}
+        <div className="px-6 py-3 pb-4">
+          <h3 className="text-sm font-bold text-stone-900 mb-3">
+            {selectedDate.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
+          </h3>
+
+          {selectedDate.getDay() === 0 ? (
+            <div className="text-center py-12">
+              <div className="text-5xl mb-3">😌</div>
+              <p className="text-lg font-semibold text-stone-900 mb-2">Rest Day</p>
+              <p className="text-sm text-stone-600">Take a break, recharge, and come back stronger tomorrow!</p>
+            </div>
+          ) : filteredClasses.length === 0 ? (
+            <div className="text-center py-8">
+              <p className="text-stone-500 text-sm">No classes available for this day</p>
+            </div>
+          ) : (
+            <div className="space-y-2">
+              {filteredClasses.map((cls) => (
+                <div key={cls.id} className="bg-white border border-stone-200 rounded-lg p-3 hover:shadow-md transition-all">
+                  <div className="flex justify-between items-start mb-1">
+                    <div>
+                      <h4 className="font-semibold text-stone-900 text-xs">{cls.name}</h4>
+                      <p className="text-xs text-stone-600 mt-1">with {cls.instructor}</p>
+                    </div>
+                    <span style={{ backgroundColor: ARIKANA_COLOR }} className="text-xs font-medium text-white px-2 py-0.5 rounded-full whitespace-nowrap">
+                      {cls.spots} spots
+                    </span>
+                  </div>
+
+                  <div className="flex gap-3 text-xs text-stone-600 mb-2">
+                    <span>⏱️ {cls.time} • {cls.duration}</span>
+                  </div>
+
+                  <button
+                    onClick={() => setSelectedBookingClass(cls)}
+                    style={{ 
+                      borderColor: ARIKANA_COLOR,
+                      color: ARIKANA_COLOR
+                    }}
+                    className="w-full border-2 text-white font-semibold py-1.5 rounded-lg transition-all hover:opacity-80 text-xs"
+                    onMouseEnter={(e) => {
+                      e.target.style.backgroundColor = ARIKANA_COLOR;
+                      e.target.style.color = '#fff';
+                    }}
+                    onMouseLeave={(e) => {
+                      e.target.style.backgroundColor = 'transparent';
+                      e.target.style.color = ARIKANA_COLOR;
+                    }}
+                  >
+                    Book Now →
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+    );
+  };
 
     // Classes List View
     return (
