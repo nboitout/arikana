@@ -2,6 +2,16 @@ import React, { useState, useEffect } from 'react';
 import { Home, Calendar, ShoppingBag, User, MoreHorizontal, ChevronRight } from 'lucide-react';
 import './App.css';
 
+// Firebase configuration
+const FIREBASE_CONFIG = {
+  apiKey: "YOUR_API_KEY",
+  authDomain: "YOUR_AUTH_DOMAIN",
+  projectId: "YOUR_PROJECT_ID",
+  storageBucket: "YOUR_STORAGE_BUCKET",
+  messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
+  appId: "YOUR_APP_ID"
+};
+
 // Count-up animation hook
 const useCountUp = (targetValue, duration = 1500) => {
   const [count, setCount] = useState(0);
@@ -35,6 +45,227 @@ const useCountUp = (targetValue, duration = 1500) => {
 
 export default function ArikanaApp() {
   const [activeTab, setActiveTab] = useState('home');
+  const [currentUser, setCurrentUser] = useState(null);
+  const [authMode, setAuthMode] = useState('signup'); // 'signup' or 'signin'
+  const [isLoading, setIsLoading] = useState(true);
+
+  // Brand color
+  const ARIKANA_COLOR = '#B69B4D';
+
+  useEffect(() => {
+    // Check if user data exists in localStorage (mock auth for now)
+    const savedUser = localStorage.getItem('arikanaUser');
+    if (savedUser) {
+      setCurrentUser(JSON.parse(savedUser));
+    }
+    setIsLoading(false);
+  }, []);
+
+  // Auth Screens
+  const AuthScreen = () => {
+    const [formData, setFormData] = useState({
+      firstName: '',
+      lastName: '',
+      email: '',
+      mobile: '',
+      password: '',
+      confirmPassword: '',
+    });
+    const [error, setError] = useState('');
+
+    const handleChange = (e) => {
+      const { name, value } = e.target;
+      setFormData(prev => ({ ...prev, [name]: value }));
+      setError('');
+    };
+
+    const validateEmail = (email) => {
+      return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+    };
+
+    const validateMobile = (mobile) => {
+      return /^\d{10,}$/.test(mobile.replace(/\D/g, ''));
+    };
+
+    const handleSignUp = (e) => {
+      e.preventDefault();
+      
+      if (authMode === 'signup') {
+        if (!formData.firstName || !formData.lastName || !formData.email || !formData.mobile) {
+          setError('All fields are required');
+          return;
+        }
+        if (!validateEmail(formData.email)) {
+          setError('Invalid email format');
+          return;
+        }
+        if (!validateMobile(formData.mobile)) {
+          setError('Invalid mobile number');
+          return;
+        }
+        if (formData.password.length < 6) {
+          setError('Password must be at least 6 characters');
+          return;
+        }
+        if (formData.password !== formData.confirmPassword) {
+          setError('Passwords do not match');
+          return;
+        }
+
+        // Mock authentication - save to localStorage
+        const userData = {
+          firstName: formData.firstName,
+          lastName: formData.lastName,
+          email: formData.email,
+          mobile: formData.mobile,
+          id: Date.now()
+        };
+        localStorage.setItem('arikanaUser', JSON.stringify(userData));
+        setCurrentUser(userData);
+      } else {
+        // Sign In mode
+        if (!formData.email || !formData.password) {
+          setError('Email and password are required');
+          return;
+        }
+        if (!validateEmail(formData.email)) {
+          setError('Invalid email format');
+          return;
+        }
+
+        // Mock sign in - for demo, accept any email
+        const userData = {
+          firstName: 'Anya',
+          lastName: 'Glushkova',
+          email: formData.email,
+          mobile: '+40 123 456 789',
+          id: Date.now()
+        };
+        localStorage.setItem('arikanaUser', JSON.stringify(userData));
+        setCurrentUser(userData);
+      }
+    };
+
+    return (
+      <div className="h-screen flex flex-col items-center justify-center max-w-md mx-auto" style={{ backgroundColor: ARIKANA_COLOR }}>
+        {/* Logo Section */}
+        <div className="text-center mb-8 flex-1 flex flex-col items-center justify-center">
+          <div className="text-7xl mb-6">◯ ◉ ◈</div>
+          <h1 className="text-4xl font-light text-white mb-2">arikana</h1>
+          <p className="text-white text-opacity-90 text-sm tracking-wide">Yoga • Pilates • Mindfulness</p>
+        </div>
+
+        {/* Form Section */}
+        <div className="w-full px-6 pb-12">
+          <form onSubmit={handleSignUp} className="space-y-4">
+            {authMode === 'signup' && (
+              <>
+                <input
+                  type="text"
+                  name="firstName"
+                  placeholder="First Name"
+                  value={formData.firstName}
+                  onChange={handleChange}
+                  className="w-full px-4 py-3 rounded-lg text-sm placeholder-stone-500"
+                />
+                <input
+                  type="text"
+                  name="lastName"
+                  placeholder="Last Name"
+                  value={formData.lastName}
+                  onChange={handleChange}
+                  className="w-full px-4 py-3 rounded-lg text-sm placeholder-stone-500"
+                />
+              </>
+            )}
+
+            <input
+              type="email"
+              name="email"
+              placeholder="Email"
+              value={formData.email}
+              onChange={handleChange}
+              className="w-full px-4 py-3 rounded-lg text-sm placeholder-stone-500"
+            />
+
+            {authMode === 'signup' && (
+              <input
+                type="tel"
+                name="mobile"
+                placeholder="Mobile Number"
+                value={formData.mobile}
+                onChange={handleChange}
+                className="w-full px-4 py-3 rounded-lg text-sm placeholder-stone-500"
+              />
+            )}
+
+            <input
+              type="password"
+              name="password"
+              placeholder="Password"
+              value={formData.password}
+              onChange={handleChange}
+              className="w-full px-4 py-3 rounded-lg text-sm placeholder-stone-500"
+            />
+
+            {authMode === 'signup' && (
+              <input
+                type="password"
+                name="confirmPassword"
+                placeholder="Confirm Password"
+                value={formData.confirmPassword}
+                onChange={handleChange}
+                className="w-full px-4 py-3 rounded-lg text-sm placeholder-stone-500"
+              />
+            )}
+
+            {error && <p className="text-red-300 text-sm text-center">{error}</p>}
+
+            <button
+              type="submit"
+              className="w-full bg-white text-stone-900 font-semibold py-3 rounded-lg hover:opacity-90 transition-opacity mt-6"
+            >
+              {authMode === 'signup' ? 'Create Account' : 'Sign In'}
+            </button>
+          </form>
+
+          {/* Toggle Auth Mode */}
+          <div className="text-center mt-6">
+            <p className="text-white text-opacity-80 text-sm">
+              {authMode === 'signup' ? 'Already have an account?' : "Don't have an account?"}{' '}
+              <button
+                onClick={() => {
+                  setAuthMode(authMode === 'signup' ? 'signin' : 'signup');
+                  setFormData({ firstName: '', lastName: '', email: '', mobile: '', password: '', confirmPassword: '' });
+                  setError('');
+                }}
+                className="text-white font-semibold underline hover:opacity-80 transition-opacity"
+              >
+                {authMode === 'signup' ? 'Sign In' : 'Sign Up'}
+              </button>
+            </p>
+          </div>
+        </div>
+
+        {/* Footer */}
+        <div className="w-full text-center pb-6">
+          <p className="text-white text-opacity-70 text-xs">POWERED BY</p>
+          <p className="text-white font-light text-sm">arikana studios</p>
+        </div>
+      </div>
+    );
+  };
+
+  // Show auth screen if not logged in
+  if (isLoading) {
+    return <div className="h-screen flex items-center justify-center" style={{ backgroundColor: ARIKANA_COLOR }}></div>;
+  }
+
+  if (!currentUser) {
+    return <AuthScreen />;
+  }
+
+  // Main app continues from here...
 
   // Brand color
   const ARIKANA_COLOR = '#B69B4D';
@@ -859,9 +1090,14 @@ Since Mar 1, 2026</p>
     ];
 
     const purchaseHistory = [
-      { name: 'M&F Classes - 1 Month', price: '295,00 RON', date: 'Purchased 20.01.2026' },
-      { name: 'M&F Classes - 1 Month', price: '295,00 RON', date: 'Purchased 20.01.2026' },
+      { name: 'M&F Classes - 1 Month', price: '295 RON', date: 'Purchased 20.01.2026' },
+      { name: 'M&F Classes - 1 Month', price: '295 RON', date: 'Purchased 20.01.2026' },
     ];
+
+    const handleSignOut = () => {
+      localStorage.removeItem('arikanaUser');
+      setCurrentUser(null);
+    };
 
     // Payment Methods Detail View
     if (selectedMenuItem === 'payment-methods') {
@@ -941,8 +1177,10 @@ Since Mar 1, 2026</p>
             <div style={{ backgroundColor: `${ARIKANA_COLOR}20` }} className="w-16 h-16 mx-auto mb-4 rounded-full flex items-center justify-center">
               <User style={{ color: ARIKANA_COLOR }} className="w-8 h-8" />
             </div>
-            <h2 className="text-xl font-bold text-stone-900">Anya Glushkova</h2>
+            <h2 className="text-xl font-bold text-stone-900">{currentUser.firstName} {currentUser.lastName}</h2>
             <p className="text-sm text-stone-600 mt-1">Active Member</p>
+            <p className="text-xs text-stone-500 mt-2">{currentUser.email}</p>
+            <p className="text-xs text-stone-500">{currentUser.mobile}</p>
           </div>
 
           {/* Menu Items */}
@@ -970,7 +1208,11 @@ Since Mar 1, 2026</p>
             ))}
           </div>
 
-          <button style={{ color: ARIKANA_COLOR, borderColor: ARIKANA_COLOR }} className="w-full font-medium py-3 border-2 rounded-xl hover:opacity-80 transition-opacity mt-6">
+          <button 
+            onClick={handleSignOut}
+            style={{ color: ARIKANA_COLOR, borderColor: ARIKANA_COLOR }} 
+            className="w-full font-medium py-3 border-2 rounded-xl hover:opacity-80 transition-opacity mt-6"
+          >
             Sign Out
           </button>
         </div>
