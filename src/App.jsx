@@ -541,7 +541,7 @@ Since Mar 1, 2026</p>
       <div className="px-6 mt-8">
         <div className="space-y-4">
           {[
-            { name: 'Unlimited Classes', price: '$199/month', desc: 'All yoga & pilates classes' },
+            { name: 'Mat & Floor Classes', price: null, desc: null },
             { name: '8-Class Pack', price: '$149', desc: 'Valid for 3 months' },
             { name: '4-Class Pack', price: '$89', desc: 'Valid for 3 months' },
             { name: 'Private Session', price: '$120', desc: 'One-on-one coaching' },
@@ -549,9 +549,9 @@ Since Mar 1, 2026</p>
             <div key={i} className="border border-stone-200 rounded-2xl p-4 hover:border-stone-300 transition-colors">
               <div className="flex justify-between items-start mb-2">
                 <h3 className="font-semibold text-stone-900">{pkg.name}</h3>
-                <span style={{ color: ARIKANA_COLOR }} className="font-bold">{pkg.price}</span>
+                {pkg.price && <span style={{ color: ARIKANA_COLOR }} className="font-bold">{pkg.price}</span>}
               </div>
-              <p className="text-sm text-stone-600 mb-3">{pkg.desc}</p>
+              {pkg.desc && <p className="text-sm text-stone-600 mb-3">{pkg.desc}</p>}
               <button style={{ borderColor: ARIKANA_COLOR, color: ARIKANA_COLOR }} className="w-full border-2 py-2 rounded-lg font-medium hover:opacity-80 transition-opacity text-sm">
                 Learn More
               </button>
