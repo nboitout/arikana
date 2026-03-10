@@ -423,35 +423,99 @@ export default function ArikanaApp() {
 
   // Main app continues from here...
 
-  // Show auth screen if not logged in
-  if (isLoading) {
-    return <div className="h-screen flex items-center justify-center" style={{ backgroundColor: ARIKANA_COLOR }}></div>;
-  }
-
-  if (!currentUser) {
-    return <AuthScreen />;
-  }
-
-  // Main app continues from here...
-
-  // Mock data
-  const upcomingClasses = [
-    { id: 1, name: 'Pilates Reformer', date: 'Monday, 09 Mar', time: '18:30', instructor: 'Anna', spots: 3 },
-    { id: 2, name: 'Iyengar Yoga - General Class', date: 'Monday, 09 Mar', time: '18:30', instructor: 'Maya', spots: 5 },
-    { id: 3, name: 'Hatha Flow', date: 'Tuesday, 10 Mar', time: '10:00', instructor: 'Sofia', spots: 8 },
-    { id: 4, name: 'Private Pilates Session', date: 'Wednesday, 11 Mar', time: '14:00', instructor: '1-on-1', spots: 1 },
-  ];
-
   // Home Tab Content
   const HomeTab = () => {
     const count172 = useCountUp(172, 1200);
     const count100 = useCountUp(100, 1200);
 
+    // Get next 2 upcoming sessions based on current time
+    const getNextUpcomingSessions = () => {
+      const now = new Date();
+      const allSessions = [];
+
+      // Class schedule - comprehensive
+      const classSchedule = {
+        '2026-03-09': [ // Monday
+          { id: 1, name: 'Pilates Mat', time: '09:00', instructor: 'Angelina', spots: 8 },
+          { id: 2, name: 'Core Strength', time: '10:30', instructor: 'Nicolas', spots: 12 },
+          { id: 3, name: 'Speed Skating', time: '09:30', instructor: 'Sergey', spots: 11 },
+        ],
+        '2026-03-10': [ // Tuesday
+          { id: 4, name: 'Pilates Reformer', time: '08:00', instructor: 'Nicolas', spots: 10 },
+          { id: 5, name: 'Pelvic Curl Flow', time: '10:00', instructor: 'Angelina', spots: 9 },
+          { id: 6, name: 'Ice Skating with Grace', time: '14:00', instructor: 'Sergey', spots: 7 },
+          { id: 7, name: 'Advanced Pilates', time: '18:00', instructor: 'Nicolas', spots: 5 },
+        ],
+        '2026-03-11': [ // Wednesday (today)
+          { id: 8, name: 'Deep Core Activation', time: '09:00', instructor: 'Angelina', spots: 6 },
+          { id: 9, name: 'Pilates Mat', time: '11:00', instructor: 'Nicolas', spots: 8 },
+          { id: 10, name: 'Speed Skating', time: '15:00', instructor: 'Sergey', spots: 10 },
+        ],
+        '2026-03-12': [ // Thursday
+          { id: 11, name: 'Advanced Pelvic Techniques', time: '10:00', instructor: 'Angelina', spots: 4 },
+          { id: 12, name: 'Core Strength', time: '12:00', instructor: 'Nicolas', spots: 9 },
+          { id: 13, name: 'Ice Skating Techniques', time: '16:00', instructor: 'Sergey', spots: 6 },
+        ],
+        '2026-03-13': [ // Friday
+          { id: 14, name: 'Pilates Fusion', time: '09:30', instructor: 'Angelina', spots: 7 },
+          { id: 15, name: 'Pilates Reformer', time: '14:00', instructor: 'Nicolas', spots: 11 },
+          { id: 16, name: 'Crossfit on Ice', time: '17:00', instructor: 'Sergey', spots: 8 },
+        ],
+        '2026-03-14': [ // Saturday
+          { id: 17, name: 'Pelvic Curl Flow', time: '10:00', instructor: 'Angelina', spots: 5 },
+          { id: 18, name: 'Advanced Pilates', time: '15:00', instructor: 'Nicolas', spots: 9 },
+          { id: 19, name: 'Speed Skating', time: '17:30', instructor: 'Sergey', spots: 12 },
+        ],
+        // Sunday 2026-03-15: REST DAY - NO CLASSES
+        '2026-03-16': [ // Monday
+          { id: 20, name: 'Pilates Mat', time: '09:00', instructor: 'Angelina', spots: 8 },
+          { id: 21, name: 'Pilates Reformer', time: '14:00', instructor: 'Nicolas', spots: 10 },
+          { id: 22, name: 'Ice Skating with Grace', time: '16:30', instructor: 'Sergey', spots: 7 },
+        ],
+      };
+
+      // Flatten all sessions with dates
+      Object.keys(classSchedule).forEach(dateStr => {
+        const [year, month, day] = dateStr.split('-').map(Number);
+        classSchedule[dateStr].forEach(session => {
+          const sessionTime = new Date(year, month - 1, day);
+          const [hours, minutes] = session.time.split(':').map(Number);
+          sessionTime.setHours(hours, minutes, 0, 0);
+
+          // Get day name
+          const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+          const dayName = dayNames[sessionTime.getDay()];
+          const dateStr2 = sessionTime.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
+
+          allSessions.push({
+            id: session.id,
+            name: session.name,
+            time: session.time,
+            instructor: session.instructor,
+            spots: session.spots,
+            dateObj: sessionTime,
+            displayDate: `${dayName}, ${dateStr2}`,
+          });
+        });
+      });
+
+      // Filter sessions that are in the future (after now)
+      const futureSessions = allSessions.filter(s => s.dateObj > now);
+
+      // Sort by date/time
+      futureSessions.sort((a, b) => a.dateObj - b.dateObj);
+
+      // Return only next 2
+      return futureSessions.slice(0, 2);
+    };
+
+    const nextSessions = getNextUpcomingSessions();
+
     return (
       <div className="pb-28">
         {/* Header with gradient */}
         <div style={{ background: `linear-gradient(to bottom, ${ARIKANA_COLOR}, ${ARIKANA_COLOR}cc)` }} className="text-white px-6 py-6">
-          <p className="text-sm font-light mb-1">Hi, Анечка</p>
+          <p className="text-sm font-light mb-1">Hi, {currentUser?.firstName || 'Анечка'}</p>
           <h1 className="text-2xl font-light">Welcome to Arikana Studio</h1>
         </div>
 
@@ -505,17 +569,24 @@ Since Mar 1, 2026</p>
           </button>
         </div>
 
-        {/* Coming Up */}
+        {/* Coming Up - Next 2 Sessions */}
         <div className="px-6 pb-4">
           <h2 className="text-2xl font-bold text-stone-900 mb-4">Coming up</h2>
-          <div className="space-y-2">
-            {upcomingClasses.slice(0, 2).map((cls) => (
-              <div key={cls.id} className="border border-stone-200 rounded-2xl p-4 hover:shadow-md transition-shadow bg-white">
-                <h3 className="font-semibold text-stone-900 text-base">{cls.name}</h3>
-                <p className="text-sm text-stone-500 mt-2 font-light">{cls.date} | {cls.time}</p>
-              </div>
-            ))}
-          </div>
+          {nextSessions.length > 0 ? (
+            <div className="space-y-2">
+              {nextSessions.map((cls) => (
+                <div key={cls.id} className="border border-stone-200 rounded-2xl p-4 hover:shadow-md transition-shadow bg-white">
+                  <h3 className="font-semibold text-stone-900 text-base">{cls.name}</h3>
+                  <p className="text-sm text-stone-500 mt-2 font-light">{cls.displayDate} | {cls.time}</p>
+                  <p className="text-xs text-stone-400 mt-1">with {cls.instructor}</p>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="border border-stone-200 rounded-2xl p-4 bg-white text-center">
+              <p className="text-stone-600 font-light">No upcoming sessions</p>
+            </div>
+          )}
         </div>
       </div>
     );
