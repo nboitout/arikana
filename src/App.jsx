@@ -534,22 +534,133 @@ Since Mar 1, 2026</p>
   // Buy Tab Content
   const BuyTab = () => {
     const [selectedPackage, setSelectedPackage] = useState(null);
+    const [selectedAutopay, setSelectedAutopay] = useState(null);
+
+    const autopays = [
+      { name: 'Arikana Commitment M&F', sessions: '9 sessions ☆', price: '245 RON', id: 'autopay-9' },
+      { name: 'Arikana Commitment M&F', sessions: '16 sessions ☆', price: '295 RON', id: 'autopay-16' },
+      { name: 'Arikana Commitment M&F 1 month', sessions: 'unlimited ☆', price: '395 RON', id: 'autopay-unlimited' },
+    ];
+
+    const pricing = [
+      { name: 'Mat&Floor - 1 session', price: '120 RON' },
+      { name: 'Mat&Floor Classes - 9 sessions', price: '290 RON' },
+      { name: 'Mat&Floor Classes - 16 sessions', price: '350 RON' },
+      { name: 'Mat&Floor Classes 1 month - Unlimited', price: '450 RON' },
+    ];
+
+    // Autopay Detail View
+    if (selectedAutopay) {
+      const autopayData = {
+        'autopay-9': {
+          title: 'Arikana Commitment M&F 9 sessions ☆',
+          itemName: 'Arikana Commitment M&F 9 sessions ☆',
+          classesName: 'Mat&Floor Classes - 9 sessions',
+          recurringAmount: '245 RON',
+          dueFrequency: 'every 4 weeks',
+          duration: '396 weeks',
+          todaysTotal: '290 RON'
+        },
+        'autopay-16': {
+          title: 'Arikana Commitment M&F 16 sessions ☆',
+          itemName: 'Arikana Commitment M&F 16 sessions ☆',
+          classesName: 'Mat&Floor Classes - 16 sessions',
+          recurringAmount: '295 RON',
+          dueFrequency: 'every 4 weeks',
+          duration: '396 weeks',
+          todaysTotal: '340 RON'
+        },
+        'autopay-unlimited': {
+          title: 'Arikana Commitment M&F 1 month - unlimited ☆',
+          itemName: 'Arikana Commitment M&F 1 month - unlimited ☆',
+          classesName: 'Mat&Floor Classes 1 month - Unlimited',
+          recurringAmount: '395 RON',
+          dueFrequency: 'every 4 weeks',
+          duration: '396 weeks',
+          todaysTotal: '440 RON'
+        }
+      };
+
+      const data = autopayData[selectedAutopay];
+
+      return (
+        <div className="pb-28">
+          {/* Header */}
+          <div style={{ backgroundColor: ARIKANA_COLOR }} className="text-white px-6 py-4 flex items-center justify-between rounded-b-3xl">
+            <button onClick={() => setSelectedAutopay(null)} className="text-3xl font-light">×</button>
+            <h1 className="text-lg font-light flex-1 text-center">{data.title}</h1>
+            <div className="w-8"></div>
+          </div>
+
+          {/* Content */}
+          <div className="px-6 py-6">
+            {/* Title */}
+            <h2 className="text-lg font-light text-stone-600 mb-6">{data.itemName}</h2>
+
+            {/* Items Section */}
+            <div className="mb-8">
+              <h3 className="text-sm font-bold text-stone-500 uppercase tracking-wide mb-4 pb-2 border-b border-stone-200">Items</h3>
+              <div className="space-y-4">
+                <div className="pb-4 border-b border-stone-200">
+                  <p className="font-semibold text-stone-900">{data.itemName}</p>
+                  <p className="text-sm text-stone-600">Enrollment Fee</p>
+                  <p className="text-xs text-stone-500">One time</p>
+                </div>
+                <div>
+                  <p className="font-semibold text-stone-900">{data.classesName}</p>
+                  <p className="text-sm text-stone-600">Recurring</p>
+                </div>
+              </div>
+            </div>
+
+            {/* Payment Schedule Section */}
+            <div className="mb-8">
+              <h3 className="text-sm font-bold text-stone-500 uppercase tracking-wide mb-4 pb-2 border-b border-stone-200">Payment Schedule</h3>
+              <div className="space-y-3 mb-6">
+                <p className="font-semibold text-stone-900">Contract starts Mar 10, 2026</p>
+              </div>
+              
+              <div className="space-y-3">
+                <div className="flex justify-between">
+                  <span className="text-stone-600">Recurring amount</span>
+                  <span className="font-semibold text-stone-900">{data.recurringAmount}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-stone-600">Due</span>
+                  <span className="font-semibold text-stone-900">{data.dueFrequency}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-stone-600">Duration</span>
+                  <span className="font-semibold text-stone-900">{data.duration}</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Today's Total */}
+            <div className="flex justify-between items-center mb-8 pb-4 border-b border-stone-200">
+              <div className="flex items-center gap-2">
+                <span className="text-stone-900 font-semibold">Today's Total</span>
+                <div style={{ color: ARIKANA_COLOR }} className="w-5 h-5 rounded-full border-2 flex items-center justify-center text-xs">ⓘ</div>
+              </div>
+              <span style={{ color: ARIKANA_COLOR }} className="text-2xl font-bold">{data.todaysTotal}</span>
+            </div>
+          </div>
+
+          {/* Next Button */}
+          <div className="fixed bottom-6 left-0 right-0 max-w-md mx-auto px-6">
+            <button
+              style={{ backgroundColor: ARIKANA_COLOR }}
+              className="w-full text-white py-4 rounded-lg font-semibold hover:opacity-90 transition-opacity text-lg"
+            >
+              Next
+            </button>
+          </div>
+        </div>
+      );
+    }
 
     // Mat & Floor Classes Detail
     if (selectedPackage === 'mat-floor') {
-      const autopays = [
-        { name: 'Arikana Commitment M&F', sessions: '9 sessions ☆', price: '245 RON' },
-        { name: 'Arikana Commitment M&F', sessions: '16 sessions ☆', price: '295 RON' },
-        { name: 'Arikana Commitment M&F 1 month', sessions: 'unlimited ☆', price: '395 RON' },
-      ];
-
-      const pricing = [
-        { name: 'Mat&Floor - 1 session', price: '120 RON' },
-        { name: 'Mat&Floor Classes - 9 sessions', price: '290 RON' },
-        { name: 'Mat&Floor Classes - 16 sessions', price: '350 RON' },
-        { name: 'Mat&Floor Classes 1 month - Unlimited', price: '450 RON' },
-      ];
-
       return (
         <div className="pb-28">
           {/* Header */}
@@ -565,7 +676,11 @@ Since Mar 1, 2026</p>
               <h2 className="text-2xl font-bold text-stone-900 mb-4">Autopays</h2>
               <div className="space-y-4">
                 {autopays.map((item, i) => (
-                  <div key={i} className="border-b border-stone-200 pb-4">
+                  <button
+                    key={i}
+                    onClick={() => setSelectedAutopay(item.id)}
+                    className="w-full text-left border-b border-stone-200 pb-4 hover:opacity-80 transition-opacity"
+                  >
                     <div className="flex justify-between items-start">
                       <div>
                         <p className="font-bold text-stone-900">{item.name}</p>
@@ -574,7 +689,7 @@ Since Mar 1, 2026</p>
                       </div>
                       <p className="font-bold text-stone-900">{item.price}</p>
                     </div>
-                  </div>
+                  </button>
                 ))}
               </div>
             </div>
