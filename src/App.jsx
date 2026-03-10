@@ -538,16 +538,16 @@ Since Mar 1, 2026</p>
     // Mat & Floor Classes Detail
     if (selectedPackage === 'mat-floor') {
       const autopays = [
-        { name: 'Arikana Commitment M&F', sessions: '9 sessions ☆', price: '245,00 RON' },
-        { name: 'Arikana Commitment M&F', sessions: '16 sessions ☆', price: '295,00 RON' },
-        { name: 'Arikana Commitment M&F 1 month', sessions: 'unlimited ☆', price: '395,00 RON' },
+        { name: 'Arikana Commitment M&F', sessions: '9 sessions ☆', price: '245 RON' },
+        { name: 'Arikana Commitment M&F', sessions: '16 sessions ☆', price: '295 RON' },
+        { name: 'Arikana Commitment M&F 1 month', sessions: 'unlimited ☆', price: '395 RON' },
       ];
 
       const pricing = [
-        { name: 'Mat&Floor - 1 session', price: '120,00 RON' },
-        { name: 'Mat&Floor Classes - 9 sessions', price: '290,00 RON' },
-        { name: 'Mat&Floor Classes - 16 sessions', price: '350,00 RON' },
-        { name: 'Mat&Floor Classes 1 month - Unlimited', price: '450,00 RON' },
+        { name: 'Mat&Floor - 1 session', price: '120 RON' },
+        { name: 'Mat&Floor Classes - 9 sessions', price: '290 RON' },
+        { name: 'Mat&Floor Classes - 16 sessions', price: '350 RON' },
+        { name: 'Mat&Floor Classes 1 month - Unlimited', price: '450 RON' },
       ];
 
       return (
