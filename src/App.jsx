@@ -628,17 +628,15 @@ Since Mar 1, 2026</p>
 
   // Book Tab Content - Calendar + Classes by Date
   const BookTab = () => {
-    console.log('BookTab rendering');
     // Initialize with today's date
     const today = new Date();
     today.setHours(0, 0, 0, 0);
     const [selectedDate, setSelectedDate] = useState(today);
     const [selectedInstructor, setSelectedInstructor] = useState('all');
     const [selectedBookingClass, setSelectedBookingClass] = useState(null);
-    const [bookingConfirmed, setBookingConfirmed] = useState(false);
+    const [showConfirmation, setShowConfirmation] = useState(false);
+    const [lastBookedClass, setLastBookedClass] = useState(null);
     const [confirmPastBooking, setConfirmPastBooking] = useState(false);
-    
-    console.log('BookTab state:', { selectedBookingClass: selectedBookingClass?.name, bookingConfirmed });
 
     // Class descriptions
     const classDescriptions = {
@@ -756,12 +754,10 @@ Since Mar 1, 2026</p>
 
     // Handle booking confirmation
     const handleBooking = () => {
-      console.log('handleBooking called', { selectedBookingClass, isSessionInPast: isSessionInPast(), confirmPastBooking });
-      
       // Check if session is in the past and user hasn't confirmed yet
       if (isSessionInPast() && !confirmPastBooking) {
         setConfirmPastBooking(true);
-        return; // Show warning instead of booking
+        return;
       }
 
       // Create booking object
@@ -792,18 +788,15 @@ Since Mar 1, 2026</p>
       // Save to localStorage
       localStorage.setItem('arikanaBookings', JSON.stringify(updatedBookings));
 
-      // CRITICAL: Set confirmation LAST to ensure state updates happen
-      setBookingConfirmed(true);
-      setConfirmPastBooking(false);
-      
-      console.log('Booking confirmed, should show confirmation page');
+      // Show confirmation
+      setLastBookedClass(newBooking);
+      setShowConfirmation(true);
     };
 
-    // Booking Confirmation View - CHECK FIRST
-    if (selectedBookingClass && bookingConfirmed) {
-      console.log('SHOWING CONFIRMATION PAGE', { selectedBookingClass: selectedBookingClass.name, bookingConfirmed });
+    // CONFIRMATION PAGE - SHOW FIRST
+    if (showConfirmation && lastBookedClass) {
       return (
-        <div className="pb-28 h-screen flex flex-col">
+        <div className="pb-28 h-screen flex flex-col bg-white">
           {/* Header */}
           <div style={{ backgroundColor: ARIKANA_COLOR }} className="text-white px-6 py-4">
             <h1 className="text-xl font-light text-center">Booking Confirmation</h1>
@@ -812,58 +805,60 @@ Since Mar 1, 2026</p>
           {/* Content */}
           <div className="flex-1 px-6 py-8 flex flex-col items-center justify-center">
             {/* Success Icon */}
-            <div className="text-7xl mb-4">✅</div>
+            <div className="text-8xl mb-6">✅</div>
             
             {/* Success Message */}
-            <h2 className="text-2xl font-bold text-stone-900 mb-2">You're Booked!</h2>
-            <p className="text-base text-stone-600 mb-8">Your spot is confirmed. See you soon!</p>
+            <h2 className="text-3xl font-bold text-stone-900 mb-2">You're Booked!</h2>
+            <p className="text-lg text-stone-600 mb-10">Your spot is confirmed. See you soon!</p>
 
             {/* Booking Details - 2 Column Grid */}
-            <div className="w-full bg-stone-50 rounded-2xl p-6 mb-8">
-              <div className="grid grid-cols-2 gap-4">
+            <div className="w-full bg-stone-100 rounded-3xl p-8 mb-8">
+              <div className="grid grid-cols-2 gap-6">
                 {/* Class */}
                 <div>
-                  <p className="text-xs text-stone-500 uppercase tracking-wide font-semibold mb-2">Class</p>
-                  <p className="text-base font-bold text-stone-900">{selectedBookingClass.name}</p>
+                  <p className="text-xs text-stone-500 uppercase tracking-widest font-bold mb-3">Class</p>
+                  <p className="text-lg font-bold text-stone-900">{lastBookedClass.className}</p>
                 </div>
                 
                 {/* Instructor */}
                 <div>
-                  <p className="text-xs text-stone-500 uppercase tracking-wide font-semibold mb-2">Instructor</p>
-                  <p className="text-base font-bold text-stone-900">{selectedBookingClass.instructor}</p>
+                  <p className="text-xs text-stone-500 uppercase tracking-widest font-bold mb-3">Instructor</p>
+                  <p className="text-lg font-bold text-stone-900">{lastBookedClass.instructor}</p>
                 </div>
 
                 {/* Date & Time */}
                 <div>
-                  <p className="text-xs text-stone-500 uppercase tracking-wide font-semibold mb-2">Date & Time</p>
-                  <p className="text-base text-stone-900">{formatDateDetail(selectedDate)}</p>
-                  <p className="text-base font-bold text-stone-900">{selectedBookingClass.time}</p>
+                  <p className="text-xs text-stone-500 uppercase tracking-widest font-bold mb-3">Date & Time</p>
+                  <p className="text-lg text-stone-900 font-semibold">{lastBookedClass.displayDate}</p>
+                  <p className="text-lg font-bold text-stone-900">{lastBookedClass.time}</p>
                 </div>
 
                 {/* Duration */}
                 <div>
-                  <p className="text-xs text-stone-500 uppercase tracking-wide font-semibold mb-2">Duration</p>
-                  <p className="text-base font-bold text-stone-900">{selectedBookingClass.duration}</p>
+                  <p className="text-xs text-stone-500 uppercase tracking-widest font-bold mb-3">Duration</p>
+                  <p className="text-lg font-bold text-stone-900">{lastBookedClass.duration}</p>
                 </div>
               </div>
             </div>
 
             {/* Info Box */}
-            <div className="w-full bg-blue-50 border-2 border-blue-200 rounded-xl p-4 mb-8">
-              <p className="text-sm text-blue-900">
-                <span className="text-lg">📧</span> Confirmation email sent to your account
+            <div className="w-full bg-blue-50 border-2 border-blue-300 rounded-2xl p-5 mb-8">
+              <p className="text-base text-blue-900 font-semibold">
+                <span className="text-2xl mr-3">📧</span>Confirmation email sent to your account
               </p>
             </div>
           </div>
 
           {/* Button */}
-          <div className="fixed bottom-20 left-0 right-0 max-w-md mx-auto px-6 pb-4">
+          <div className="px-6 pb-8">
             <button
               style={{ backgroundColor: ARIKANA_COLOR }}
-              className="w-full text-white py-4 rounded-xl font-semibold hover:opacity-90 transition-opacity text-lg"
+              className="w-full text-white py-5 rounded-2xl font-bold hover:opacity-90 transition-opacity text-lg"
               onClick={() => {
+                setShowConfirmation(false);
+                setLastBookedClass(null);
                 setSelectedBookingClass(null);
-                setBookingConfirmed(false);
+                setConfirmPastBooking(false);
               }}
             >
               Back to Booking Calendar
@@ -875,7 +870,6 @@ Since Mar 1, 2026</p>
 
     // Booking Detail View
     if (selectedBookingClass) {
-      console.log('SHOWING BOOKING DETAIL VIEW', { class: selectedBookingClass.name, bookingConfirmed });
       const instructor = getInstructorData(selectedBookingClass.instructor);
       const description = classDescriptions[selectedBookingClass.name] || 'Professional class instruction.';
       const sessionInPast = isSessionInPast();
