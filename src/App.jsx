@@ -531,7 +531,6 @@ Since Mar 1, 2026</p>
       </div>
     );
   };
-  };
 
   // Buy Tab Content
   const BuyTab = () => (
