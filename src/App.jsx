@@ -731,6 +731,12 @@ Since Mar 1, 2026</p>
     recurringPattern, dateOverrides, getClassesForDate
   }) => {
     const [selectedInstructor, setSelectedInstructor] = useState('all');
+    const [refreshKey, setRefreshKey] = useState(0);
+
+    // Force re-render when schedule changes
+    useEffect(() => {
+      setRefreshKey(prev => prev + 1);
+    }, [recurringPattern, dateOverrides]);
 
     // Class descriptions
     const classDescriptions = {
@@ -1157,7 +1163,7 @@ Since Mar 1, 2026</p>
           ) : (
             <div className="space-y-2">
               {filteredClasses.map((cls) => (
-                <div key={cls.id} className="bg-white border border-stone-200 rounded-lg p-3 hover:shadow-md transition-all">
+                <div key={`${cls.id}-${refreshKey}`} className="bg-white border border-stone-200 rounded-lg p-3 hover:shadow-md transition-all">
                   <div className="flex justify-between items-start mb-1">
                     <div>
                       <h4 className="font-semibold text-stone-900 text-xs">{cls.name}</h4>
@@ -2223,6 +2229,7 @@ Since Mar 1, 2026</p>
   const tabContent = {
     home: <HomeTab bookings={bookings} setBookings={setBookings} />,
     book: <BookTab 
+      key={`book-${JSON.stringify(Object.keys(recurringPattern))}-${Object.keys(dateOverrides).length}`}
       bookings={bookings}
       setBookings={setBookings}
       bookingView={bookingView}
