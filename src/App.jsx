@@ -1886,12 +1886,7 @@ Since Mar 1, 2026</p>
           <div className="px-6 mt-6 pb-6">
             <button
               type="button"
-              onClick={() => {
-                console.log('Create button clicked!');
-                console.log('showCreateForm state before:', false);
-                setShowCreateForm(true);
-                console.log('showCreateForm state after:', true);
-              }}
+              onClick={() => setShowCreateForm(true)}
               style={{ backgroundColor: ARIKANA_COLOR }}
               className="w-full text-white py-3 rounded-lg font-semibold hover:opacity-90 transition-opacity cursor-pointer"
             >
@@ -1902,8 +1897,8 @@ Since Mar 1, 2026</p>
       );
     }
 
-    // Create New Class Form - only for Lead Trainer
-    if (showCreateForm && currentUser?.role === 'lead-trainer') {
+    // Create New Class Form
+    if (showCreateForm) {
       const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
       
       return (
