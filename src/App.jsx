@@ -705,7 +705,8 @@ Since Mar 1, 2026</p>
     bookingView, setBookingView, 
     lastBookedClass, setLastBookedClass,
     selectedBookingClass, setSelectedBookingClass,
-    selectedDate, setSelectedDate
+    selectedDate, setSelectedDate,
+    classSchedule, setClassSchedule
   }) => {
     const [selectedInstructor, setSelectedInstructor] = useState('all');
 
@@ -730,45 +731,7 @@ Since Mar 1, 2026</p>
     // Monday (2026-03-09) - has classes
     // Tuesday (2026-03-10) - has classes  
     // etc.
-    const classSchedule = {
-      '2026-03-09': [ // Monday
-        { id: 1, name: 'Pilates Mat', time: '09:00', duration: '60 min', instructor: 'Angelina', spots: 8 },
-        { id: 2, name: 'Core Strength', time: '10:30', duration: '45 min', instructor: 'Nicolas', spots: 12 },
-        { id: 3, name: 'Speed Skating', time: '09:30', duration: '50 min', instructor: 'Sergey', spots: 11 },
-      ],
-      '2026-03-10': [ // Tuesday - TODAY
-        { id: 4, name: 'Pilates Reformer', time: '09:00', duration: '60 min', instructor: 'Nicolas', spots: 8 },
-        { id: 5, name: 'Pelvic Curl Flow', time: '08:00', duration: '50 min', instructor: 'Angelina', spots: 10 },
-        { id: 6, name: 'Ice Skating with Grace', time: '07:00', duration: '60 min', instructor: 'Sergey', spots: 14 },
-        { id: 7, name: 'Advanced Pilates', time: '18:30', duration: '60 min', instructor: 'Nicolas', spots: 6 },
-      ],
-      '2026-03-11': [ // Wednesday
-        { id: 8, name: 'Deep Core Activation', time: '11:00', duration: '60 min', instructor: 'Angelina', spots: 9 },
-        { id: 9, name: 'Pilates Mat', time: '17:00', duration: '50 min', instructor: 'Nicolas', spots: 15 },
-        { id: 10, name: 'Speed Skating', time: '09:30', duration: '50 min', instructor: 'Sergey', spots: 11 },
-      ],
-      '2026-03-12': [ // Thursday
-        { id: 11, name: 'Advanced Pelvic Techniques', time: '17:00', duration: '60 min', instructor: 'Angelina', spots: 7 },
-        { id: 12, name: 'Core Strength', time: '10:30', duration: '45 min', instructor: 'Nicolas', spots: 12 },
-        { id: 13, name: 'Ice Skating Techniques', time: '16:00', duration: '60 min', instructor: 'Sergey', spots: 8 },
-      ],
-      '2026-03-13': [ // Friday
-        { id: 14, name: 'Pilates Fusion', time: '19:00', duration: '55 min', instructor: 'Angelina', spots: 12 },
-        { id: 15, name: 'Pilates Reformer', time: '09:00', duration: '60 min', instructor: 'Nicolas', spots: 7 },
-        { id: 16, name: 'Crossfit on Ice', time: '18:00', duration: '55 min', instructor: 'Sergey', spots: 6 },
-      ],
-      '2026-03-14': [ // Saturday
-        { id: 17, name: 'Pelvic Curl Flow', time: '10:30', duration: '50 min', instructor: 'Angelina', spots: 6 },
-        { id: 18, name: 'Advanced Pilates', time: '18:30', duration: '60 min', instructor: 'Nicolas', spots: 5 },
-        { id: 19, name: 'Speed Skating', time: '09:30', duration: '50 min', instructor: 'Sergey', spots: 11 },
-      ],
-      '2026-03-16': [ // Monday
-        { id: 20, name: 'Pilates Mat', time: '09:00', duration: '60 min', instructor: 'Angelina', spots: 8 },
-        { id: 21, name: 'Pilates Reformer', time: '18:30', duration: '60 min', instructor: 'Nicolas', spots: 4 },
-        { id: 22, name: 'Ice Skating with Grace', time: '07:00', duration: '60 min', instructor: 'Sergey', spots: 14 },
-      ],
-      // Sunday (2026-03-15) - NO CLASSES - Rest day!
-    };
+    // NOTE: classSchedule is now passed as a prop from parent component
 
     const instructors = {
       nicolas: { name: 'Nicolas', title: 'Pilates Specialist', rating: 4.9, reviews: 127, bio: 'Pilates and Pushups', photo: 'https://i.ibb.co/xKGQ2P8B/Nicolas-Boitout.png' },
@@ -1585,45 +1548,38 @@ Since Mar 1, 2026</p>
   };
 
   // Profile Tab Content
-  const ProfileTab = () => {
+  const ProfileTab = ({ classSchedule, setClassSchedule, currentUser, setCurrentUser }) => {
     const [selectedMenuItem, setSelectedMenuItem] = useState(null);
     const [editingClass, setEditingClass] = useState(null);
     const [editingDayNum, setEditingDayNum] = useState(null);
     const [editForm, setEditForm] = useState({});
-    const [baseWeeklySchedule, setBaseWeeklySchedule] = useState({
-      0: [], // Sunday
-      1: [ // Monday
-        { name: 'Pilates Mat', time: '09:00', duration: '60 min', instructor: 'Angelina', spots: 8 },
-        { name: 'Core Strength', time: '10:30', duration: '45 min', instructor: 'Nicolas', spots: 12 },
-        { name: 'Speed Skating', time: '09:30', duration: '50 min', instructor: 'Sergey', spots: 11 },
-      ],
-      2: [ // Tuesday
-        { name: 'Pelvic Curl Flow', time: '08:00', duration: '50 min', instructor: 'Angelina', spots: 10 },
-        { name: 'Ice Skating with Grace', time: '07:00', duration: '60 min', instructor: 'Sergey', spots: 14 },
-        { name: 'Pilates Reformer', time: '09:00', duration: '60 min', instructor: 'Nicolas', spots: 8 },
-        { name: 'Advanced Pilates', time: '18:30', duration: '60 min', instructor: 'Nicolas', spots: 6 },
-      ],
-      3: [ // Wednesday
-        { name: 'Deep Core Activation', time: '11:00', duration: '60 min', instructor: 'Angelina', spots: 9 },
-        { name: 'Pilates Mat', time: '17:00', duration: '50 min', instructor: 'Nicolas', spots: 15 },
-        { name: 'Speed Skating', time: '09:30', duration: '50 min', instructor: 'Sergey', spots: 11 },
-      ],
-      4: [ // Thursday
-        { name: 'Advanced Pelvic Techniques', time: '17:00', duration: '60 min', instructor: 'Angelina', spots: 7 },
-        { name: 'Core Strength', time: '10:30', duration: '45 min', instructor: 'Nicolas', spots: 12 },
-        { name: 'Ice Skating Techniques', time: '16:00', duration: '60 min', instructor: 'Sergey', spots: 8 },
-      ],
-      5: [ // Friday
-        { name: 'Pilates Fusion', time: '19:00', duration: '55 min', instructor: 'Angelina', spots: 12 },
-        { name: 'Pilates Reformer', time: '09:00', duration: '60 min', instructor: 'Nicolas', spots: 7 },
-        { name: 'Crossfit on Ice', time: '18:00', duration: '55 min', instructor: 'Sergey', spots: 6 },
-      ],
-      6: [ // Saturday
-        { name: 'Pelvic Curl Flow', time: '10:30', duration: '50 min', instructor: 'Angelina', spots: 6 },
-        { name: 'Advanced Pilates', time: '18:30', duration: '60 min', instructor: 'Nicolas', spots: 5 },
-        { name: 'Speed Skating', time: '09:30', duration: '50 min', instructor: 'Sergey', spots: 11 },
-      ],
-    });
+    const [showCreateForm, setShowCreateForm] = useState(false);
+    const [newClassForm, setNewClassForm] = useState({ name: '', time: '', duration: '60 min', instructor: 'Nicolas', spots: 10, dayOfWeek: 1 });
+
+    // Convert classSchedule (date-based) to weekly view (day-of-week based) for display
+    const getWeeklySchedule = () => {
+      const weeklySchedule = {
+        0: [], // Sunday
+        1: [], // Monday
+        2: [], // Tuesday
+        3: [], // Wednesday
+        4: [], // Thursday
+        5: [], // Friday
+        6: [], // Saturday
+      };
+
+      Object.entries(classSchedule).forEach(([dateStr, classes]) => {
+        const date = new Date(dateStr);
+        const dayOfWeek = date.getDay();
+        classes.forEach(cls => {
+          weeklySchedule[dayOfWeek].push({ ...cls, dateStr });
+        });
+      });
+
+      return weeklySchedule;
+    };
+
+    const baseWeeklySchedule = getWeeklySchedule();
 
     const paymentMethods = [
       { type: 'Mastercard', last4: '9909', expires: '09/2029' },
@@ -1721,11 +1677,15 @@ Since Mar 1, 2026</p>
               <div className="flex gap-3 mt-8">
                 <button
                   onClick={() => {
-                    // Delete class
-                    const updatedDay = baseWeeklySchedule[editingDayNum].filter((_, idx) => idx !== editingClass.index);
-                    const updated = { ...baseWeeklySchedule, [editingDayNum]: updatedDay };
-                    setBaseWeeklySchedule(updated);
-                    localStorage.setItem('arikanaBaseWeeklySchedule', JSON.stringify(updated));
+                    // Delete class from centralized schedule
+                    const updatedSchedule = { ...classSchedule };
+                    Object.keys(updatedSchedule).forEach(dateStr => {
+                      const date = new Date(dateStr);
+                      if (date.getDay() === editingDayNum) {
+                        updatedSchedule[dateStr] = updatedSchedule[dateStr].filter((_, idx) => idx !== editingClass.index);
+                      }
+                    });
+                    setClassSchedule(updatedSchedule);
                     setEditingClass(null);
                   }}
                   className="flex-1 text-red-600 border-2 border-red-600 py-3 rounded-lg font-semibold hover:bg-red-50 transition-colors"
@@ -1740,12 +1700,17 @@ Since Mar 1, 2026</p>
                 </button>
                 <button
                   onClick={() => {
-                    // Save changes
-                    const updatedDay = [...baseWeeklySchedule[editingDayNum]];
-                    updatedDay[editingClass.index] = editForm;
-                    const updated = { ...baseWeeklySchedule, [editingDayNum]: updatedDay };
-                    setBaseWeeklySchedule(updated);
-                    localStorage.setItem('arikanaBaseWeeklySchedule', JSON.stringify(updated));
+                    // Save changes to centralized schedule
+                    const updatedSchedule = { ...classSchedule };
+                    Object.keys(updatedSchedule).forEach(dateStr => {
+                      const date = new Date(dateStr);
+                      if (date.getDay() === editingDayNum) {
+                        updatedSchedule[dateStr] = updatedSchedule[dateStr].map((cls, idx) => 
+                          idx === editingClass.index ? { ...editForm, id: cls.id } : cls
+                        );
+                      }
+                    });
+                    setClassSchedule(updatedSchedule);
                     setEditingClass(null);
                   }}
                   style={{ backgroundColor: ARIKANA_COLOR }}
@@ -1894,6 +1859,157 @@ Since Mar 1, 2026</p>
             </div>
             <div className="flex items-center justify-center gap-2 text-xs text-stone-500">
               <span>👈 Swipe left to see more days 👉</span>
+            </div>
+            <button
+              onClick={() => setShowCreateForm(true)}
+              style={{ backgroundColor: ARIKANA_COLOR }}
+              className="w-full text-white py-3 rounded-lg font-semibold hover:opacity-90 transition-opacity mt-4"
+            >
+              + Create New Class
+            </button>
+          </div>
+        </div>
+      );
+    }
+
+    // Create New Class Form - only for Lead Trainer
+    if (showCreateForm && currentUser?.role === 'lead-trainer') {
+      const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+      
+      return (
+        <div className="pb-28">
+          {/* Header */}
+          <div style={{ background: `linear-gradient(to bottom, ${ARIKANA_COLOR}, ${ARIKANA_COLOR}cc)` }} className="text-white px-6 py-4">
+            <div className="flex items-center gap-3">
+              <button onClick={() => setShowCreateForm(false)} className="text-2xl">←</button>
+              <h1 className="text-2xl font-light flex-1">Create New Class</h1>
+            </div>
+          </div>
+
+          {/* Create Form */}
+          <div className="px-6 py-6">
+            <div className="space-y-4">
+              {/* Class Name */}
+              <div>
+                <label className="text-sm font-semibold text-stone-900 block mb-2">Class Name</label>
+                <input
+                  type="text"
+                  value={newClassForm.name || ''}
+                  onChange={(e) => setNewClassForm({ ...newClassForm, name: e.target.value })}
+                  className="w-full border border-stone-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-yellow-600"
+                  placeholder="e.g., Pilates Mat"
+                />
+              </div>
+
+              {/* Day of Week */}
+              <div>
+                <label className="text-sm font-semibold text-stone-900 block mb-2">Day of Week</label>
+                <select
+                  value={newClassForm.dayOfWeek}
+                  onChange={(e) => setNewClassForm({ ...newClassForm, dayOfWeek: parseInt(e.target.value) })}
+                  className="w-full border border-stone-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-yellow-600"
+                >
+                  {dayNames.map((day, idx) => (
+                    <option key={idx} value={idx}>{day}</option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Time */}
+              <div>
+                <label className="text-sm font-semibold text-stone-900 block mb-2">Start Time</label>
+                <input
+                  type="time"
+                  value={newClassForm.time || ''}
+                  onChange={(e) => setNewClassForm({ ...newClassForm, time: e.target.value })}
+                  className="w-full border border-stone-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-yellow-600"
+                />
+              </div>
+
+              {/* Duration */}
+              <div>
+                <label className="text-sm font-semibold text-stone-900 block mb-2">Duration</label>
+                <input
+                  type="text"
+                  value={newClassForm.duration || ''}
+                  onChange={(e) => setNewClassForm({ ...newClassForm, duration: e.target.value })}
+                  className="w-full border border-stone-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-yellow-600"
+                  placeholder="e.g., 60 min"
+                />
+              </div>
+
+              {/* Instructor */}
+              <div>
+                <label className="text-sm font-semibold text-stone-900 block mb-2">Instructor</label>
+                <select
+                  value={newClassForm.instructor || ''}
+                  onChange={(e) => setNewClassForm({ ...newClassForm, instructor: e.target.value })}
+                  className="w-full border border-stone-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-yellow-600"
+                >
+                  <option value="Nicolas">Nicolas</option>
+                  <option value="Angelina">Angelina</option>
+                  <option value="Sergey">Sergey</option>
+                </select>
+              </div>
+
+              {/* Available Spots */}
+              <div>
+                <label className="text-sm font-semibold text-stone-900 block mb-2">Available Spots</label>
+                <input
+                  type="number"
+                  value={newClassForm.spots || 10}
+                  onChange={(e) => setNewClassForm({ ...newClassForm, spots: parseInt(e.target.value) })}
+                  className="w-full border border-stone-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-yellow-600"
+                />
+              </div>
+            </div>
+
+            {/* Action Buttons */}
+            <div className="flex gap-3 mt-6">
+              <button
+                onClick={() => setShowCreateForm(false)}
+                className="flex-1 text-stone-600 border-2 border-stone-300 py-3 rounded-lg font-semibold hover:bg-stone-50 transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={() => {
+                  if (!newClassForm.name || !newClassForm.time) {
+                    alert('Please fill in class name and time');
+                    return;
+                  }
+                  // Find next occurrence of this day of week in classSchedule
+                  const today = new Date();
+                  let targetDate = new Date(today);
+                  const daysUntilTarget = (newClassForm.dayOfWeek - today.getDay() + 7) % 7;
+                  if (daysUntilTarget === 0) targetDate.setDate(today.getDate() + 7); // Next week if today
+                  else targetDate.setDate(today.getDate() + daysUntilTarget);
+                  
+                  const dateStr = targetDate.toISOString().split('T')[0];
+                  const newId = Math.max(...Object.values(classSchedule).flat().map(c => c.id), 0) + 1;
+                  
+                  const newClass = {
+                    id: newId,
+                    name: newClassForm.name,
+                    time: newClassForm.time,
+                    duration: newClassForm.duration,
+                    instructor: newClassForm.instructor,
+                    spots: newClassForm.spots,
+                  };
+                  
+                  const updatedSchedule = { ...classSchedule };
+                  if (!updatedSchedule[dateStr]) updatedSchedule[dateStr] = [];
+                  updatedSchedule[dateStr].push(newClass);
+                  
+                  setClassSchedule(updatedSchedule);
+                  setShowCreateForm(false);
+                  setNewClassForm({ name: '', time: '', duration: '60 min', instructor: 'Nicolas', spots: 10, dayOfWeek: 1 });
+                }}
+                style={{ backgroundColor: ARIKANA_COLOR }}
+                className="flex-1 text-white py-3 rounded-lg font-semibold hover:opacity-90 transition-opacity"
+              >
+                ✓ Create Class
+              </button>
             </div>
           </div>
         </div>
@@ -2078,7 +2194,7 @@ Since Mar 1, 2026</p>
       setClassSchedule={setClassSchedule}
     />,
     buy: <BuyTab />,
-    profile: <ProfileTab classSchedule={classSchedule} setClassSchedule={setClassSchedule} currentUser={currentUser} />,
+    profile: <ProfileTab classSchedule={classSchedule} setClassSchedule={setClassSchedule} currentUser={currentUser} setCurrentUser={setCurrentUser} />,
     more: <MoreTab />,
   };
 
