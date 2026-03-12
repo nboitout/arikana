@@ -713,12 +713,12 @@ Since Mar 1, 2026</p>
       sergey: { name: 'Sergey', title: 'Crossfit Coach', rating: 4.8, reviews: 95, bio: 'Siberian Crossfitter', photo: 'https://i.ibb.co/nNGSPCsY/Sergey.png' },
     };
 
-    // Generate 7 days starting from today
+    // Generate 7 days starting from selectedDate
     // Calendar is RECURRING - same schedule repeats every week (Mon-Sun pattern)
     const getDayDates = () => {
       const dates = [];
       for (let i = 0; i < 7; i++) {
-        const d = new Date(today);
+        const d = new Date(selectedDate);
         d.setDate(d.getDate() + i);
         dates.push(d);
       }
