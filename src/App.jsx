@@ -589,7 +589,7 @@ Since Mar 1, 2026</p>
               return (
                 <div className="space-y-2 mb-4">
                   {futureBookings.slice(0, 2).map((booking) => (
-                    <button key={booking.id} onClick={() => setBookingToCancel(booking)} className="w-full text-left bg-gradient-to-r rounded-3xl p-5 text-white hover:opacity-85 transition-opacity" style={{ background: `linear-gradient(135deg, ${ARIKANA_COLOR}, ${ARIKANA_COLOR}dd)` }}>
+                    <button type="button" key={booking.id} onClick={() => setBookingToCancel(booking)} className="w-full text-left bg-gradient-to-r rounded-3xl p-5 text-white hover:opacity-85 transition-opacity cursor-pointer" style={{ background: `linear-gradient(135deg, ${ARIKANA_COLOR}, ${ARIKANA_COLOR}dd)` }}>
                       <h3 className="font-semibold text-lg">{booking.className}</h3>
                       <p className="text-sm opacity-90 mt-2">{booking.displayDate} | {booking.time}</p>
                       <p className="text-xs opacity-80 mt-1">with {booking.instructor}</p>
@@ -645,8 +645,8 @@ Since Mar 1, 2026</p>
                       <>
                         <p className="text-sm text-stone-700 mb-6">Are you sure you want to cancel this booking?</p>
                         <div className="flex gap-3">
-                          <button onClick={() => setBookingToCancel(null)} className="flex-1 border-2 border-stone-300 text-stone-900 py-3 rounded-xl font-semibold hover:bg-stone-50 transition-colors">Keep</button>
-                          <button onClick={() => { const updatedBookings = bookings.filter(b => b.id !== bookingToCancel.id); setBookings(updatedBookings); localStorage.setItem('arikanaBookings', JSON.stringify(updatedBookings)); setBookingToCancel(null); }} style={{ backgroundColor: ARIKANA_COLOR }} className="flex-1 text-white py-3 rounded-xl font-semibold hover:opacity-90 transition-opacity">Cancel</button>
+                          <button type="button" onClick={() => setBookingToCancel(null)} className="flex-1 border-2 border-stone-300 text-stone-900 py-3 rounded-xl font-semibold hover:bg-stone-50 transition-colors cursor-pointer">Keep</button>
+                          <button type="button" onClick={() => { const updatedBookings = bookings.filter(b => b.id !== bookingToCancel.id); setBookings(updatedBookings); localStorage.setItem('arikanaBookings', JSON.stringify(updatedBookings)); setBookingToCancel(null); }} style={{ backgroundColor: ARIKANA_COLOR }} className="flex-1 text-white py-3 rounded-xl font-semibold hover:opacity-90 transition-opacity cursor-pointer">Cancel</button>
                         </div>
                       </>
                     ) : (
@@ -655,7 +655,7 @@ Since Mar 1, 2026</p>
                           <p className="text-sm text-red-800 font-semibold mb-2">❌ Cannot Cancel</p>
                           <p className="text-xs text-red-700">Cancellations are not allowed within 2 hours of the class start time. Please contact support if you need to cancel urgently.</p>
                         </div>
-                        <button onClick={() => setBookingToCancel(null)} style={{ backgroundColor: ARIKANA_COLOR }} className="w-full text-white py-3 rounded-xl font-semibold hover:opacity-90 transition-opacity">Close</button>
+                        <button type="button" onClick={() => setBookingToCancel(null)} style={{ backgroundColor: ARIKANA_COLOR }} className="w-full text-white py-3 rounded-xl font-semibold hover:opacity-90 transition-opacity cursor-pointer">Close</button>
                       </>
                     )}
                   </>
