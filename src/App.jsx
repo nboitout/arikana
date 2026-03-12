@@ -840,6 +840,7 @@ Since Mar 1, 2026</p>
     };
 
     // CONFIRMATION PAGE - shown when view === 'confirmation'
+    console.log('CONFIRMATION CHECK:', { view, lastBookedClass, condition: view === 'confirmation' && lastBookedClass });
     if (view === 'confirmation' && lastBookedClass) {
       console.log('🟢 CONFIRMATION PAGE RENDERING', { class: lastBookedClass.className });
       return (
