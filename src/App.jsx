@@ -64,6 +64,15 @@ export default function ArikanaApp() {
   const [authMode, setAuthMode] = useState('signup'); // 'signup' or 'signin'
   const [isLoading, setIsLoading] = useState(true);
   const [bookings, setBookings] = useState([]);
+  // Booking flow state (for confirmation page)
+  const [bookingView, setBookingView] = useState('classes'); // 'classes', 'detail', 'confirmation', 'warning'
+  const [lastBookedClass, setLastBookedClass] = useState(null);
+  const [selectedBookingClass, setSelectedBookingClass] = useState(null);
+  const [selectedDate, setSelectedDate] = useState(() => {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    return today;
+  });
 
   // Brand color
   const ARIKANA_COLOR = '#B69B4D';
@@ -628,17 +637,14 @@ Since Mar 1, 2026</p>
   };
 
   // Book Tab Content - Calendar + Classes by Date
-  const BookTab = () => {
-    // Initialize with today's date
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    const [selectedDate, setSelectedDate] = useState(today);
+  const BookTab = ({ 
+    bookings, setBookings, 
+    bookingView, setBookingView, 
+    lastBookedClass, setLastBookedClass,
+    selectedBookingClass, setSelectedBookingClass,
+    selectedDate, setSelectedDate
+  }) => {
     const [selectedInstructor, setSelectedInstructor] = useState('all');
-    const [selectedBookingClass, setSelectedBookingClass] = useState(null);
-    
-    // Main view state - controls what is displayed
-    const [view, setView] = useState('classes'); // 'classes', 'detail', 'confirmation', 'warning'
-    const [lastBookedClass, setLastBookedClass] = useState(null);
 
     // Class descriptions
     const classDescriptions = {
@@ -797,10 +803,9 @@ Since Mar 1, 2026</p>
 
     // Handle booking confirmation
     const handleBooking = () => {
-      console.log('✅ handleBooking called');
       // Check if session is in the past and user hasn't confirmed yet
-      if (isSessionInPast() && view !== 'warning') {
-        setView('warning');
+      if (isSessionInPast() && bookingView !== 'warning') {
+        setBookingView('warning');
         return;
       }
 
@@ -835,13 +840,11 @@ Since Mar 1, 2026</p>
       // Show confirmation page
       setLastBookedClass(newBooking);
       setSelectedBookingClass(null);
-      setView('confirmation');
-      console.log('✅ Booking saved & confirmation view set');
+      setBookingView('confirmation');
     };
 
-    // CONFIRMATION PAGE - shown when view === 'confirmation'
-    console.log('CONFIRMATION CHECK:', { view, lastBookedClass, condition: view === 'confirmation' && lastBookedClass });
-    if (view === 'confirmation' && lastBookedClass) {
+    // CONFIRMATION PAGE - shown when bookingView === 'confirmation'
+    if (bookingView === 'confirmation' && lastBookedClass) {
       console.log('🟢 CONFIRMATION PAGE RENDERING', { class: lastBookedClass.className });
       return (
         <div className="pb-28 h-screen flex flex-col bg-white">
@@ -903,8 +906,7 @@ Since Mar 1, 2026</p>
               style={{ backgroundColor: ARIKANA_COLOR }}
               className="w-full text-white py-5 rounded-2xl font-bold hover:opacity-90 transition-opacity text-lg"
               onClick={() => {
-                console.log('Back button clicked');
-                setView('classes');
+                setBookingView('classes');
                 setSelectedBookingClass(null);
                 setLastBookedClass(null);
               }}
@@ -916,14 +918,13 @@ Since Mar 1, 2026</p>
       );
     }
     
-    // WARNING PAGE - shown when view === 'warning'
-    if (view === 'warning' && selectedBookingClass) {
-      console.log('⚠️ WARNING PAGE RENDERING');
+    // WARNING PAGE - shown when bookingView === 'warning'
+    if (bookingView === 'warning' && selectedBookingClass) {
       return (
         <div className="pb-28">
           {/* Header */}
           <div style={{ backgroundColor: ARIKANA_COLOR }} className="text-white px-6 py-4 flex justify-between items-center">
-            <button onClick={() => { setView('detail'); }} className="text-2xl">←</button>
+            <button onClick={() => { setBookingView('detail'); }} className="text-2xl">←</button>
             <h1 className="text-lg font-light flex-1 text-center">Warning</h1>
             <div className="w-8"></div>
           </div>
@@ -955,7 +956,7 @@ Since Mar 1, 2026</p>
               style={{ borderColor: ARIKANA_COLOR, color: ARIKANA_COLOR }}
               className="flex-1 border-2 py-3 rounded-lg font-semibold hover:opacity-80 transition-opacity"
               onClick={() => {
-                setView('classes');
+                setBookingView('classes');
                 setSelectedBookingClass(null);
               }}
             >
@@ -973,9 +974,8 @@ Since Mar 1, 2026</p>
       );
     }
 
-    // BOOKING DETAIL VIEW - shown when view === 'detail'
-    if (view === 'detail' && selectedBookingClass) {
-      console.log('🟡 BOOKING DETAIL VIEW RENDERING', { class: selectedBookingClass.name });
+    // BOOKING DETAIL VIEW - shown when bookingView === 'detail'
+    if (bookingView === 'detail' && selectedBookingClass) {
       const instructor = getInstructorData(selectedBookingClass.instructor);
       const description = classDescriptions[selectedBookingClass.name] || 'Professional class instruction.';
       const sessionInPast = isSessionInPast();
@@ -984,7 +984,7 @@ Since Mar 1, 2026</p>
         <div className="pb-28">
           {/* Header */}
           <div style={{ backgroundColor: ARIKANA_COLOR }} className="text-white px-6 py-4 flex justify-between items-center">
-            <button onClick={() => setView('classes')} className="text-2xl">←</button>
+            <button onClick={() => setBookingView('classes')} className="text-2xl">←</button>
             <h1 className="text-lg font-light flex-1 text-center">Book Class</h1>
             <button className="text-2xl">⬆️</button>
           </div>
@@ -1049,7 +1049,6 @@ Since Mar 1, 2026</p>
     }
 
     // Classes List View - Default
-    console.log('🟠 CLASSES LIST RENDERING');
     return (
       <div className="pb-28">
         {/* Header */}
@@ -1181,7 +1180,7 @@ Since Mar 1, 2026</p>
                   <button
                     onClick={() => {
                       setSelectedBookingClass(cls);
-                      setView('detail');
+                      setBookingView('detail');
                     }}
                     style={{ 
                       borderColor: ARIKANA_COLOR,
@@ -2007,7 +2006,18 @@ Since Mar 1, 2026</p>
 
   const tabContent = {
     home: <HomeTab />,
-    book: <BookTab />,
+    book: <BookTab 
+      bookings={bookings}
+      setBookings={setBookings}
+      bookingView={bookingView}
+      setBookingView={setBookingView}
+      lastBookedClass={lastBookedClass}
+      setLastBookedClass={setLastBookedClass}
+      selectedBookingClass={selectedBookingClass}
+      setSelectedBookingClass={setSelectedBookingClass}
+      selectedDate={selectedDate}
+      setSelectedDate={setSelectedDate}
+    />,
     buy: <BuyTab />,
     profile: <ProfileTab />,
     more: <MoreTab />,
