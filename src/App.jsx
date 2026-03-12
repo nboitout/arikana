@@ -1694,40 +1694,9 @@ Since Mar 1, 2026</p>
         </div>
       );
     }
-        0: [], // Sunday
-        1: [ // Monday
-          { name: 'Pilates Mat', time: '09:00', duration: '60 min', instructor: 'Angelina', spots: 8 },
-          { name: 'Core Strength', time: '10:30', duration: '45 min', instructor: 'Nicolas', spots: 12 },
-          { name: 'Speed Skating', time: '09:30', duration: '50 min', instructor: 'Sergey', spots: 11 },
-        ],
-        2: [ // Tuesday
-          { name: 'Pelvic Curl Flow', time: '08:00', duration: '50 min', instructor: 'Angelina', spots: 10 },
-          { name: 'Ice Skating with Grace', time: '07:00', duration: '60 min', instructor: 'Sergey', spots: 14 },
-          { name: 'Pilates Reformer', time: '09:00', duration: '60 min', instructor: 'Nicolas', spots: 8 },
-          { name: 'Advanced Pilates', time: '18:30', duration: '60 min', instructor: 'Nicolas', spots: 6 },
-        ],
-        3: [ // Wednesday
-          { name: 'Deep Core Activation', time: '11:00', duration: '60 min', instructor: 'Angelina', spots: 9 },
-          { name: 'Pilates Mat', time: '17:00', duration: '50 min', instructor: 'Nicolas', spots: 15 },
-          { name: 'Speed Skating', time: '09:30', duration: '50 min', instructor: 'Sergey', spots: 11 },
-        ],
-        4: [ // Thursday
-          { name: 'Advanced Pelvic Techniques', time: '17:00', duration: '60 min', instructor: 'Angelina', spots: 7 },
-          { name: 'Core Strength', time: '10:30', duration: '45 min', instructor: 'Nicolas', spots: 12 },
-          { name: 'Ice Skating Techniques', time: '16:00', duration: '60 min', instructor: 'Sergey', spots: 8 },
-        ],
-        5: [ // Friday
-          { name: 'Pilates Fusion', time: '19:00', duration: '55 min', instructor: 'Angelina', spots: 12 },
-          { name: 'Pilates Reformer', time: '09:00', duration: '60 min', instructor: 'Nicolas', spots: 7 },
-          { name: 'Crossfit on Ice', time: '18:00', duration: '55 min', instructor: 'Sergey', spots: 6 },
-        ],
-        6: [ // Saturday
-          { name: 'Pelvic Curl Flow', time: '10:30', duration: '50 min', instructor: 'Angelina', spots: 6 },
-          { name: 'Advanced Pilates', time: '18:30', duration: '60 min', instructor: 'Nicolas', spots: 5 },
-          { name: 'Speed Skating', time: '09:30', duration: '50 min', instructor: 'Sergey', spots: 11 },
-        ],
-      };
 
+    // Calendar Editor View - only for Lead Trainer
+    if (selectedMenuItem === 'calendar' && currentUser?.role === 'lead-trainer') {
       const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
       
       // Group sessions by time for each day
