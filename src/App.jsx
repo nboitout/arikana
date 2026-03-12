@@ -442,10 +442,9 @@ export default function ArikanaApp() {
   // Main app continues from here...
 
   // Home Tab Content
-  const HomeTab = ({ bookings, setBookings }) => {
+  const HomeTab = () => {
     const count172 = useCountUp(172, 1200);
     const count100 = useCountUp(100, 1200);
-    const [bookingToCancel, setBookingToCancel] = useState(null);
 
     // Get next 2 upcoming sessions based on current time
     const getNextUpcomingSessions = () => {
@@ -589,17 +588,11 @@ Since Mar 1, 2026</p>
               return (
                 <div className="space-y-2 mb-4">
                   {futureBookings.slice(0, 2).map((booking) => (
-                    <button
-                      key={booking.id}
-                      onClick={() => setBookingToCancel(booking)}
-                      className="w-full text-left bg-gradient-to-r rounded-3xl p-5 text-white hover:opacity-90 transition-opacity"
-                      style={{ background: `linear-gradient(135deg, ${ARIKANA_COLOR}, ${ARIKANA_COLOR}dd)` }}
-                    >
+                    <div key={booking.id} className="bg-gradient-to-r rounded-3xl p-5 text-white" style={{ background: `linear-gradient(135deg, ${ARIKANA_COLOR}, ${ARIKANA_COLOR}dd)` }}>
                       <h3 className="font-semibold text-lg">{booking.className}</h3>
                       <p className="text-sm opacity-90 mt-2">{booking.displayDate} | {booking.time}</p>
                       <p className="text-xs opacity-80 mt-1">with {booking.instructor}</p>
-                      <p className="text-xs opacity-70 mt-2">Tap to manage</p>
-                    </button>
+                    </div>
                   ))}
                 </div>
               );
@@ -1198,74 +1191,6 @@ Since Mar 1, 2026</p>
           );
           })()}
         </div>
-
-        {/* Cancellation Modal */}
-        {bookingToCancel && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-            <div className="bg-white rounded-3xl p-6 max-w-sm w-full shadow-2xl">
-              {(() => {
-                const now = new Date();
-                const classTime = bookingToCancel.dateObj;
-                const timeDiffMs = classTime - now;
-                const timeDiffHours = timeDiffMs / (1000 * 60 * 60);
-                const canCancel = timeDiffHours > 2;
-
-                return (
-                  <>
-                    <h2 className="text-xl font-bold text-stone-900 mb-2">{bookingToCancel.className}</h2>
-                    <p className="text-sm text-stone-600 mb-6">
-                      {bookingToCancel.displayDate} at {bookingToCancel.time}
-                    </p>
-
-                    {canCancel ? (
-                      <>
-                        <p className="text-sm text-stone-700 mb-6">
-                          Are you sure you want to cancel this booking?
-                        </p>
-                        <div className="flex gap-3">
-                          <button
-                            onClick={() => setBookingToCancel(null)}
-                            className="flex-1 border-2 border-stone-300 text-stone-900 py-3 rounded-xl font-semibold hover:bg-stone-50 transition-colors"
-                          >
-                            Keep Booking
-                          </button>
-                          <button
-                            onClick={() => {
-                              const updatedBookings = bookings.filter(b => b.id !== bookingToCancel.id);
-                              setBookings(updatedBookings);
-                              localStorage.setItem('arikanaBookings', JSON.stringify(updatedBookings));
-                              setBookingToCancel(null);
-                            }}
-                            style={{ backgroundColor: ARIKANA_COLOR }}
-                            className="flex-1 text-white py-3 rounded-xl font-semibold hover:opacity-90 transition-opacity"
-                          >
-                            Cancel Booking
-                          </button>
-                        </div>
-                      </>
-                    ) : (
-                      <>
-                        <div className="bg-red-50 border border-red-200 rounded-xl p-4 mb-6">
-                          <p className="text-sm text-red-800 font-semibold">❌ Cannot Cancel</p>
-                          <p className="text-xs text-red-700 mt-2">
-                            Cancellations are not allowed within 2 hours of the class start time.
-                          </p>
-                        </div>
-                        <button
-                          onClick={() => setBookingToCancel(null)}
-                          style={{ backgroundColor: ARIKANA_COLOR }}
-                          className="w-full text-white py-3 rounded-xl font-semibold hover:opacity-90 transition-opacity"
-                        >
-                          Close
-                        </button>
-                      </>
-                    )}
-                  </>
-                );
-              })()}
-            </div>
-          </div>
-        )}
       </div>
     );
   };
@@ -2067,7 +1992,7 @@ Since Mar 1, 2026</p>
   );
 
   const tabContent = {
-    home: <HomeTab bookings={bookings} setBookings={setBookings} />,
+    home: <HomeTab />,
     book: <BookTab 
       bookings={bookings}
       setBookings={setBookings}
