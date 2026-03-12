@@ -64,6 +64,29 @@ export default function ArikanaApp() {
   const [authMode, setAuthMode] = useState('signup'); // 'signup' or 'signin'
   const [isLoading, setIsLoading] = useState(true);
   const [bookings, setBookings] = useState([]);
+  
+  // Health questionnaire data
+  const [healthData, setHealthData] = useState(() => {
+    const saved = localStorage.getItem('arikanaHealthData');
+    if (saved) return JSON.parse(saved);
+    return {
+      lastUpdated: null,
+      bodyRegions: {
+        head: { affected: false, severity: 'none', notes: '' },
+        neck: { affected: false, severity: 'none', notes: '' },
+        shoulders: { affected: false, severity: 'none', notes: '' },
+        upperBack: { affected: false, severity: 'none', notes: '' },
+        lowerBack: { affected: false, severity: 'none', notes: '' },
+        elbows: { affected: false, severity: 'none', notes: '' },
+        wrists: { affected: false, severity: 'none', notes: '' },
+        hips: { affected: false, severity: 'none', notes: '' },
+        knees: { affected: false, severity: 'none', notes: '' },
+        ankles: { affected: false, severity: 'none', notes: '' },
+        feet: { affected: false, severity: 'none', notes: '' },
+      }
+    };
+  });
+  
   // Booking flow state (for confirmation page)
   const [bookingView, setBookingView] = useState('classes'); // 'classes', 'detail', 'confirmation', 'warning'
   const [lastBookedClass, setLastBookedClass] = useState(null);
@@ -168,6 +191,11 @@ export default function ArikanaApp() {
   useEffect(() => {
     localStorage.setItem('arikanaDateOverrides', JSON.stringify(dateOverrides));
   }, [dateOverrides]);
+
+  // Save healthData to localStorage whenever it changes
+  useEffect(() => {
+    localStorage.setItem('arikanaHealthData', JSON.stringify(healthData));
+  }, [healthData]);
 
   // Auth Screens
   const AuthScreen = () => {
@@ -515,7 +543,9 @@ export default function ArikanaApp() {
   // Main app continues from here...
 
   // Home Tab Content
-  const HomeTab = ({ bookings, setBookings }) => {
+  const HomeTab = ({ bookings, setBookings, healthData, setHealthData }) => {
+    const [showHealthForm, setShowHealthForm] = useState(false);
+    const [healthForm, setHealthForm] = useState(healthData.bodyRegions);
     const count172 = useCountUp(172, 1200);
     const count100 = useCountUp(100, 1200);
     const [bookingToCancel, setBookingToCancel] = useState(null);
@@ -670,9 +700,151 @@ Since Mar 1, 2026</p>
         {/* My Health */}
         <div className="px-6 mb-8">
           <h2 className="text-2xl font-bold text-stone-900 mb-4">My Health</h2>
-          <div className="bg-blue-50 border border-blue-200 rounded-3xl p-6 text-center">
-            <p className="text-blue-900 text-sm font-light">Health tracking & wellness analytics coming soon</p>
-          </div>
+          {!showHealthForm && (
+            <>
+              {healthData.lastUpdated ? (
+                <div>
+                  <div className="bg-green-50 border border-green-200 rounded-3xl p-4 mb-3">
+                    <p className="text-green-900 text-sm font-medium">Last Updated: {new Date(healthData.lastUpdated).toLocaleDateString()}</p>
+                    <p className="text-green-800 text-xs mt-1">
+                      {Object.values(healthData.bodyRegions).filter(r => r.affected).length} area(s) affected
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setShowHealthForm(true)}
+                    style={{ backgroundColor: ARIKANA_COLOR }}
+                    className="w-full text-white py-2.5 rounded-lg font-semibold hover:opacity-90 transition-opacity cursor-pointer text-sm"
+                  >
+                    📋 Update Health Info
+                  </button>
+                </div>
+              ) : (
+                <div>
+                  <div className="bg-amber-50 border border-amber-200 rounded-3xl p-4 mb-3">
+                    <p className="text-amber-900 text-sm font-medium">Let us know how you're feeling</p>
+                    <p className="text-amber-800 text-xs mt-1">This helps trainers personalize your sessions</p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setShowHealthForm(true)}
+                    style={{ backgroundColor: ARIKANA_COLOR }}
+                    className="w-full text-white py-2.5 rounded-lg font-semibold hover:opacity-90 transition-opacity cursor-pointer text-sm"
+                  >
+                    📋 Complete Health Assessment
+                  </button>
+                </div>
+              )}
+            </>
+          )}
+
+          {/* Health Questionnaire Form */}
+          {showHealthForm && (
+            <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4 overflow-y-auto">
+              <div className="bg-white rounded-3xl w-full max-w-md shadow-2xl my-8">
+                {/* Header */}
+                <div style={{ background: `linear-gradient(to bottom, ${ARIKANA_COLOR}, ${ARIKANA_COLOR}cc)` }} className="text-white px-6 py-4 rounded-t-3xl">
+                  <h3 className="text-xl font-bold">Health Assessment</h3>
+                  <p className="text-xs text-yellow-100 mt-1">Let us know which areas need attention</p>
+                </div>
+
+                {/* Body Regions List */}
+                <div className="px-6 py-6 max-h-96 overflow-y-auto">
+                  <div className="space-y-4">
+                    {[
+                      { id: 'head', label: 'Head', icon: '🧠' },
+                      { id: 'neck', label: 'Neck', icon: '🫀' },
+                      { id: 'shoulders', label: 'Shoulders', icon: '💪' },
+                      { id: 'upperBack', label: 'Upper Back', icon: '🫘' },
+                      { id: 'lowerBack', label: 'Lower Back', icon: '🫘' },
+                      { id: 'elbows', label: 'Elbows', icon: '💪' },
+                      { id: 'wrists', label: 'Wrists', icon: '🤲' },
+                      { id: 'hips', label: 'Hips', icon: '🦵' },
+                      { id: 'knees', label: 'Knees', icon: '🦵' },
+                      { id: 'ankles', label: 'Ankles', icon: '🦵' },
+                      { id: 'feet', label: 'Feet', icon: '🦶' },
+                    ].map(({ id, label, icon }) => (
+                      <div key={id} className="border border-stone-200 rounded-lg p-3">
+                        <div className="flex items-center justify-between mb-2">
+                          <label className="flex items-center gap-2 cursor-pointer flex-1">
+                            <input
+                              type="checkbox"
+                              checked={healthForm[id].affected}
+                              onChange={(e) => {
+                                setHealthForm({
+                                  ...healthForm,
+                                  [id]: { ...healthForm[id], affected: e.target.checked }
+                                });
+                              }}
+                              className="w-4 h-4 cursor-pointer"
+                            />
+                            <span className="text-lg">{icon}</span>
+                            <span className="font-medium text-stone-900">{label}</span>
+                          </label>
+                        </div>
+                        
+                        {healthForm[id].affected && (
+                          <div className="ml-6 space-y-2">
+                            <select
+                              value={healthForm[id].severity}
+                              onChange={(e) => {
+                                setHealthForm({
+                                  ...healthForm,
+                                  [id]: { ...healthForm[id], severity: e.target.value }
+                                });
+                              }}
+                              className="w-full border border-stone-300 rounded-lg px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-yellow-600"
+                            >
+                              <option value="mild">Mild discomfort</option>
+                              <option value="moderate">Moderate pain</option>
+                              <option value="severe">Severe pain</option>
+                            </select>
+                            <textarea
+                              value={healthForm[id].notes}
+                              onChange={(e) => {
+                                setHealthForm({
+                                  ...healthForm,
+                                  [id]: { ...healthForm[id], notes: e.target.value }
+                                });
+                              }}
+                              placeholder="Add details... (optional)"
+                              className="w-full border border-stone-300 rounded-lg px-2 py-1.5 text-xs focus:outline-none focus:ring-2 focus:ring-yellow-600"
+                              rows="2"
+                            />
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Action Buttons */}
+                <div className="px-6 py-4 border-t border-stone-200 flex gap-3 rounded-b-3xl bg-stone-50">
+                  <button
+                    type="button"
+                    onClick={() => setShowHealthForm(false)}
+                    className="flex-1 text-stone-600 border-2 border-stone-300 py-2.5 rounded-lg font-semibold hover:bg-stone-100 transition-colors cursor-pointer"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setHealthData({
+                        lastUpdated: new Date().toISOString(),
+                        bodyRegions: healthForm
+                      });
+                      setShowHealthForm(false);
+                    }}
+                    style={{ backgroundColor: ARIKANA_COLOR }}
+                    className="flex-1 text-white py-2.5 rounded-lg font-semibold hover:opacity-90 transition-opacity cursor-pointer"
+                  >
+                    ✓ Save Health Info
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Cancellation Modal */}
@@ -2218,7 +2390,7 @@ Since Mar 1, 2026</p>
   );
 
   const tabContent = {
-    home: <HomeTab bookings={bookings} setBookings={setBookings} />,
+    home: <HomeTab bookings={bookings} setBookings={setBookings} healthData={healthData} setHealthData={setHealthData} />,
     book: <BookTab 
       bookings={bookings}
       setBookings={setBookings}
