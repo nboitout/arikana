@@ -74,51 +74,68 @@ export default function ArikanaApp() {
     return today;
   });
   
-  // Centralized class schedule state (shared between Book and Profile tabs)
-  const [classSchedule, setClassSchedule] = useState(() => {
-    const savedSchedule = localStorage.getItem('arikanaClassSchedule');
-    if (savedSchedule) {
-      return JSON.parse(savedSchedule);
-    }
+  // Recurring weekly pattern (Mon=1, Tue=2, etc.)
+  const [recurringPattern, setRecurringPattern] = useState(() => {
+    const saved = localStorage.getItem('arikanaRecurringPattern');
+    if (saved) return JSON.parse(saved);
     return {
-      '2026-03-09': [
+      0: [], // Sunday - Rest Day
+      1: [ // Monday
         { id: 1, name: 'Pilates Mat', time: '09:00', duration: '60 min', instructor: 'Angelina', spots: 8 },
         { id: 2, name: 'Core Strength', time: '10:30', duration: '45 min', instructor: 'Nicolas', spots: 12 },
         { id: 3, name: 'Speed Skating', time: '09:30', duration: '50 min', instructor: 'Sergey', spots: 11 },
       ],
-      '2026-03-10': [
-        { id: 4, name: 'Pilates Reformer', time: '09:00', duration: '60 min', instructor: 'Nicolas', spots: 8 },
-        { id: 5, name: 'Pelvic Curl Flow', time: '08:00', duration: '50 min', instructor: 'Angelina', spots: 10 },
-        { id: 6, name: 'Ice Skating with Grace', time: '07:00', duration: '60 min', instructor: 'Sergey', spots: 14 },
+      2: [ // Tuesday
+        { id: 4, name: 'Pelvic Curl Flow', time: '08:00', duration: '50 min', instructor: 'Angelina', spots: 10 },
+        { id: 5, name: 'Ice Skating with Grace', time: '07:00', duration: '60 min', instructor: 'Sergey', spots: 14 },
+        { id: 6, name: 'Pilates Reformer', time: '09:00', duration: '60 min', instructor: 'Nicolas', spots: 8 },
         { id: 7, name: 'Advanced Pilates', time: '18:30', duration: '60 min', instructor: 'Nicolas', spots: 6 },
       ],
-      '2026-03-11': [
+      3: [ // Wednesday
         { id: 8, name: 'Deep Core Activation', time: '11:00', duration: '60 min', instructor: 'Angelina', spots: 9 },
         { id: 9, name: 'Pilates Mat', time: '17:00', duration: '50 min', instructor: 'Nicolas', spots: 15 },
         { id: 10, name: 'Speed Skating', time: '09:30', duration: '50 min', instructor: 'Sergey', spots: 11 },
       ],
-      '2026-03-12': [
+      4: [ // Thursday
         { id: 11, name: 'Advanced Pelvic Techniques', time: '17:00', duration: '60 min', instructor: 'Angelina', spots: 7 },
         { id: 12, name: 'Core Strength', time: '10:30', duration: '45 min', instructor: 'Nicolas', spots: 12 },
         { id: 13, name: 'Ice Skating Techniques', time: '16:00', duration: '60 min', instructor: 'Sergey', spots: 8 },
       ],
-      '2026-03-13': [
+      5: [ // Friday
         { id: 14, name: 'Pilates Fusion', time: '19:00', duration: '55 min', instructor: 'Angelina', spots: 12 },
         { id: 15, name: 'Pilates Reformer', time: '09:00', duration: '60 min', instructor: 'Nicolas', spots: 7 },
         { id: 16, name: 'Crossfit on Ice', time: '18:00', duration: '55 min', instructor: 'Sergey', spots: 6 },
       ],
-      '2026-03-14': [
+      6: [ // Saturday
         { id: 17, name: 'Pelvic Curl Flow', time: '10:30', duration: '50 min', instructor: 'Angelina', spots: 6 },
         { id: 18, name: 'Advanced Pilates', time: '18:30', duration: '60 min', instructor: 'Nicolas', spots: 5 },
         { id: 19, name: 'Speed Skating', time: '09:30', duration: '50 min', instructor: 'Sergey', spots: 11 },
       ],
-      '2026-03-16': [
-        { id: 20, name: 'Pilates Mat', time: '09:00', duration: '60 min', instructor: 'Angelina', spots: 8 },
-        { id: 21, name: 'Pilates Reformer', time: '18:30', duration: '60 min', instructor: 'Nicolas', spots: 4 },
-        { id: 22, name: 'Ice Skating with Grace', time: '07:00', duration: '60 min', instructor: 'Sergey', spots: 14 },
-      ],
     };
   });
+
+  // Date-specific overrides (one-shot changes like canceling a single Friday)
+  // Structure: { '2026-03-13': [] } means Friday March 13 has NO classes (canceled)
+  // or { '2026-03-13': [modified classes] } means override that specific date
+  const [dateOverrides, setDateOverrides] = useState(() => {
+    const saved = localStorage.getItem('arikanaDateOverrides');
+    if (saved) return JSON.parse(saved);
+    return {};
+  });
+
+  // Helper: Get classes for a specific date (merges recurring + overrides)
+  const getClassesForDate = (date) => {
+    const dateStr = date.toISOString().split('T')[0];
+    const dayOfWeek = date.getDay();
+    
+    // If this date has an override, use it
+    if (dateOverrides[dateStr] !== undefined) {
+      return dateOverrides[dateStr];
+    }
+    
+    // Otherwise, use recurring pattern for this day of week
+    return recurringPattern[dayOfWeek] || [];
+  };
 
   // Brand color
   const ARIKANA_COLOR = '#B69B4D';
@@ -142,10 +159,15 @@ export default function ArikanaApp() {
     setIsLoading(false);
   }, []);
 
-  // Save classSchedule to localStorage whenever it changes
+  // Save recurringPattern to localStorage whenever it changes
   useEffect(() => {
-    localStorage.setItem('arikanaClassSchedule', JSON.stringify(classSchedule));
-  }, [classSchedule]);
+    localStorage.setItem('arikanaRecurringPattern', JSON.stringify(recurringPattern));
+  }, [recurringPattern]);
+
+  // Save dateOverrides to localStorage whenever it changes
+  useEffect(() => {
+    localStorage.setItem('arikanaDateOverrides', JSON.stringify(dateOverrides));
+  }, [dateOverrides]);
 
   // Auth Screens
   const AuthScreen = () => {
@@ -706,7 +728,7 @@ Since Mar 1, 2026</p>
     lastBookedClass, setLastBookedClass,
     selectedBookingClass, setSelectedBookingClass,
     selectedDate, setSelectedDate,
-    classSchedule, setClassSchedule
+    recurringPattern, dateOverrides, getClassesForDate
   }) => {
     const [selectedInstructor, setSelectedInstructor] = useState('all');
 
@@ -753,53 +775,6 @@ Since Mar 1, 2026</p>
     };
 
     const dayDates = getDayDates();
-
-    // Get classes for selected date using recurring weekly pattern
-    const getClassesForDate = (date) => {
-      const dateStr = date.toISOString().split('T')[0];
-      // First, check if date is in hardcoded schedule
-      if (classSchedule[dateStr]) {
-        return classSchedule[dateStr];
-      }
-      
-      // Otherwise, use recurring pattern based on day of week
-      const dayOfWeek = date.getDay(); // 0-6 (Sunday-Saturday)
-      const baseWeekSchedule = {
-        0: [], // Sunday - Rest day
-        1: [ // Monday
-          { id: 1, name: 'Pilates Mat', time: '09:00', duration: '60 min', instructor: 'Angelina', spots: 8 },
-          { id: 2, name: 'Core Strength', time: '10:30', duration: '45 min', instructor: 'Nicolas', spots: 12 },
-          { id: 3, name: 'Speed Skating', time: '09:30', duration: '50 min', instructor: 'Sergey', spots: 11 },
-        ],
-        2: [ // Tuesday
-          { id: 4, name: 'Pelvic Curl Flow', time: '08:00', duration: '50 min', instructor: 'Angelina', spots: 10 },
-          { id: 5, name: 'Ice Skating with Grace', time: '07:00', duration: '60 min', instructor: 'Sergey', spots: 14 },
-          { id: 6, name: 'Pilates Reformer', time: '09:00', duration: '60 min', instructor: 'Nicolas', spots: 8 },
-          { id: 7, name: 'Advanced Pilates', time: '18:30', duration: '60 min', instructor: 'Nicolas', spots: 6 },
-        ],
-        3: [ // Wednesday
-          { id: 8, name: 'Deep Core Activation', time: '11:00', duration: '60 min', instructor: 'Angelina', spots: 9 },
-          { id: 9, name: 'Pilates Mat', time: '17:00', duration: '50 min', instructor: 'Nicolas', spots: 15 },
-          { id: 10, name: 'Speed Skating', time: '09:30', duration: '50 min', instructor: 'Sergey', spots: 11 },
-        ],
-        4: [ // Thursday
-          { id: 11, name: 'Advanced Pelvic Techniques', time: '17:00', duration: '60 min', instructor: 'Angelina', spots: 7 },
-          { id: 12, name: 'Core Strength', time: '10:30', duration: '45 min', instructor: 'Nicolas', spots: 12 },
-          { id: 13, name: 'Ice Skating Techniques', time: '16:00', duration: '60 min', instructor: 'Sergey', spots: 8 },
-        ],
-        5: [ // Friday
-          { id: 14, name: 'Pilates Fusion', time: '19:00', duration: '55 min', instructor: 'Angelina', spots: 12 },
-          { id: 15, name: 'Pilates Reformer', time: '09:00', duration: '60 min', instructor: 'Nicolas', spots: 7 },
-          { id: 16, name: 'Crossfit on Ice', time: '18:00', duration: '55 min', instructor: 'Sergey', spots: 6 },
-        ],
-        6: [ // Saturday
-          { id: 17, name: 'Pelvic Curl Flow', time: '10:30', duration: '50 min', instructor: 'Angelina', spots: 6 },
-          { id: 18, name: 'Advanced Pilates', time: '18:30', duration: '60 min', instructor: 'Nicolas', spots: 5 },
-          { id: 19, name: 'Speed Skating', time: '09:30', duration: '50 min', instructor: 'Sergey', spots: 11 },
-        ],
-      };
-      return baseWeekSchedule[dayOfWeek] || [];
-    };
 
     // Format date for display
     const formatDate = (date) => {
@@ -1548,7 +1523,7 @@ Since Mar 1, 2026</p>
   };
 
   // Profile Tab Content
-  const ProfileTab = ({ classSchedule, setClassSchedule, currentUser, setCurrentUser }) => {
+  const ProfileTab = ({ recurringPattern, setRecurringPattern, dateOverrides, setDateOverrides, getClassesForDate, currentUser, setCurrentUser }) => {
     const [selectedMenuItem, setSelectedMenuItem] = useState(null);
     const [editingClass, setEditingClass] = useState(null);
     const [editingDayNum, setEditingDayNum] = useState(null);
@@ -1556,30 +1531,25 @@ Since Mar 1, 2026</p>
     const [showCreateForm, setShowCreateForm] = useState(false);
     const [newClassForm, setNewClassForm] = useState({ name: '', time: '', duration: '60 min', instructor: 'Nicolas', spots: 10, dayOfWeek: 1 });
 
-    // Convert classSchedule (date-based) to weekly view (day-of-week based) for display
-    const getWeeklySchedule = () => {
-      const weeklySchedule = {
-        0: [], // Sunday
-        1: [], // Monday
-        2: [], // Tuesday
-        3: [], // Wednesday
-        4: [], // Thursday
-        5: [], // Friday
-        6: [], // Saturday
-      };
-
-      Object.entries(classSchedule).forEach(([dateStr, classes]) => {
-        const date = new Date(dateStr);
-        const dayOfWeek = date.getDay();
-        classes.forEach(cls => {
-          weeklySchedule[dayOfWeek].push({ ...cls, dateStr });
-        });
-      });
-
-      return weeklySchedule;
+    // Generate 7 days starting from TODAY
+    const getTodayPlus7Days = () => {
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      const days = [];
+      for (let i = 0; i < 7; i++) {
+        const date = new Date(today);
+        date.setDate(date.getDate() + i);
+        const dateStr = date.toISOString().split('T')[0];
+        days.push({ dateStr, date, dayOfWeek: date.getDay() });
+      }
+      return days;
     };
 
-    const baseWeeklySchedule = getWeeklySchedule();
+    const sevenDaysFromToday = getTodayPlus7Days();
+    
+    // Add state for tracking which date/edit mode we're in
+    const [editingDateStr, setEditingDateStr] = useState(null);
+    const [editMode, setEditMode] = useState(null); // 'dateOnly' or 'recurring'
 
     const paymentMethods = [
       { type: 'Mastercard', last4: '9909', expires: '09/2029' },
@@ -1602,13 +1572,57 @@ Since Mar 1, 2026</p>
           {/* Header */}
           <div style={{ background: `linear-gradient(to bottom, ${ARIKANA_COLOR}, ${ARIKANA_COLOR}cc)` }} className="text-white px-6 py-4">
             <div className="flex items-center gap-3">
-              <button onClick={() => setEditingClass(null)} className="text-2xl">←</button>
+              <button onClick={() => { setEditingClass(null); setEditingDateStr(null); setEditMode(null); }} className="text-2xl">←</button>
               <h1 className="text-2xl font-light flex-1">Edit Class</h1>
             </div>
           </div>
 
           {/* Edit Form */}
           <div className="px-6 py-6">
+            {/* Date Display */}
+            {editingDateStr && (
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
+                <p className="text-xs text-blue-900 font-semibold">Date</p>
+                <p className="text-sm text-blue-900 mt-1">
+                  {new Date(editingDateStr + 'T00:00:00').toLocaleDateString('en-US', { 
+                    weekday: 'long', 
+                    year: 'numeric', 
+                    month: 'long', 
+                    day: 'numeric' 
+                  })}
+                </p>
+              </div>
+            )}
+
+            {/* Edit Mode Selection */}
+            <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 mb-6">
+              <p className="text-sm font-semibold text-stone-900 mb-3">Apply changes to:</p>
+              <div className="space-y-2">
+                <label className="flex items-center gap-3 cursor-pointer">
+                  <input
+                    type="radio"
+                    name="editMode"
+                    value="dateOnly"
+                    checked={editMode === 'dateOnly'}
+                    onChange={(e) => setEditMode(e.target.value)}
+                    className="w-4 h-4"
+                  />
+                  <span className="text-sm text-stone-900">This date only</span>
+                </label>
+                <label className="flex items-center gap-3 cursor-pointer">
+                  <input
+                    type="radio"
+                    name="editMode"
+                    value="recurring"
+                    checked={editMode === 'recurring'}
+                    onChange={(e) => setEditMode(e.target.value)}
+                    className="w-4 h-4"
+                  />
+                  <span className="text-sm text-stone-900">Recurring pattern (every {new Date(editingDateStr + 'T00:00:00').toLocaleDateString('en-US', { weekday: 'long' })})</span>
+                </label>
+              </div>
+            </div>
+
             <div className="space-y-4">
               {/* Class Name */}
               <div>
@@ -1677,41 +1691,75 @@ Since Mar 1, 2026</p>
               <div className="flex gap-3 mt-8">
                 <button
                   onClick={() => {
-                    // Delete class from centralized schedule
-                    const updatedSchedule = { ...classSchedule };
-                    Object.keys(updatedSchedule).forEach(dateStr => {
-                      const date = new Date(dateStr);
-                      if (date.getDay() === editingDayNum) {
-                        updatedSchedule[dateStr] = updatedSchedule[dateStr].filter((_, idx) => idx !== editingClass.index);
+                    if (!editMode) {
+                      alert('Please select: This date only or Recurring pattern');
+                      return;
+                    }
+                    
+                    if (editMode === 'dateOnly') {
+                      // Delete from date override
+                      const updatedOverrides = { ...dateOverrides };
+                      if (!updatedOverrides[editingDateStr]) {
+                        updatedOverrides[editingDateStr] = getClassesForDate(new Date(editingDateStr + 'T00:00:00'));
                       }
-                    });
-                    setClassSchedule(updatedSchedule);
+                      updatedOverrides[editingDateStr] = updatedOverrides[editingDateStr].filter((_, idx) => idx !== editingClass.index);
+                      setDateOverrides(updatedOverrides);
+                    } else {
+                      // Delete from recurring pattern
+                      const dayOfWeek = new Date(editingDateStr + 'T00:00:00').getDay();
+                      const updatedPattern = { ...recurringPattern };
+                      updatedPattern[dayOfWeek] = updatedPattern[dayOfWeek].filter((_, idx) => idx !== editingClass.index);
+                      setRecurringPattern(updatedPattern);
+                    }
+                    
                     setEditingClass(null);
+                    setEditingDateStr(null);
+                    setEditMode(null);
                   }}
                   className="flex-1 text-red-600 border-2 border-red-600 py-3 rounded-lg font-semibold hover:bg-red-50 transition-colors"
                 >
                   🗑️ Delete Class
                 </button>
                 <button
-                  onClick={() => setEditingClass(null)}
+                  onClick={() => {
+                    setEditingClass(null);
+                    setEditingDateStr(null);
+                    setEditMode(null);
+                  }}
                   className="flex-1 text-stone-600 border-2 border-stone-300 py-3 rounded-lg font-semibold hover:bg-stone-50 transition-colors"
                 >
                   Cancel
                 </button>
                 <button
                   onClick={() => {
-                    // Save changes to centralized schedule
-                    const updatedSchedule = { ...classSchedule };
-                    Object.keys(updatedSchedule).forEach(dateStr => {
-                      const date = new Date(dateStr);
-                      if (date.getDay() === editingDayNum) {
-                        updatedSchedule[dateStr] = updatedSchedule[dateStr].map((cls, idx) => 
-                          idx === editingClass.index ? { ...editForm, id: cls.id } : cls
-                        );
+                    if (!editMode) {
+                      alert('Please select: This date only or Recurring pattern');
+                      return;
+                    }
+                    
+                    if (editMode === 'dateOnly') {
+                      // Save to date override
+                      const updatedOverrides = { ...dateOverrides };
+                      if (!updatedOverrides[editingDateStr]) {
+                        updatedOverrides[editingDateStr] = getClassesForDate(new Date(editingDateStr + 'T00:00:00'));
                       }
-                    });
-                    setClassSchedule(updatedSchedule);
+                      updatedOverrides[editingDateStr] = updatedOverrides[editingDateStr].map((cls, idx) => 
+                        idx === editingClass.index ? { ...editForm, id: cls.id } : cls
+                      );
+                      setDateOverrides(updatedOverrides);
+                    } else {
+                      // Save to recurring pattern
+                      const dayOfWeek = new Date(editingDateStr + 'T00:00:00').getDay();
+                      const updatedPattern = { ...recurringPattern };
+                      updatedPattern[dayOfWeek] = updatedPattern[dayOfWeek].map((cls, idx) => 
+                        idx === editingClass.index ? { ...editForm, id: cls.id } : cls
+                      );
+                      setRecurringPattern(updatedPattern);
+                    }
+                    
                     setEditingClass(null);
+                    setEditingDateStr(null);
+                    setEditMode(null);
                   }}
                   style={{ backgroundColor: ARIKANA_COLOR }}
                   className="flex-1 text-white py-3 rounded-lg font-semibold hover:opacity-90 transition-opacity"
@@ -1727,23 +1775,28 @@ Since Mar 1, 2026</p>
 
     // Calendar Editor View - only for Lead Trainer
     if (selectedMenuItem === 'calendar' && currentUser?.role === 'lead-trainer') {
-      const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
-      
-      // Group sessions by time for each day
-      const getSessionsGroupedByTime = (dayNum) => {
-        const sessions = baseWeeklySchedule[dayNum] || [];
+      // Helper to format date for display
+      const formatDateLabel = (date) => {
+        const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+        const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+        return `${days[date.getDay()]}, ${date.getDate()} ${months[date.getMonth()]}`;
+      };
+
+      // Group classes by time for a specific date
+      const getClassesByTime = (date) => {
+        const classes = getClassesForDate(date);
         const timeGroups = {};
         
-        sessions.forEach((session, idx) => {
-          if (!timeGroups[session.time]) {
-            timeGroups[session.time] = [];
+        classes.forEach((cls, idx) => {
+          if (!timeGroups[cls.time]) {
+            timeGroups[cls.time] = [];
           }
-          timeGroups[session.time].push({ ...session, sessionIndex: idx });
+          timeGroups[cls.time].push({ ...cls, classIndex: idx });
         });
         
         return Object.entries(timeGroups)
           .sort(([timeA], [timeB]) => timeA.localeCompare(timeB))
-          .map(([time, sessions]) => ({ time, sessions }));
+          .map(([time, classList]) => ({ time, classList }));
       };
 
       return (
@@ -1754,11 +1807,11 @@ Since Mar 1, 2026</p>
               <button onClick={() => setSelectedMenuItem(null)} className="text-2xl">←</button>
               <h1 className="text-2xl font-light flex-1">Weekly Schedule</h1>
             </div>
+            <p className="text-xs text-yellow-100 mt-2">Starting from Today</p>
           </div>
 
-          {/* Calendar Grid - Responsive with horizontal scroll */}
+          {/* Calendar Grid - 7 Days from TODAY */}
           <div className="px-2 py-6 overflow-x-auto scrollbar-hide">
-            {/* Mobile: 1 column at 320px, Tablet: 2 columns at 280px each, Desktop: 7 columns at auto */}
             <div 
               className="grid gap-3" 
               style={{ 
@@ -1767,25 +1820,27 @@ Since Mar 1, 2026</p>
                 minWidth: 'max-content'
               }}
             >
-              {dayNames.map((dayName, dayNum) => {
-                const timeGroups = getSessionsGroupedByTime(dayNum);
-                const isRestDay = dayNum === 0;
+              {sevenDaysFromToday.map(({ dateStr, date, dayOfWeek }) => {
+                const timeGroups = getClassesByTime(date);
+                const isToday = dateStr === new Date().toISOString().split('T')[0];
+                const isRestDay = dayOfWeek === 0;
 
                 return (
                   <div
-                    key={dayNum}
-                    className="border-2 border-stone-200 rounded-xl overflow-hidden bg-white flex flex-col"
+                    key={dateStr}
+                    className={`border-2 rounded-xl overflow-hidden bg-white flex flex-col ${isToday ? 'border-amber-400 shadow-lg' : 'border-stone-200'}`}
                     style={{ minWidth: '320px', minHeight: '500px' }}
                   >
-                    {/* Day Header */}
+                    {/* Date Header */}
                     <div
                       style={{ backgroundColor: ARIKANA_COLOR }}
-                      className="text-white px-4 py-3 text-center font-bold text-lg"
+                      className="text-white px-4 py-3 text-center flex flex-col"
                     >
-                      {dayName}
+                      <p className="font-bold text-lg">{formatDateLabel(date)}</p>
+                      {isToday && <p className="text-xs text-yellow-100">Today</p>}
                     </div>
 
-                    {/* Sessions Container */}
+                    {/* Classes Container */}
                     <div className="p-3 flex-1 overflow-y-auto">
                       {isRestDay ? (
                         <div className="h-full flex flex-col items-center justify-center text-center py-12">
@@ -1795,42 +1850,30 @@ Since Mar 1, 2026</p>
                         </div>
                       ) : timeGroups.length === 0 ? (
                         <div className="h-full flex items-center justify-center text-center py-12">
-                          <p className="text-sm text-stone-500">No sessions scheduled</p>
+                          <p className="text-sm text-stone-500">No classes scheduled</p>
                         </div>
                       ) : (
                         <div className="space-y-3">
-                          {timeGroups.map(({ time, sessions }, timeIdx) => (
+                          {timeGroups.map(({ time, classList }, timeIdx) => (
                             <div key={timeIdx}>
-                              {/* Time Label */}
-                              <p className="text-sm font-bold text-stone-700 px-2 mb-2">
-                                {time}
-                              </p>
-
-                              {/* Sessions at this time */}
-                              <div className={`grid gap-2 ${sessions.length > 1 ? 'grid-cols-2' : 'grid-cols-1'}`}>
-                                {sessions.map((session, sessIdx) => (
+                              <p className="text-sm font-bold text-stone-700 px-2 mb-2">{time}</p>
+                              <div className={`grid gap-2 ${classList.length > 1 ? 'grid-cols-2' : 'grid-cols-1'}`}>
+                                {classList.map((cls, clsIdx) => (
                                   <button
-                                    key={sessIdx}
+                                    key={clsIdx}
                                     onClick={() => {
-                                      setEditingClass({ index: session.sessionIndex });
-                                      setEditingDayNum(dayNum);
-                                      setEditForm({ ...session });
+                                      setEditingClass({ index: cls.classIndex });
+                                      setEditingDateStr(dateStr);
+                                      setEditForm({ ...cls });
+                                      setEditMode(null); // Reset mode selection
                                     }}
                                     style={{ borderColor: ARIKANA_COLOR, backgroundColor: `${ARIKANA_COLOR}10` }}
-                                    className="border-l-4 rounded px-2.5 py-2 text-left hover:bg-amber-100 transition-colors cursor-pointer"
+                                    className="border-l-4 rounded px-2.5 py-2 text-left hover:bg-amber-100 transition-colors cursor-pointer text-sm"
                                   >
-                                    <p className="text-sm font-semibold text-stone-900 leading-snug">
-                                      {session.name}
-                                    </p>
-                                    <p className="text-xs text-stone-600 leading-snug">
-                                      {session.instructor}
-                                    </p>
-                                    <p className="text-xs text-stone-500 leading-snug">
-                                      {session.duration}
-                                    </p>
-                                    <p className="text-xs text-stone-400 mt-1 italic">
-                                      tap to edit
-                                    </p>
+                                    <p className="font-semibold text-stone-900 leading-snug">{cls.name}</p>
+                                    <p className="text-xs text-stone-600 leading-snug">{cls.instructor}</p>
+                                    <p className="text-xs text-stone-500 leading-snug">{cls.duration}</p>
+                                    <p className="text-xs text-stone-400 mt-1 italic">tap to edit</p>
                                   </button>
                                 ))}
                               </div>
@@ -1846,15 +1889,15 @@ Since Mar 1, 2026</p>
           </div>
 
           {/* Legend & Hint */}
-          <div className="px-6 mt-6 space-y-3">
+          <div className="px-6 mt-6 space-y-3 pb-6">
             <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg">
               <p className="text-xs text-blue-900">
-                <span className="font-semibold">📅 Weekly View:</span> Each column shows one day. Swipe left to see more days.
+                <span className="font-semibold">📅 This Week:</span> Shows the next 7 days starting from today.
               </p>
             </div>
             <div className="p-3 bg-amber-50 border border-amber-200 rounded-lg">
               <p className="text-xs text-amber-900">
-                <span className="font-semibold">✏️ Edit Classes:</span> Tap/click any class to edit, change details, or delete it.
+                <span className="font-semibold">✏️ Edit:</span> Tap any class to edit (this date only or recurring).
               </p>
             </div>
             <div className="flex items-center justify-center gap-2 text-xs text-stone-500">
@@ -2190,11 +2233,20 @@ Since Mar 1, 2026</p>
       setSelectedBookingClass={setSelectedBookingClass}
       selectedDate={selectedDate}
       setSelectedDate={setSelectedDate}
-      classSchedule={classSchedule}
-      setClassSchedule={setClassSchedule}
+      recurringPattern={recurringPattern}
+      dateOverrides={dateOverrides}
+      getClassesForDate={getClassesForDate}
     />,
     buy: <BuyTab />,
-    profile: <ProfileTab classSchedule={classSchedule} setClassSchedule={setClassSchedule} currentUser={currentUser} setCurrentUser={setCurrentUser} />,
+    profile: <ProfileTab 
+      recurringPattern={recurringPattern} 
+      setRecurringPattern={setRecurringPattern} 
+      dateOverrides={dateOverrides}
+      setDateOverrides={setDateOverrides}
+      getClassesForDate={getClassesForDate}
+      currentUser={currentUser} 
+      setCurrentUser={setCurrentUser} 
+    />,
     more: <MoreTab />,
   };
 
