@@ -1881,25 +1881,12 @@ Since Mar 1, 2026</p>
             </div>
           </div>
 
-          {/* Legend & Hint */}
-          <div className="px-6 mt-6 space-y-3 pb-6">
-            <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg">
-              <p className="text-xs text-blue-900">
-                <span className="font-semibold">📅 This Week:</span> Shows the next 7 days starting from today.
-              </p>
-            </div>
-            <div className="p-3 bg-amber-50 border border-amber-200 rounded-lg">
-              <p className="text-xs text-amber-900">
-                <span className="font-semibold">✏️ Edit:</span> Tap any class to edit (this date only or recurring).
-              </p>
-            </div>
-            <div className="flex items-center justify-center gap-2 text-xs text-stone-500">
-              <span>👈 Swipe left to see more days 👉</span>
-            </div>
+          {/* Create New Class Button */}
+          <div className="px-6 mt-6 pb-6">
             <button
               onClick={() => setShowCreateForm(true)}
               style={{ backgroundColor: ARIKANA_COLOR }}
-              className="w-full text-white py-3 rounded-lg font-semibold hover:opacity-90 transition-opacity mt-4"
+              className="w-full text-white py-3 rounded-lg font-semibold hover:opacity-90 transition-opacity"
             >
               + Create New Class
             </button>
