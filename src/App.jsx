@@ -1522,6 +1522,43 @@ Since Mar 1, 2026</p>
   // Profile Tab Content
   const ProfileTab = () => {
     const [selectedMenuItem, setSelectedMenuItem] = useState(null);
+    const [editingClass, setEditingClass] = useState(null);
+    const [editingDayNum, setEditingDayNum] = useState(null);
+    const [editForm, setEditForm] = useState({});
+    const [baseWeeklySchedule, setBaseWeeklySchedule] = useState({
+      0: [], // Sunday
+      1: [ // Monday
+        { name: 'Pilates Mat', time: '09:00', duration: '60 min', instructor: 'Angelina', spots: 8 },
+        { name: 'Core Strength', time: '10:30', duration: '45 min', instructor: 'Nicolas', spots: 12 },
+        { name: 'Speed Skating', time: '09:30', duration: '50 min', instructor: 'Sergey', spots: 11 },
+      ],
+      2: [ // Tuesday
+        { name: 'Pelvic Curl Flow', time: '08:00', duration: '50 min', instructor: 'Angelina', spots: 10 },
+        { name: 'Ice Skating with Grace', time: '07:00', duration: '60 min', instructor: 'Sergey', spots: 14 },
+        { name: 'Pilates Reformer', time: '09:00', duration: '60 min', instructor: 'Nicolas', spots: 8 },
+        { name: 'Advanced Pilates', time: '18:30', duration: '60 min', instructor: 'Nicolas', spots: 6 },
+      ],
+      3: [ // Wednesday
+        { name: 'Deep Core Activation', time: '11:00', duration: '60 min', instructor: 'Angelina', spots: 9 },
+        { name: 'Pilates Mat', time: '17:00', duration: '50 min', instructor: 'Nicolas', spots: 15 },
+        { name: 'Speed Skating', time: '09:30', duration: '50 min', instructor: 'Sergey', spots: 11 },
+      ],
+      4: [ // Thursday
+        { name: 'Advanced Pelvic Techniques', time: '17:00', duration: '60 min', instructor: 'Angelina', spots: 7 },
+        { name: 'Core Strength', time: '10:30', duration: '45 min', instructor: 'Nicolas', spots: 12 },
+        { name: 'Ice Skating Techniques', time: '16:00', duration: '60 min', instructor: 'Sergey', spots: 8 },
+      ],
+      5: [ // Friday
+        { name: 'Pilates Fusion', time: '19:00', duration: '55 min', instructor: 'Angelina', spots: 12 },
+        { name: 'Pilates Reformer', time: '09:00', duration: '60 min', instructor: 'Nicolas', spots: 7 },
+        { name: 'Crossfit on Ice', time: '18:00', duration: '55 min', instructor: 'Sergey', spots: 6 },
+      ],
+      6: [ // Saturday
+        { name: 'Pelvic Curl Flow', time: '10:30', duration: '50 min', instructor: 'Angelina', spots: 6 },
+        { name: 'Advanced Pilates', time: '18:30', duration: '60 min', instructor: 'Nicolas', spots: 5 },
+        { name: 'Speed Skating', time: '09:30', duration: '50 min', instructor: 'Sergey', spots: 11 },
+      ],
+    });
 
     const paymentMethods = [
       { type: 'Mastercard', last4: '9909', expires: '09/2029' },
@@ -1537,9 +1574,126 @@ Since Mar 1, 2026</p>
       setCurrentUser(null);
     };
 
-    // Calendar Editor View - only for Lead Trainer
-    if (selectedMenuItem === 'calendar' && currentUser?.role === 'lead-trainer') {
-      const baseWeeklySchedule = {
+    // Edit Class Modal - only for Lead Trainer
+    if (selectedMenuItem === 'calendar' && currentUser?.role === 'lead-trainer' && editingClass) {
+      return (
+        <div className="pb-28">
+          {/* Header */}
+          <div style={{ background: `linear-gradient(to bottom, ${ARIKANA_COLOR}, ${ARIKANA_COLOR}cc)` }} className="text-white px-6 py-4">
+            <div className="flex items-center gap-3">
+              <button onClick={() => setEditingClass(null)} className="text-2xl">←</button>
+              <h1 className="text-2xl font-light flex-1">Edit Class</h1>
+            </div>
+          </div>
+
+          {/* Edit Form */}
+          <div className="px-6 py-6">
+            <div className="space-y-4">
+              {/* Class Name */}
+              <div>
+                <label className="text-sm font-semibold text-stone-900 block mb-2">Class Name</label>
+                <input
+                  type="text"
+                  value={editForm.name || ''}
+                  onChange={(e) => setEditForm({ ...editForm, name: e.target.value })}
+                  className="w-full border border-stone-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-yellow-600"
+                  placeholder="e.g., Pilates Mat"
+                />
+              </div>
+
+              {/* Time */}
+              <div>
+                <label className="text-sm font-semibold text-stone-900 block mb-2">Start Time</label>
+                <input
+                  type="time"
+                  value={editForm.time || ''}
+                  onChange={(e) => setEditForm({ ...editForm, time: e.target.value })}
+                  className="w-full border border-stone-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-yellow-600"
+                />
+              </div>
+
+              {/* Duration */}
+              <div>
+                <label className="text-sm font-semibold text-stone-900 block mb-2">Duration</label>
+                <input
+                  type="text"
+                  value={editForm.duration || ''}
+                  onChange={(e) => setEditForm({ ...editForm, duration: e.target.value })}
+                  className="w-full border border-stone-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-yellow-600"
+                  placeholder="e.g., 60 min"
+                />
+              </div>
+
+              {/* Instructor */}
+              <div>
+                <label className="text-sm font-semibold text-stone-900 block mb-2">Instructor</label>
+                <select
+                  value={editForm.instructor || ''}
+                  onChange={(e) => setEditForm({ ...editForm, instructor: e.target.value })}
+                  className="w-full border border-stone-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-yellow-600"
+                >
+                  <option value="">Select Instructor</option>
+                  <option value="Nicolas">Nicolas</option>
+                  <option value="Angelina">Angelina</option>
+                  <option value="Sergey">Sergey</option>
+                </select>
+              </div>
+
+              {/* Spots */}
+              <div>
+                <label className="text-sm font-semibold text-stone-900 block mb-2">Available Spots</label>
+                <input
+                  type="number"
+                  value={editForm.spots || ''}
+                  onChange={(e) => setEditForm({ ...editForm, spots: parseInt(e.target.value) })}
+                  className="w-full border border-stone-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-yellow-600"
+                  placeholder="e.g., 10"
+                  min="1"
+                />
+              </div>
+
+              {/* Buttons */}
+              <div className="flex gap-3 mt-8">
+                <button
+                  onClick={() => {
+                    // Delete class
+                    const updatedDay = baseWeeklySchedule[editingDayNum].filter((_, idx) => idx !== editingClass.index);
+                    const updated = { ...baseWeeklySchedule, [editingDayNum]: updatedDay };
+                    setBaseWeeklySchedule(updated);
+                    localStorage.setItem('arikanaBaseWeeklySchedule', JSON.stringify(updated));
+                    setEditingClass(null);
+                  }}
+                  className="flex-1 text-red-600 border-2 border-red-600 py-3 rounded-lg font-semibold hover:bg-red-50 transition-colors"
+                >
+                  🗑️ Delete Class
+                </button>
+                <button
+                  onClick={() => setEditingClass(null)}
+                  className="flex-1 text-stone-600 border-2 border-stone-300 py-3 rounded-lg font-semibold hover:bg-stone-50 transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={() => {
+                    // Save changes
+                    const updatedDay = [...baseWeeklySchedule[editingDayNum]];
+                    updatedDay[editingClass.index] = editForm;
+                    const updated = { ...baseWeeklySchedule, [editingDayNum]: updatedDay };
+                    setBaseWeeklySchedule(updated);
+                    localStorage.setItem('arikanaBaseWeeklySchedule', JSON.stringify(updated));
+                    setEditingClass(null);
+                  }}
+                  style={{ backgroundColor: ARIKANA_COLOR }}
+                  className="flex-1 text-white py-3 rounded-lg font-semibold hover:opacity-90 transition-opacity"
+                >
+                  ✓ Save Changes
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      );
+    }
         0: [], // Sunday
         1: [ // Monday
           { name: 'Pilates Mat', time: '09:00', duration: '60 min', instructor: 'Angelina', spots: 8 },
@@ -1581,11 +1735,11 @@ Since Mar 1, 2026</p>
         const sessions = baseWeeklySchedule[dayNum] || [];
         const timeGroups = {};
         
-        sessions.forEach(session => {
+        sessions.forEach((session, idx) => {
           if (!timeGroups[session.time]) {
             timeGroups[session.time] = [];
           }
-          timeGroups[session.time].push(session);
+          timeGroups[session.time].push({ ...session, sessionIndex: idx });
         });
         
         return Object.entries(timeGroups)
@@ -1656,10 +1810,15 @@ Since Mar 1, 2026</p>
                               {/* Sessions at this time */}
                               <div className={`grid gap-2 ${sessions.length > 1 ? 'grid-cols-2' : 'grid-cols-1'}`}>
                                 {sessions.map((session, sessIdx) => (
-                                  <div
+                                  <button
                                     key={sessIdx}
+                                    onClick={() => {
+                                      setEditingClass({ index: session.sessionIndex });
+                                      setEditingDayNum(dayNum);
+                                      setEditForm({ ...session });
+                                    }}
                                     style={{ borderColor: ARIKANA_COLOR, backgroundColor: `${ARIKANA_COLOR}10` }}
-                                    className="border-l-4 rounded px-2.5 py-2 text-left"
+                                    className="border-l-4 rounded px-2.5 py-2 text-left hover:bg-amber-100 transition-colors cursor-pointer"
                                   >
                                     <p className="text-sm font-semibold text-stone-900 leading-snug">
                                       {session.name}
@@ -1670,7 +1829,10 @@ Since Mar 1, 2026</p>
                                     <p className="text-xs text-stone-500 leading-snug">
                                       {session.duration}
                                     </p>
-                                  </div>
+                                    <p className="text-xs text-stone-400 mt-1 italic">
+                                      tap to edit
+                                    </p>
+                                  </button>
                                 ))}
                               </div>
                             </div>
@@ -1689,6 +1851,11 @@ Since Mar 1, 2026</p>
             <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg">
               <p className="text-xs text-blue-900">
                 <span className="font-semibold">📅 Weekly View:</span> Each column shows one day. Swipe left to see more days.
+              </p>
+            </div>
+            <div className="p-3 bg-amber-50 border border-amber-200 rounded-lg">
+              <p className="text-xs text-amber-900">
+                <span className="font-semibold">✏️ Edit Classes:</span> Tap/click any class to edit, change details, or delete it.
               </p>
             </div>
             <div className="flex items-center justify-center gap-2 text-xs text-stone-500">
