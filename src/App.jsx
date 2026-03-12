@@ -588,10 +588,28 @@ Since Mar 1, 2026</p>
               return (
                 <div className="space-y-2 mb-4">
                   {futureBookings.slice(0, 2).map((booking) => (
-                    <div key={booking.id} className="bg-gradient-to-r rounded-3xl p-5 text-white" style={{ background: `linear-gradient(135deg, ${ARIKANA_COLOR}, ${ARIKANA_COLOR}dd)` }}>
-                      <h3 className="font-semibold text-lg">{booking.className}</h3>
-                      <p className="text-sm opacity-90 mt-2">{booking.displayDate} | {booking.time}</p>
-                      <p className="text-xs opacity-80 mt-1">with {booking.instructor}</p>
+                    <div 
+                      key={booking.id} 
+                      className="bg-gradient-to-r rounded-3xl p-5 text-white flex items-start justify-between cursor-pointer hover:opacity-90 transition-opacity group" 
+                      style={{ background: `linear-gradient(135deg, ${ARIKANA_COLOR}, ${ARIKANA_COLOR}dd)` }}
+                    >
+                      <div className="flex-1">
+                        <h3 className="font-semibold text-lg">{booking.className}</h3>
+                        <p className="text-sm opacity-90 mt-2">{booking.displayDate} | {booking.time}</p>
+                        <p className="text-xs opacity-80 mt-1">with {booking.instructor}</p>
+                      </div>
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          const updatedBookings = bookings.filter(b => b.id !== booking.id);
+                          setBookings(updatedBookings);
+                          localStorage.setItem('arikanaBookings', JSON.stringify(updatedBookings));
+                        }}
+                        className="ml-4 text-white bg-white bg-opacity-20 hover:bg-opacity-40 rounded-full w-8 h-8 flex items-center justify-center transition-all"
+                        title="Delete booking"
+                      >
+                        ✕
+                      </button>
                     </div>
                   ))}
                 </div>
@@ -604,13 +622,6 @@ Since Mar 1, 2026</p>
               );
             }
           })()}
-          <button 
-            onClick={() => setActiveTab('book')}
-            style={{ backgroundColor: ARIKANA_COLOR }} 
-            className="w-full text-white font-medium py-4 rounded-3xl hover:opacity-90 transition-opacity text-lg"
-          >
-            Explore
-          </button>
         </div>
 
         {/* Coming Up - Next 2 Sessions */}
@@ -848,57 +859,57 @@ Since Mar 1, 2026</p>
     if (bookingView === 'confirmation' && lastBookedClass) {
       console.log('🟢 CONFIRMATION PAGE RENDERING', { class: lastBookedClass.className });
       return (
-        <div className="pb-28 h-screen flex flex-col bg-white">
+        <div className="pb-28 flex flex-col bg-white">
           {/* Header */}
-          <div style={{ backgroundColor: ARIKANA_COLOR }} className="text-white px-6 py-4">
-            <h1 className="text-xl font-light text-center">Booking Confirmation</h1>
+          <div style={{ backgroundColor: ARIKANA_COLOR }} className="text-white px-6 py-3">
+            <h1 className="text-lg font-light text-center">Booking Confirmation</h1>
           </div>
 
           {/* Content */}
-          <div className="flex-1 px-6 py-8 flex flex-col items-center justify-center">
+          <div className="px-6 py-4 flex flex-col items-center">
             {/* Success Icon */}
-            <div className="text-6xl mb-6">✅</div>
+            <div className="text-5xl mb-3">✅</div>
             
             {/* Success Message */}
-            <h2 className="text-2xl font-bold text-stone-900 mb-2">You're Booked!</h2>
-            <p className="text-lg text-stone-600 mb-10">Your spot is confirmed. See you soon!</p>
+            <h2 className="text-xl font-bold text-stone-900 mb-1">You're Booked!</h2>
+            <p className="text-sm text-stone-600 mb-6">Your spot is confirmed. See you soon!</p>
 
             {/* Booking Details - 2 Column Grid */}
-            <div className="w-full bg-stone-100 rounded-3xl p-8 mb-8">
-              <div className="grid grid-cols-2 gap-6">
+            <div className="w-full bg-stone-100 rounded-2xl p-4 mb-6">
+              <div className="grid grid-cols-2 gap-4">
                 {/* Class */}
                 <div>
-                  <p className="text-xs text-stone-500 uppercase tracking-widest font-bold mb-3">Class</p>
-                  <p className="text-lg font-bold text-stone-900">{lastBookedClass.className}</p>
+                  <p className="text-xs text-stone-500 uppercase tracking-widest font-bold mb-2">Class</p>
+                  <p className="text-sm font-bold text-stone-900">{lastBookedClass.className}</p>
                 </div>
                 
                 {/* Instructor */}
                 <div>
-                  <p className="text-xs text-stone-500 uppercase tracking-widest font-bold mb-3">Instructor</p>
-                  <p className="text-lg font-bold text-stone-900">{lastBookedClass.instructor}</p>
+                  <p className="text-xs text-stone-500 uppercase tracking-widest font-bold mb-2">Instructor</p>
+                  <p className="text-sm font-bold text-stone-900">{lastBookedClass.instructor}</p>
                 </div>
 
                 {/* Date & Time */}
                 <div>
-                  <p className="text-xs text-stone-500 uppercase tracking-widest font-bold mb-3">Date & Time</p>
-                  <p className="text-lg text-stone-900 font-semibold">{lastBookedClass.displayDate}</p>
-                  <p className="text-lg font-bold text-stone-900">{lastBookedClass.time}</p>
+                  <p className="text-xs text-stone-500 uppercase tracking-widest font-bold mb-2">Date & Time</p>
+                  <p className="text-sm text-stone-900 font-semibold">{lastBookedClass.displayDate}</p>
+                  <p className="text-sm font-bold text-stone-900">{lastBookedClass.time}</p>
                 </div>
 
                 {/* Duration */}
                 <div>
-                  <p className="text-xs text-stone-500 uppercase tracking-widest font-bold mb-3">Duration</p>
-                  <p className="text-lg font-bold text-stone-900">{lastBookedClass.duration}</p>
+                  <p className="text-xs text-stone-500 uppercase tracking-widest font-bold mb-2">Duration</p>
+                  <p className="text-sm font-bold text-stone-900">{lastBookedClass.duration}</p>
                 </div>
               </div>
             </div>
           </div>
 
           {/* Button */}
-          <div className="px-6 pb-8">
+          <div className="px-6 pb-4 mt-auto">
             <button
               style={{ backgroundColor: ARIKANA_COLOR }}
-              className="w-full text-white py-5 rounded-2xl font-bold hover:opacity-90 transition-opacity text-lg"
+              className="w-full text-white py-4 rounded-2xl font-bold hover:opacity-90 transition-opacity text-base"
               onClick={() => {
                 setBookingView('classes');
                 setSelectedBookingClass(null);
