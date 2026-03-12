@@ -156,6 +156,49 @@ export default function ArikanaApp() {
       setBookings(JSON.parse(savedBookings));
     }
 
+    // Repair: Remove empty date overrides that shouldn't be there
+    const savedOverrides = localStorage.getItem('arikanaDateOverrides');
+    if (savedOverrides) {
+      try {
+        const overrides = JSON.parse(savedOverrides);
+        const savedPattern = localStorage.getItem('arikanaRecurringPattern');
+        const pattern = savedPattern ? JSON.parse(savedPattern) : {};
+        
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        
+        let hasChanges = false;
+        Object.keys(overrides).forEach(dateStr => {
+          const date = new Date(dateStr + 'T00:00:00');
+          const dayOfWeek = date.getDay();
+          const recurringClasses = pattern[dayOfWeek] || [];
+          
+          // If override is an empty array but recurring pattern has classes, remove the override
+          // This handles cases where classes were accidentally deleted
+          if (Array.isArray(overrides[dateStr]) && 
+              overrides[dateStr].length === 0 && 
+              recurringClasses.length > 0) {
+            delete overrides[dateStr];
+            hasChanges = true;
+          }
+          
+          // Also remove empty overrides from past dates
+          if (Array.isArray(overrides[dateStr]) && 
+              overrides[dateStr].length === 0 && 
+              date < today) {
+            delete overrides[dateStr];
+            hasChanges = true;
+          }
+        });
+        
+        if (hasChanges) {
+          localStorage.setItem('arikanaDateOverrides', JSON.stringify(overrides));
+        }
+      } catch (e) {
+        console.error('Error repairing overrides:', e);
+      }
+    }
+
     setIsLoading(false);
   }, []);
 
