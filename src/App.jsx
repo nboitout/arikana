@@ -717,8 +717,9 @@ Since Mar 1, 2026</p>
     // Calendar is RECURRING - same schedule repeats every week (Mon-Sun pattern)
     const getDayDates = () => {
       const dates = [];
+      const startDate = selectedDate || new Date();
       for (let i = 0; i < 7; i++) {
-        const d = new Date(selectedDate);
+        const d = new Date(startDate);
         d.setDate(d.getDate() + i);
         dates.push(d);
       }
