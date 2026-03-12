@@ -1884,9 +1884,10 @@ Since Mar 1, 2026</p>
           {/* Create New Class Button */}
           <div className="px-6 mt-6 pb-6">
             <button
+              type="button"
               onClick={() => setShowCreateForm(true)}
               style={{ backgroundColor: ARIKANA_COLOR }}
-              className="w-full text-white py-3 rounded-lg font-semibold hover:opacity-90 transition-opacity"
+              className="w-full text-white py-3 rounded-lg font-semibold hover:opacity-90 transition-opacity cursor-pointer"
             >
               + Create New Class
             </button>
@@ -1904,7 +1905,7 @@ Since Mar 1, 2026</p>
           {/* Header */}
           <div style={{ background: `linear-gradient(to bottom, ${ARIKANA_COLOR}, ${ARIKANA_COLOR}cc)` }} className="text-white px-6 py-4">
             <div className="flex items-center gap-3">
-              <button onClick={() => setShowCreateForm(false)} className="text-2xl">←</button>
+              <button type="button" onClick={() => setShowCreateForm(false)} className="text-2xl cursor-pointer">←</button>
               <h1 className="text-2xl font-light flex-1">Create New Class</h1>
             </div>
           </div>
@@ -1990,12 +1991,14 @@ Since Mar 1, 2026</p>
             {/* Action Buttons */}
             <div className="flex gap-3 mt-6">
               <button
+                type="button"
                 onClick={() => setShowCreateForm(false)}
-                className="flex-1 text-stone-600 border-2 border-stone-300 py-3 rounded-lg font-semibold hover:bg-stone-50 transition-colors"
+                className="flex-1 text-stone-600 border-2 border-stone-300 py-3 rounded-lg font-semibold hover:bg-stone-50 transition-colors cursor-pointer"
               >
                 Cancel
               </button>
               <button
+                type="button"
                 onClick={() => {
                   if (!newClassForm.name || !newClassForm.time) {
                     alert('Please fill in class name and time');
