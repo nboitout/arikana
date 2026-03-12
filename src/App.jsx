@@ -523,7 +523,7 @@ export default function ArikanaApp() {
       <div className="pb-28">
         {/* Header with gradient */}
         <div style={{ background: `linear-gradient(to bottom, ${ARIKANA_COLOR}, ${ARIKANA_COLOR}cc)` }} className="text-white px-6 py-6">
-          <p className="text-sm font-light mb-1">Hi, {currentUser?.firstName || 'Анечка'}</p>
+          <p className="text-sm font-light mb-1">Hi, Anechka</p>
           <h1 className="text-2xl font-light">Welcome to Arikana Studio</h1>
         </div>
 
