@@ -97,6 +97,12 @@ export default function ArikanaApp() {
     return today;
   });
   
+  // For Book tab: calendar shows 7 days from this date (doesn't change when selecting a day)
+  const [bookingCalendarStart, setBookingCalendarStart] = useState(() => {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    return today;
+  });
   // Recurring weekly pattern (Mon=1, Tue=2, etc.)
   const [recurringPattern, setRecurringPattern] = useState(() => {
     const saved = localStorage.getItem('arikanaRecurringPattern');
@@ -895,6 +901,7 @@ Since Mar 1, 2026</p>
     lastBookedClass, setLastBookedClass,
     selectedBookingClass, setSelectedBookingClass,
     selectedDate, setSelectedDate,
+    bookingCalendarStart,
     recurringPattern, dateOverrides, getClassesForDate
   }) => {
     const [selectedInstructor, setSelectedInstructor] = useState('all');
@@ -928,11 +935,11 @@ Since Mar 1, 2026</p>
       sergey: { name: 'Sergey', title: 'Crossfit Coach', rating: 4.8, reviews: 95, bio: 'Siberian Crossfitter', photo: 'https://i.ibb.co/nNGSPCsY/Sergey.png' },
     };
 
-    // Generate 7 days starting from selectedDate
+    // Generate 7 days starting from bookingCalendarStart (not selectedDate)
     // Calendar is RECURRING - same schedule repeats every week (Mon-Sun pattern)
     const getDayDates = () => {
       const dates = [];
-      const startDate = selectedDate || new Date();
+      const startDate = bookingCalendarStart || new Date();
       for (let i = 0; i < 7; i++) {
         const d = new Date(startDate);
         d.setDate(d.getDate() + i);
@@ -2402,6 +2409,7 @@ Since Mar 1, 2026</p>
       setSelectedBookingClass={setSelectedBookingClass}
       selectedDate={selectedDate}
       setSelectedDate={setSelectedDate}
+      bookingCalendarStart={bookingCalendarStart}
       recurringPattern={recurringPattern}
       dateOverrides={dateOverrides}
       getClassesForDate={getClassesForDate}
