@@ -1603,9 +1603,17 @@ Since Mar 1, 2026</p>
             </div>
           </div>
 
-          {/* Calendar Grid */}
-          <div className="px-3 py-6 overflow-x-auto">
-            <div className="grid grid-cols-7 gap-2 min-w-max" style={{ minWidth: '100vw' }}>
+          {/* Calendar Grid - Responsive with horizontal scroll */}
+          <div className="px-2 py-6 overflow-x-auto scrollbar-hide">
+            {/* Mobile: 1 column at 320px, Tablet: 2 columns at 280px each, Desktop: 7 columns at auto */}
+            <div 
+              className="grid gap-3" 
+              style={{ 
+                gridAutoColumns: 'minmax(320px, 1fr)',
+                gridAutoFlow: 'column',
+                minWidth: 'max-content'
+              }}
+            >
               {dayNames.map((dayName, dayNum) => {
                 const timeGroups = getSessionsGroupedByTime(dayNum);
                 const isRestDay = dayNum === 0;
@@ -1613,53 +1621,53 @@ Since Mar 1, 2026</p>
                 return (
                   <div
                     key={dayNum}
-                    className="border-2 border-stone-200 rounded-xl overflow-hidden bg-white"
-                    style={{ minWidth: '150px' }}
+                    className="border-2 border-stone-200 rounded-xl overflow-hidden bg-white flex flex-col"
+                    style={{ minWidth: '320px', minHeight: '500px' }}
                   >
                     {/* Day Header */}
                     <div
                       style={{ backgroundColor: ARIKANA_COLOR }}
-                      className="text-white px-3 py-2 text-center font-bold text-sm"
+                      className="text-white px-4 py-3 text-center font-bold text-lg"
                     >
                       {dayName}
                     </div>
 
                     {/* Sessions Container */}
-                    <div className="p-2 min-h-96">
+                    <div className="p-3 flex-1 overflow-y-auto">
                       {isRestDay ? (
-                        <div className="h-full flex flex-col items-center justify-center text-center py-8">
-                          <p className="text-2xl mb-2">☀️</p>
-                          <p className="text-xs font-semibold text-stone-900">Rest Day</p>
-                          <p className="text-xs text-stone-500 mt-1">Recharge!</p>
+                        <div className="h-full flex flex-col items-center justify-center text-center py-12">
+                          <p className="text-4xl mb-3">☀️</p>
+                          <p className="text-sm font-semibold text-stone-900">Rest Day</p>
+                          <p className="text-xs text-stone-500 mt-2">Recharge & Recover!</p>
                         </div>
                       ) : timeGroups.length === 0 ? (
-                        <div className="h-full flex items-center justify-center text-center py-8">
-                          <p className="text-xs text-stone-500">No sessions</p>
+                        <div className="h-full flex items-center justify-center text-center py-12">
+                          <p className="text-sm text-stone-500">No sessions scheduled</p>
                         </div>
                       ) : (
-                        <div className="space-y-2">
+                        <div className="space-y-3">
                           {timeGroups.map(({ time, sessions }, timeIdx) => (
                             <div key={timeIdx}>
                               {/* Time Label */}
-                              <p className="text-xs font-bold text-stone-600 px-1 mb-1">
+                              <p className="text-sm font-bold text-stone-700 px-2 mb-2">
                                 {time}
                               </p>
 
                               {/* Sessions at this time */}
-                              <div className={`grid gap-1 ${sessions.length > 1 ? 'grid-cols-2' : 'grid-cols-1'}`}>
+                              <div className={`grid gap-2 ${sessions.length > 1 ? 'grid-cols-2' : 'grid-cols-1'}`}>
                                 {sessions.map((session, sessIdx) => (
                                   <div
                                     key={sessIdx}
                                     style={{ borderColor: ARIKANA_COLOR, backgroundColor: `${ARIKANA_COLOR}10` }}
-                                    className="border-l-4 rounded px-2 py-1.5 text-left"
+                                    className="border-l-4 rounded px-2.5 py-2 text-left"
                                   >
-                                    <p className="text-xs font-semibold text-stone-900 leading-tight">
+                                    <p className="text-sm font-semibold text-stone-900 leading-snug">
                                       {session.name}
                                     </p>
-                                    <p className="text-xs text-stone-600 leading-tight">
+                                    <p className="text-xs text-stone-600 leading-snug">
                                       {session.instructor}
                                     </p>
-                                    <p className="text-xs text-stone-500 leading-tight">
+                                    <p className="text-xs text-stone-500 leading-snug">
                                       {session.duration}
                                     </p>
                                   </div>
@@ -1676,12 +1684,15 @@ Since Mar 1, 2026</p>
             </div>
           </div>
 
-          {/* Legend */}
-          <div className="px-6 mt-6">
+          {/* Legend & Hint */}
+          <div className="px-6 mt-6 space-y-3">
             <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg">
               <p className="text-xs text-blue-900">
-                <span className="font-semibold">📅 Weekly View:</span> Each column shows one day. If 2 sessions occur at the same time, they display side-by-side.
+                <span className="font-semibold">📅 Weekly View:</span> Each column shows one day. Swipe left to see more days.
               </p>
+            </div>
+            <div className="flex items-center justify-center gap-2 text-xs text-stone-500">
+              <span>👈 Swipe left to see more days 👉</span>
             </div>
           </div>
         </div>
