@@ -797,6 +797,7 @@ Since Mar 1, 2026</p>
 
     // Handle booking confirmation
     const handleBooking = () => {
+      console.log('✅ handleBooking called');
       // Check if session is in the past and user hasn't confirmed yet
       if (isSessionInPast() && view !== 'warning') {
         setView('warning');
@@ -835,10 +836,12 @@ Since Mar 1, 2026</p>
       setLastBookedClass(newBooking);
       setSelectedBookingClass(null);
       setView('confirmation');
+      console.log('✅ Booking saved & confirmation view set');
     };
 
     // CONFIRMATION PAGE - shown when view === 'confirmation'
     if (view === 'confirmation' && lastBookedClass) {
+      console.log('🟢 CONFIRMATION PAGE RENDERING', { class: lastBookedClass.className });
       return (
         <div className="pb-28 h-screen flex flex-col bg-white">
           {/* Header */}
@@ -914,6 +917,7 @@ Since Mar 1, 2026</p>
     
     // WARNING PAGE - shown when view === 'warning'
     if (view === 'warning' && selectedBookingClass) {
+      console.log('⚠️ WARNING PAGE RENDERING');
       return (
         <div className="pb-28">
           {/* Header */}
@@ -970,6 +974,7 @@ Since Mar 1, 2026</p>
 
     // BOOKING DETAIL VIEW - shown when view === 'detail'
     if (view === 'detail' && selectedBookingClass) {
+      console.log('🟡 BOOKING DETAIL VIEW RENDERING', { class: selectedBookingClass.name });
       const instructor = getInstructorData(selectedBookingClass.instructor);
       const description = classDescriptions[selectedBookingClass.name] || 'Professional class instruction.';
       const sessionInPast = isSessionInPast();
@@ -1043,6 +1048,7 @@ Since Mar 1, 2026</p>
     }
 
     // Classes List View - Default
+    console.log('🟠 CLASSES LIST RENDERING');
     return (
       <div className="pb-28">
         {/* Header */}
