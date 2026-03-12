@@ -1111,12 +1111,9 @@ Since Mar 1, 2026</p>
                       <h3 className="text-xs font-bold text-center">{instr.name}</h3>
                     </div>
 
-                    {/* Right: Title, Rating, Bio */}
+                    {/* Right: Title and Bio */}
                     <div className="flex flex-col justify-start flex-1 min-w-0 gap-0.5">
                       <p className="text-xs opacity-80">{instr.title}</p>
-                      <div className="flex gap-1 text-xs">
-                        <span>⭐ {instr.rating}</span>
-                      </div>
                       <p className="text-xs opacity-70">{instr.bio}</p>
                     </div>
                   </div>
