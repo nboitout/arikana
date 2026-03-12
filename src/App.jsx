@@ -1797,7 +1797,7 @@ Since Mar 1, 2026</p>
           {/* Header */}
           <div style={{ background: `linear-gradient(to bottom, ${ARIKANA_COLOR}, ${ARIKANA_COLOR}cc)` }} className="text-white px-6 py-4">
             <div className="flex items-center gap-3">
-              <button onClick={() => setSelectedMenuItem(null)} className="text-2xl">←</button>
+              <button type="button" onClick={() => setSelectedMenuItem(null)} className="text-2xl cursor-pointer">←</button>
               <h1 className="text-2xl font-light flex-1">Weekly Schedule</h1>
             </div>
             <p className="text-xs text-yellow-100 mt-2">Starting from Today</p>
@@ -1853,6 +1853,7 @@ Since Mar 1, 2026</p>
                               <div className={`grid gap-2 ${classList.length > 1 ? 'grid-cols-2' : 'grid-cols-1'}`}>
                                 {classList.map((cls, clsIdx) => (
                                   <button
+                                    type="button"
                                     key={clsIdx}
                                     onClick={() => {
                                       setEditingClass({ index: cls.classIndex });
@@ -1885,7 +1886,12 @@ Since Mar 1, 2026</p>
           <div className="px-6 mt-6 pb-6">
             <button
               type="button"
-              onClick={() => setShowCreateForm(true)}
+              onClick={() => {
+                console.log('Create button clicked!');
+                console.log('showCreateForm state before:', false);
+                setShowCreateForm(true);
+                console.log('showCreateForm state after:', true);
+              }}
               style={{ backgroundColor: ARIKANA_COLOR }}
               className="w-full text-white py-3 rounded-lg font-semibold hover:opacity-90 transition-opacity cursor-pointer"
             >
