@@ -634,19 +634,6 @@ Since Feb 11, 2025</p>
               <p className="text-xs font-light opacity-95 whitespace-pre-line leading-tight">Classes this month
 Since Mar 1, 2026</p>
             </div>
-
-            {/* Card 3 - Animated with Badge */}
-            <div
-              style={{ backgroundColor: ARIKANA_COLOR }}
-              className="flex-shrink-0 w-40 text-white rounded-3xl p-5 snap-center relative"
-            >
-              <div style={{ backgroundColor: 'white', color: ARIKANA_COLOR }} className="absolute -top-3 -right-3 rounded-full w-12 h-12 flex items-center justify-center font-bold text-lg border-4 border-white shadow-lg">
-                ✓
-              </div>
-              <p className="text-4xl font-bold mb-3">{count100}</p>
-              <p className="text-xs font-light opacity-95 whitespace-pre-line leading-tight">Last achievement
-100 classes</p>
-            </div>
           </div>
         </div>
 
@@ -678,6 +665,14 @@ Since Mar 1, 2026</p>
               );
             }
           })()}
+        </div>
+
+        {/* My Health */}
+        <div className="px-6 mb-8">
+          <h2 className="text-2xl font-bold text-stone-900 mb-4">My Health</h2>
+          <div className="bg-blue-50 border border-blue-200 rounded-3xl p-6 text-center">
+            <p className="text-blue-900 text-sm font-light">Health tracking & wellness analytics coming soon</p>
+          </div>
         </div>
 
         {/* Cancellation Modal */}
@@ -1140,9 +1135,10 @@ Since Mar 1, 2026</p>
           {/* Get classes for this date using recurring pattern */}
           {(() => {
             const classesForDay = getClassesForDate(selectedDate);
-            const filteredClasses = selectedInstructor === 'all' 
+            const filteredClasses = (selectedInstructor === 'all' 
               ? classesForDay 
-              : classesForDay.filter(c => c.instructor.toLowerCase() === selectedInstructor);
+              : classesForDay.filter(c => c.instructor.toLowerCase() === selectedInstructor))
+              .sort((a, b) => a.time.localeCompare(b.time)); // Sort by start time
             
             return selectedDate.getDay() === 0 ? (
             <div className="text-center py-12">
