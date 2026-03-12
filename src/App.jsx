@@ -2001,15 +2001,10 @@ Since Mar 1, 2026</p>
                     alert('Please fill in class name and time');
                     return;
                   }
-                  // Find next occurrence of this day of week in classSchedule
-                  const today = new Date();
-                  let targetDate = new Date(today);
-                  const daysUntilTarget = (newClassForm.dayOfWeek - today.getDay() + 7) % 7;
-                  if (daysUntilTarget === 0) targetDate.setDate(today.getDate() + 7); // Next week if today
-                  else targetDate.setDate(today.getDate() + daysUntilTarget);
                   
-                  const dateStr = targetDate.toISOString().split('T')[0];
-                  const newId = Math.max(...Object.values(classSchedule).flat().map(c => c.id), 0) + 1;
+                  // Generate next unique ID across all classes
+                  const allClasses = Object.values(recurringPattern).flat().concat(Object.values(dateOverrides).flat());
+                  const newId = Math.max(...allClasses.map(c => c.id || 0), 0) + 1;
                   
                   const newClass = {
                     id: newId,
@@ -2020,16 +2015,20 @@ Since Mar 1, 2026</p>
                     spots: newClassForm.spots,
                   };
                   
-                  const updatedSchedule = { ...classSchedule };
-                  if (!updatedSchedule[dateStr]) updatedSchedule[dateStr] = [];
-                  updatedSchedule[dateStr].push(newClass);
+                  // Save to recurring pattern (for the selected day of week)
+                  const updatedPattern = { ...recurringPattern };
+                  if (!updatedPattern[newClassForm.dayOfWeek]) {
+                    updatedPattern[newClassForm.dayOfWeek] = [];
+                  }
+                  updatedPattern[newClassForm.dayOfWeek].push(newClass);
                   
-                  setClassSchedule(updatedSchedule);
+                  setRecurringPattern(updatedPattern);
                   setShowCreateForm(false);
                   setNewClassForm({ name: '', time: '', duration: '60 min', instructor: 'Nicolas', spots: 10, dayOfWeek: 1 });
+                  alert('✓ Class created successfully!');
                 }}
                 style={{ backgroundColor: ARIKANA_COLOR }}
-                className="flex-1 text-white py-3 rounded-lg font-semibold hover:opacity-90 transition-opacity"
+                className="flex-1 text-white py-3 rounded-lg font-semibold hover:opacity-90 transition-opacity cursor-pointer"
               >
                 ✓ Create Class
               </button>
