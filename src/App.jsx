@@ -577,18 +577,18 @@ Since Mar 1, 2026</p>
           </div>
         </div>
 
-        {/* Upcoming Booking */}
+        {/* My Booking */}
         <div className="px-6 mb-8">
-          <h2 className="text-2xl font-bold text-stone-900 mb-4">Upcoming booking</h2>
+          <h2 className="text-2xl font-bold text-stone-900 mb-4">My Booking</h2>
           {(() => {
             const now = new Date();
-            // Filter out past bookings
+            // Filter out past bookings and get closest 3
             const futureBookings = bookings.filter(b => b.dateObj > now);
             
             if (futureBookings.length > 0) {
               return (
                 <div className="space-y-2 mb-4">
-                  {futureBookings.slice(0, 2).map((booking) => (
+                  {futureBookings.slice(0, 3).map((booking) => (
                     <button type="button" key={booking.id} onClick={() => setBookingToCancel(booking)} className="w-full text-left bg-gradient-to-r rounded-3xl p-5 text-white hover:opacity-85 transition-opacity cursor-pointer" style={{ background: `linear-gradient(135deg, ${ARIKANA_COLOR}, ${ARIKANA_COLOR}dd)` }}>
                       <h3 className="font-semibold text-lg">{booking.className}</h3>
                       <p className="text-sm opacity-90 mt-2">{booking.displayDate} | {booking.time}</p>
@@ -605,26 +605,6 @@ Since Mar 1, 2026</p>
               );
             }
           })()}
-        </div>
-
-        {/* Coming Up - Next 2 Sessions */}
-        <div className="px-6 pb-4">
-          <h2 className="text-2xl font-bold text-stone-900 mb-4">Coming up</h2>
-          {nextSessions.length > 0 ? (
-            <div className="space-y-2">
-              {nextSessions.map((cls) => (
-                <div key={cls.id} className="border border-stone-200 rounded-2xl p-4 hover:shadow-md transition-shadow bg-white">
-                  <h3 className="font-semibold text-stone-900 text-base">{cls.name}</h3>
-                  <p className="text-sm text-stone-500 mt-2 font-light">{cls.displayDate} | {cls.time}</p>
-                  <p className="text-xs text-stone-400 mt-1">with {cls.instructor}</p>
-                </div>
-              ))}
-            </div>
-          ) : (
-            <div className="border border-stone-200 rounded-2xl p-4 bg-white text-center">
-              <p className="text-stone-600 font-light">No upcoming sessions</p>
-            </div>
-          )}
         </div>
 
         {/* Cancellation Modal */}
