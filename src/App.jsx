@@ -209,7 +209,8 @@ export default function ArikanaApp() {
           lastName: 'Glushkova',
           email: formData.email,
           mobile: '+40 123 456 789',
-          id: Date.now()
+          id: Date.now(),
+          role: 'lead-trainer'
         };
         localStorage.setItem('arikanaUser', JSON.stringify(userData));
         setCurrentUser(userData);
@@ -707,6 +708,7 @@ Since Mar 1, 2026</p>
     };
 
     // Generate 7 days starting from today
+    // Calendar is RECURRING - same schedule repeats every week (Mon-Sun pattern)
     const getDayDates = () => {
       const dates = [];
       for (let i = 0; i < 7; i++) {
@@ -719,12 +721,52 @@ Since Mar 1, 2026</p>
 
     const dayDates = getDayDates();
 
-    // Get classes for selected date
-    const dateStr = selectedDate.toISOString().split('T')[0];
-    const classesForDay = classSchedule[dateStr] || [];
-    const filteredClasses = selectedInstructor === 'all' 
-      ? classesForDay 
-      : classesForDay.filter(c => c.instructor.toLowerCase() === selectedInstructor);
+    // Get classes for selected date using recurring weekly pattern
+    const getClassesForDate = (date) => {
+      const dateStr = date.toISOString().split('T')[0];
+      // First, check if date is in hardcoded schedule
+      if (classSchedule[dateStr]) {
+        return classSchedule[dateStr];
+      }
+      
+      // Otherwise, use recurring pattern based on day of week
+      const dayOfWeek = date.getDay(); // 0-6 (Sunday-Saturday)
+      const baseWeekSchedule = {
+        0: [], // Sunday - Rest day
+        1: [ // Monday
+          { id: 1, name: 'Pilates Mat', time: '09:00', duration: '60 min', instructor: 'Angelina', spots: 8 },
+          { id: 2, name: 'Core Strength', time: '10:30', duration: '45 min', instructor: 'Nicolas', spots: 12 },
+          { id: 3, name: 'Speed Skating', time: '09:30', duration: '50 min', instructor: 'Sergey', spots: 11 },
+        ],
+        2: [ // Tuesday
+          { id: 4, name: 'Pelvic Curl Flow', time: '08:00', duration: '50 min', instructor: 'Angelina', spots: 10 },
+          { id: 5, name: 'Ice Skating with Grace', time: '07:00', duration: '60 min', instructor: 'Sergey', spots: 14 },
+          { id: 6, name: 'Pilates Reformer', time: '09:00', duration: '60 min', instructor: 'Nicolas', spots: 8 },
+          { id: 7, name: 'Advanced Pilates', time: '18:30', duration: '60 min', instructor: 'Nicolas', spots: 6 },
+        ],
+        3: [ // Wednesday
+          { id: 8, name: 'Deep Core Activation', time: '11:00', duration: '60 min', instructor: 'Angelina', spots: 9 },
+          { id: 9, name: 'Pilates Mat', time: '17:00', duration: '50 min', instructor: 'Nicolas', spots: 15 },
+          { id: 10, name: 'Speed Skating', time: '09:30', duration: '50 min', instructor: 'Sergey', spots: 11 },
+        ],
+        4: [ // Thursday
+          { id: 11, name: 'Advanced Pelvic Techniques', time: '17:00', duration: '60 min', instructor: 'Angelina', spots: 7 },
+          { id: 12, name: 'Core Strength', time: '10:30', duration: '45 min', instructor: 'Nicolas', spots: 12 },
+          { id: 13, name: 'Ice Skating Techniques', time: '16:00', duration: '60 min', instructor: 'Sergey', spots: 8 },
+        ],
+        5: [ // Friday
+          { id: 14, name: 'Pilates Fusion', time: '19:00', duration: '55 min', instructor: 'Angelina', spots: 12 },
+          { id: 15, name: 'Pilates Reformer', time: '09:00', duration: '60 min', instructor: 'Nicolas', spots: 7 },
+          { id: 16, name: 'Crossfit on Ice', time: '18:00', duration: '55 min', instructor: 'Sergey', spots: 6 },
+        ],
+        6: [ // Saturday
+          { id: 17, name: 'Pelvic Curl Flow', time: '10:30', duration: '50 min', instructor: 'Angelina', spots: 6 },
+          { id: 18, name: 'Advanced Pilates', time: '18:30', duration: '60 min', instructor: 'Nicolas', spots: 5 },
+          { id: 19, name: 'Speed Skating', time: '09:30', duration: '50 min', instructor: 'Sergey', spots: 11 },
+        ],
+      };
+      return baseWeekSchedule[dayOfWeek] || [];
+    };
 
     // Format date for display
     const formatDate = (date) => {
@@ -1092,7 +1134,14 @@ Since Mar 1, 2026</p>
             {selectedDate.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
           </h3>
 
-          {selectedDate.getDay() === 0 ? (
+          {/* Get classes for this date using recurring pattern */}
+          {(() => {
+            const classesForDay = getClassesForDate(selectedDate);
+            const filteredClasses = selectedInstructor === 'all' 
+              ? classesForDay 
+              : classesForDay.filter(c => c.instructor.toLowerCase() === selectedInstructor);
+            
+            return selectedDate.getDay() === 0 ? (
             <div className="text-center py-12">
               <div className="text-5xl mb-3">😌</div>
               <p className="text-lg font-semibold text-stone-900 mb-2">Rest Day</p>
@@ -1144,7 +1193,8 @@ Since Mar 1, 2026</p>
                 </div>
               ))}
             </div>
-          )}
+          );
+          })()}
         </div>
       </div>
     );
@@ -1487,6 +1537,55 @@ Since Mar 1, 2026</p>
       setCurrentUser(null);
     };
 
+    // Calendar Editor View - only for Lead Trainer
+    if (selectedMenuItem === 'calendar' && currentUser?.role === 'lead-trainer') {
+      const baseWeeklySchedule = {
+        1: 'Monday - Pilates Mat (09:00), Core Strength (10:30), Speed Skating (09:30)',
+        2: 'Tuesday - Pelvic Curl Flow (08:00), Ice Skating (07:00), Pilates Reformer (09:00), Advanced Pilates (18:30)',
+        3: 'Wednesday - Deep Core Activation (11:00), Pilates Mat (17:00), Speed Skating (09:30)',
+        4: 'Thursday - Advanced Pelvic Techniques (17:00), Core Strength (10:30), Ice Skating Techniques (16:00)',
+        5: 'Friday - Pilates Fusion (19:00), Pilates Reformer (09:00), Crossfit on Ice (18:00)',
+        6: 'Saturday - Pelvic Curl Flow (10:30), Advanced Pilates (18:30), Speed Skating (09:30)',
+        0: 'Sunday - ☀️ Rest Day (No Classes)',
+      };
+
+      return (
+        <div className="pb-28">
+          {/* Header */}
+          <div style={{ background: `linear-gradient(to bottom, ${ARIKANA_COLOR}, ${ARIKANA_COLOR}cc)` }} className="text-white px-6 py-4">
+            <div className="flex items-center gap-3">
+              <button onClick={() => setSelectedMenuItem(null)} className="text-2xl">←</button>
+              <h1 className="text-2xl font-light flex-1">Class Schedule</h1>
+            </div>
+          </div>
+
+          {/* Content */}
+          <div className="px-6 py-6">
+            <div className="mb-6 p-4 bg-amber-50 border border-amber-200 rounded-lg">
+              <p className="text-sm text-amber-900">
+                📌 <strong>Recurring Pattern:</strong> This schedule repeats every week. Each day has the same classes every week.
+              </p>
+            </div>
+
+            <div className="space-y-3">
+              {Object.entries(baseWeeklySchedule).map(([dayNum, schedule]) => (
+                <div key={dayNum} className="border border-stone-200 rounded-xl p-4 bg-white hover:bg-stone-50 transition-colors">
+                  <p className="font-semibold text-stone-900">{schedule}</p>
+                  <p className="text-xs text-stone-500 mt-2">Click to edit (coming soon)</p>
+                </div>
+              ))}
+            </div>
+
+            <div className="mt-8 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+              <p className="text-sm text-blue-900">
+                💡 <strong>Tip:</strong> To edit the calendar, contact your system administrator or update through the system settings.
+              </p>
+            </div>
+          </div>
+        </div>
+      );
+    }
+
     // Payment Methods Detail View
     if (selectedMenuItem === 'payment-methods') {
       return (
@@ -1566,7 +1665,11 @@ Since Mar 1, 2026</p>
               <User style={{ color: ARIKANA_COLOR }} className="w-8 h-8" />
             </div>
             <h2 className="text-xl font-bold text-stone-900">{currentUser.firstName} {currentUser.lastName}</h2>
-            <p className="text-sm text-stone-600 mt-1">Active Member</p>
+            {currentUser.role === 'lead-trainer' ? (
+              <p style={{ color: ARIKANA_COLOR }} className="text-sm font-semibold mt-1">🌟 Lead Trainer</p>
+            ) : (
+              <p className="text-sm text-stone-600 mt-1">Active Member</p>
+            )}
             <p className="text-xs text-stone-500 mt-2">{currentUser.email}</p>
             <p className="text-xs text-stone-500">{currentUser.mobile}</p>
           </div>
@@ -1575,6 +1678,7 @@ Since Mar 1, 2026</p>
           <div className="space-y-2">
             {[
               { label: 'My Bookings', icon: '📅', id: 'bookings' },
+              ...(currentUser.role === 'lead-trainer' ? [{ label: 'Class Schedule', icon: '📋', id: 'calendar' }] : []),
               { label: 'Membership', icon: '🎫', id: 'membership' },
               { label: 'Payment Methods', icon: '💳', id: 'payment-methods' },
               { label: 'Notifications', icon: '🔔', id: 'notifications' },
