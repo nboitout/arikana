@@ -2174,9 +2174,22 @@ Since Mar 1, 2026</p>
           </div>
 
           <button 
+            onClick={() => {
+              if (confirm('Clear all date-specific changes and restore full schedule? This cannot be undone.')) {
+                localStorage.removeItem('arikanaDateOverrides');
+                alert('Schedule reset! Reloading...');
+                location.reload();
+              }
+            }}
+            className="w-full font-medium py-3 border-2 border-red-300 text-red-600 rounded-xl hover:bg-red-50 transition-colors mt-4"
+          >
+            🔄 Reset Schedule
+          </button>
+
+          <button 
             onClick={handleSignOut}
             style={{ color: ARIKANA_COLOR, borderColor: ARIKANA_COLOR }} 
-            className="w-full font-medium py-3 border-2 rounded-xl hover:opacity-80 transition-opacity mt-6"
+            className="w-full font-medium py-3 border-2 rounded-xl hover:opacity-80 transition-opacity mt-2"
           >
             Sign Out
           </button>
