@@ -1558,6 +1558,151 @@ Since Mar 1, 2026</p>
       setCurrentUser(null);
     };
 
+    // Create New Class Form - show this with HIGH PRIORITY
+    if (showCreateForm) {
+      const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+      
+      return (
+        <div className="pb-28">
+          {/* Header */}
+          <div style={{ background: `linear-gradient(to bottom, ${ARIKANA_COLOR}, ${ARIKANA_COLOR}cc)` }} className="text-white px-6 py-4">
+            <div className="flex items-center gap-3">
+              <button type="button" onClick={() => setShowCreateForm(false)} className="text-2xl cursor-pointer">←</button>
+              <h1 className="text-2xl font-light flex-1">Create New Class</h1>
+            </div>
+          </div>
+
+          {/* Create Form */}
+          <div className="px-6 py-6">
+            <div className="space-y-4">
+              {/* Class Name */}
+              <div>
+                <label className="text-sm font-semibold text-stone-900 block mb-2">Class Name</label>
+                <input
+                  type="text"
+                  value={newClassForm.name || ''}
+                  onChange={(e) => setNewClassForm({ ...newClassForm, name: e.target.value })}
+                  className="w-full border border-stone-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-yellow-600"
+                  placeholder="e.g., Pilates Mat"
+                />
+              </div>
+
+              {/* Day of Week */}
+              <div>
+                <label className="text-sm font-semibold text-stone-900 block mb-2">Day of Week</label>
+                <select
+                  value={newClassForm.dayOfWeek}
+                  onChange={(e) => setNewClassForm({ ...newClassForm, dayOfWeek: parseInt(e.target.value) })}
+                  className="w-full border border-stone-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-yellow-600"
+                >
+                  {dayNames.map((day, idx) => (
+                    <option key={idx} value={idx}>{day}</option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Time */}
+              <div>
+                <label className="text-sm font-semibold text-stone-900 block mb-2">Start Time</label>
+                <input
+                  type="time"
+                  value={newClassForm.time || ''}
+                  onChange={(e) => setNewClassForm({ ...newClassForm, time: e.target.value })}
+                  className="w-full border border-stone-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-yellow-600"
+                />
+              </div>
+
+              {/* Duration */}
+              <div>
+                <label className="text-sm font-semibold text-stone-900 block mb-2">Duration</label>
+                <input
+                  type="text"
+                  value={newClassForm.duration || ''}
+                  onChange={(e) => setNewClassForm({ ...newClassForm, duration: e.target.value })}
+                  className="w-full border border-stone-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-yellow-600"
+                  placeholder="e.g., 60 min"
+                />
+              </div>
+
+              {/* Instructor */}
+              <div>
+                <label className="text-sm font-semibold text-stone-900 block mb-2">Instructor</label>
+                <select
+                  value={newClassForm.instructor || ''}
+                  onChange={(e) => setNewClassForm({ ...newClassForm, instructor: e.target.value })}
+                  className="w-full border border-stone-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-yellow-600"
+                >
+                  <option value="Nicolas">Nicolas</option>
+                  <option value="Angelina">Angelina</option>
+                  <option value="Sergey">Sergey</option>
+                </select>
+              </div>
+
+              {/* Available Spots */}
+              <div>
+                <label className="text-sm font-semibold text-stone-900 block mb-2">Available Spots</label>
+                <input
+                  type="number"
+                  value={newClassForm.spots || 10}
+                  onChange={(e) => setNewClassForm({ ...newClassForm, spots: parseInt(e.target.value) })}
+                  className="w-full border border-stone-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-yellow-600"
+                />
+              </div>
+            </div>
+
+            {/* Action Buttons */}
+            <div className="flex gap-3 mt-6">
+              <button
+                type="button"
+                onClick={() => setShowCreateForm(false)}
+                className="flex-1 text-stone-600 border-2 border-stone-300 py-3 rounded-lg font-semibold hover:bg-stone-50 transition-colors cursor-pointer"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  if (!newClassForm.name || !newClassForm.time) {
+                    alert('Please fill in class name and time');
+                    return;
+                  }
+                  
+                  // Generate next unique ID across all classes
+                  const allClasses = Object.values(recurringPattern).flat().concat(Object.values(dateOverrides).flat());
+                  const newId = Math.max(...allClasses.map(c => c.id || 0), 0) + 1;
+                  
+                  const newClass = {
+                    id: newId,
+                    name: newClassForm.name,
+                    time: newClassForm.time,
+                    duration: newClassForm.duration,
+                    instructor: newClassForm.instructor,
+                    spots: newClassForm.spots,
+                  };
+                  
+                  // Save to recurring pattern (for the selected day of week)
+                  const updatedPattern = { ...recurringPattern };
+                  if (!updatedPattern[newClassForm.dayOfWeek]) {
+                    updatedPattern[newClassForm.dayOfWeek] = [];
+                  }
+                  updatedPattern[newClassForm.dayOfWeek].push(newClass);
+                  
+                  setRecurringPattern(updatedPattern);
+                  setShowCreateForm(false);
+                  setNewClassForm({ name: '', time: '', duration: '60 min', instructor: 'Nicolas', spots: 10, dayOfWeek: 1 });
+                  alert('✓ Class created successfully!');
+                }}
+                style={{ backgroundColor: ARIKANA_COLOR }}
+                className="flex-1 text-white py-3 rounded-lg font-semibold hover:opacity-90 transition-opacity cursor-pointer"
+              >
+                ✓ Create Class
+              </button>
+            </div>
+          </div>
+        </div>
+      );
+    }
+
     // Edit Class Modal - only for Lead Trainer
     if (selectedMenuItem === 'calendar' && currentUser?.role === 'lead-trainer' && editingClass) {
       return (
@@ -1766,7 +1911,7 @@ Since Mar 1, 2026</p>
       );
     }
 
-    // Calendar Editor View - only for Lead Trainer
+    // Calendar Editor View - only for Lead Trainer  
     if (selectedMenuItem === 'calendar' && currentUser?.role === 'lead-trainer') {
       // Helper to format date for display
       const formatDateLabel = (date) => {
@@ -1897,150 +2042,6 @@ Since Mar 1, 2026</p>
       );
     }
 
-    // Create New Class Form
-    if (showCreateForm) {
-      const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
-      
-      return (
-        <div className="pb-28">
-          {/* Header */}
-          <div style={{ background: `linear-gradient(to bottom, ${ARIKANA_COLOR}, ${ARIKANA_COLOR}cc)` }} className="text-white px-6 py-4">
-            <div className="flex items-center gap-3">
-              <button type="button" onClick={() => setShowCreateForm(false)} className="text-2xl cursor-pointer">←</button>
-              <h1 className="text-2xl font-light flex-1">Create New Class</h1>
-            </div>
-          </div>
-
-          {/* Create Form */}
-          <div className="px-6 py-6">
-            <div className="space-y-4">
-              {/* Class Name */}
-              <div>
-                <label className="text-sm font-semibold text-stone-900 block mb-2">Class Name</label>
-                <input
-                  type="text"
-                  value={newClassForm.name || ''}
-                  onChange={(e) => setNewClassForm({ ...newClassForm, name: e.target.value })}
-                  className="w-full border border-stone-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-yellow-600"
-                  placeholder="e.g., Pilates Mat"
-                />
-              </div>
-
-              {/* Day of Week */}
-              <div>
-                <label className="text-sm font-semibold text-stone-900 block mb-2">Day of Week</label>
-                <select
-                  value={newClassForm.dayOfWeek}
-                  onChange={(e) => setNewClassForm({ ...newClassForm, dayOfWeek: parseInt(e.target.value) })}
-                  className="w-full border border-stone-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-yellow-600"
-                >
-                  {dayNames.map((day, idx) => (
-                    <option key={idx} value={idx}>{day}</option>
-                  ))}
-                </select>
-              </div>
-
-              {/* Time */}
-              <div>
-                <label className="text-sm font-semibold text-stone-900 block mb-2">Start Time</label>
-                <input
-                  type="time"
-                  value={newClassForm.time || ''}
-                  onChange={(e) => setNewClassForm({ ...newClassForm, time: e.target.value })}
-                  className="w-full border border-stone-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-yellow-600"
-                />
-              </div>
-
-              {/* Duration */}
-              <div>
-                <label className="text-sm font-semibold text-stone-900 block mb-2">Duration</label>
-                <input
-                  type="text"
-                  value={newClassForm.duration || ''}
-                  onChange={(e) => setNewClassForm({ ...newClassForm, duration: e.target.value })}
-                  className="w-full border border-stone-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-yellow-600"
-                  placeholder="e.g., 60 min"
-                />
-              </div>
-
-              {/* Instructor */}
-              <div>
-                <label className="text-sm font-semibold text-stone-900 block mb-2">Instructor</label>
-                <select
-                  value={newClassForm.instructor || ''}
-                  onChange={(e) => setNewClassForm({ ...newClassForm, instructor: e.target.value })}
-                  className="w-full border border-stone-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-yellow-600"
-                >
-                  <option value="Nicolas">Nicolas</option>
-                  <option value="Angelina">Angelina</option>
-                  <option value="Sergey">Sergey</option>
-                </select>
-              </div>
-
-              {/* Available Spots */}
-              <div>
-                <label className="text-sm font-semibold text-stone-900 block mb-2">Available Spots</label>
-                <input
-                  type="number"
-                  value={newClassForm.spots || 10}
-                  onChange={(e) => setNewClassForm({ ...newClassForm, spots: parseInt(e.target.value) })}
-                  className="w-full border border-stone-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-yellow-600"
-                />
-              </div>
-            </div>
-
-            {/* Action Buttons */}
-            <div className="flex gap-3 mt-6">
-              <button
-                type="button"
-                onClick={() => setShowCreateForm(false)}
-                className="flex-1 text-stone-600 border-2 border-stone-300 py-3 rounded-lg font-semibold hover:bg-stone-50 transition-colors cursor-pointer"
-              >
-                Cancel
-              </button>
-              <button
-                type="button"
-                onClick={() => {
-                  if (!newClassForm.name || !newClassForm.time) {
-                    alert('Please fill in class name and time');
-                    return;
-                  }
-                  
-                  // Generate next unique ID across all classes
-                  const allClasses = Object.values(recurringPattern).flat().concat(Object.values(dateOverrides).flat());
-                  const newId = Math.max(...allClasses.map(c => c.id || 0), 0) + 1;
-                  
-                  const newClass = {
-                    id: newId,
-                    name: newClassForm.name,
-                    time: newClassForm.time,
-                    duration: newClassForm.duration,
-                    instructor: newClassForm.instructor,
-                    spots: newClassForm.spots,
-                  };
-                  
-                  // Save to recurring pattern (for the selected day of week)
-                  const updatedPattern = { ...recurringPattern };
-                  if (!updatedPattern[newClassForm.dayOfWeek]) {
-                    updatedPattern[newClassForm.dayOfWeek] = [];
-                  }
-                  updatedPattern[newClassForm.dayOfWeek].push(newClass);
-                  
-                  setRecurringPattern(updatedPattern);
-                  setShowCreateForm(false);
-                  setNewClassForm({ name: '', time: '', duration: '60 min', instructor: 'Nicolas', spots: 10, dayOfWeek: 1 });
-                  alert('✓ Class created successfully!');
-                }}
-                style={{ backgroundColor: ARIKANA_COLOR }}
-                className="flex-1 text-white py-3 rounded-lg font-semibold hover:opacity-90 transition-opacity cursor-pointer"
-              >
-                ✓ Create Class
-              </button>
-            </div>
-          </div>
-        </div>
-      );
-    }
 
     // Payment Methods Detail View
     if (selectedMenuItem === 'payment-methods') {
