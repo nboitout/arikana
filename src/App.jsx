@@ -1701,7 +1701,7 @@ Since Mar 1, 2026</p>
     const [editingDayNum, setEditingDayNum] = useState(null);
     const [editForm, setEditForm] = useState({});
     const [showCreateForm, setShowCreateForm] = useState(false);
-    const [newClassForm, setNewClassForm] = useState({ name: '', time: '', duration: '60 min', instructor: 'Nicolas', spots: 10, dayOfWeek: 1 });
+    const [newClassForm, setNewClassForm] = useState({ name: '', time: '', duration: '60 min', instructor: 'Nicolas', spots: 10, dayOfWeek: 1, recurringEveryWeek: true });
 
     // Generate 7 days starting from TODAY
     const getTodayPlus7Days = () => {
@@ -1827,6 +1827,27 @@ Since Mar 1, 2026</p>
                   className="w-full border border-stone-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-yellow-600"
                 />
               </div>
+
+              {/* Recurring Every Week */}
+              <div>
+                <label className="text-sm font-semibold text-stone-900 block mb-3">Schedule Type</label>
+                <label className="flex items-center gap-3 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={newClassForm.recurringEveryWeek}
+                    onChange={(e) => setNewClassForm({ ...newClassForm, recurringEveryWeek: e.target.checked })}
+                    className="w-4 h-4 cursor-pointer"
+                  />
+                  <span className="text-sm text-stone-700">
+                    {newClassForm.recurringEveryWeek ? '🔄 Recurring every week' : '📅 One-time class'}
+                  </span>
+                </label>
+                <p className="text-xs text-stone-500 mt-2">
+                  {newClassForm.recurringEveryWeek 
+                    ? 'This class will repeat every week on the selected day' 
+                    : 'This class will only appear on the specific date selected'}
+                </p>
+              </div>
             </div>
 
             {/* Action Buttons */}
@@ -1859,16 +1880,35 @@ Since Mar 1, 2026</p>
                     spots: newClassForm.spots,
                   };
                   
-                  // Save to recurring pattern (for the selected day of week)
-                  const updatedPattern = { ...recurringPattern };
-                  if (!updatedPattern[newClassForm.dayOfWeek]) {
-                    updatedPattern[newClassForm.dayOfWeek] = [];
+                  if (newClassForm.recurringEveryWeek) {
+                    // Save to recurring pattern (for the selected day of week)
+                    const updatedPattern = { ...recurringPattern };
+                    if (!updatedPattern[newClassForm.dayOfWeek]) {
+                      updatedPattern[newClassForm.dayOfWeek] = [];
+                    }
+                    updatedPattern[newClassForm.dayOfWeek].push(newClass);
+                    setRecurringPattern(updatedPattern);
+                  } else {
+                    // Save to date overrides (one-time class)
+                    const today = new Date();
+                    today.setHours(0, 0, 0, 0);
+                    const specificDate = new Date(today);
+                    specificDate.setDate(specificDate.getDate() + (newClassForm.dayOfWeek - today.getDay() + 7) % 7);
+                    if (specificDate <= today) {
+                      specificDate.setDate(specificDate.getDate() + 7);
+                    }
+                    const dateStr = specificDate.toISOString().split('T')[0];
+                    
+                    const updatedOverrides = { ...dateOverrides };
+                    if (!updatedOverrides[dateStr]) {
+                      updatedOverrides[dateStr] = [];
+                    }
+                    updatedOverrides[dateStr].push(newClass);
+                    setDateOverrides(updatedOverrides);
                   }
-                  updatedPattern[newClassForm.dayOfWeek].push(newClass);
                   
-                  setRecurringPattern(updatedPattern);
                   setShowCreateForm(false);
-                  setNewClassForm({ name: '', time: '', duration: '60 min', instructor: 'Nicolas', spots: 10, dayOfWeek: 1 });
+                  setNewClassForm({ name: '', time: '', duration: '60 min', instructor: 'Nicolas', spots: 10, dayOfWeek: 1, recurringEveryWeek: true });
                   alert('✓ Class created successfully!');
                 }}
                 style={{ backgroundColor: ARIKANA_COLOR }}
@@ -2154,7 +2194,6 @@ Since Mar 1, 2026</p>
                       className="text-white px-4 py-3 text-center flex flex-col"
                     >
                       <p className="font-bold text-lg">{formatDateLabel(date)}</p>
-                      {isToday && <p className="text-xs text-yellow-100">Today</p>}
                     </div>
 
                     {/* Classes Container */}
@@ -2313,8 +2352,8 @@ Since Mar 1, 2026</p>
           {/* Menu Items */}
           <div className="space-y-2">
             {[
-              { label: 'My Bookings', icon: '📅', id: 'bookings' },
               ...(currentUser.role === 'lead-trainer' ? [{ label: 'Class Schedule', icon: '📋', id: 'calendar' }] : []),
+              { label: 'My Bookings', icon: '📅', id: 'bookings' },
               { label: 'Membership', icon: '🎫', id: 'membership' },
               { label: 'Payment Methods', icon: '💳', id: 'payment-methods' },
               { label: 'Notifications', icon: '🔔', id: 'notifications' },
