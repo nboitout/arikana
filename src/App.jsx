@@ -797,8 +797,10 @@ Since Mar 1, 2026</p>
 
     // Handle booking confirmation
     const handleBooking = () => {
+      console.log('🔵 handleBooking called');
       // Check if session is in the past and user hasn't confirmed yet
       if (isSessionInPast() && view !== 'warning') {
+        console.log('⚠️ Session in past, showing warning');
         setView('warning');
         return;
       }
@@ -832,12 +834,15 @@ Since Mar 1, 2026</p>
       localStorage.setItem('arikanaBookings', JSON.stringify(updatedBookings));
 
       // Show confirmation page
+      console.log('✅ Setting confirmation state', { newBooking });
       setLastBookedClass(newBooking);
       setView('confirmation');
+      console.log('✅ View set to confirmation');
     };
 
     // CONFIRMATION PAGE - shown when view === 'confirmation'
     if (view === 'confirmation' && lastBookedClass) {
+      console.log('🟢 RENDERING CONFIRMATION PAGE', { view, lastBookedClass });
       return (
         <div className="pb-28 h-screen flex flex-col bg-white">
           {/* Header */}
@@ -912,6 +917,7 @@ Since Mar 1, 2026</p>
 
     // WARNING PAGE - shown when view === 'warning'
     if (view === 'warning' && selectedBookingClass) {
+      console.log('🟡 RENDERING WARNING PAGE', { view });
       return (
         <div className="pb-28">
           {/* Header */}
@@ -968,6 +974,7 @@ Since Mar 1, 2026</p>
 
     // BOOKING DETAIL VIEW - shown when view === 'detail'
     if (view === 'detail' && selectedBookingClass) {
+      console.log('🟡 RENDERING BOOKING DETAIL VIEW', { view, className: selectedBookingClass.name });
       const instructor = getInstructorData(selectedBookingClass.instructor);
       const description = classDescriptions[selectedBookingClass.name] || 'Professional class instruction.';
       const sessionInPast = isSessionInPast();
@@ -1041,6 +1048,7 @@ Since Mar 1, 2026</p>
     }
 
     // Classes List View
+    console.log('🟠 RENDERING CLASSES LIST', { view });
     return (
       <div className="pb-28">
         {/* Header */}
