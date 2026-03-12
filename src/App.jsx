@@ -156,49 +156,6 @@ export default function ArikanaApp() {
       setBookings(JSON.parse(savedBookings));
     }
 
-    // Repair: Remove empty date overrides that shouldn't be there
-    const savedOverrides = localStorage.getItem('arikanaDateOverrides');
-    if (savedOverrides) {
-      try {
-        const overrides = JSON.parse(savedOverrides);
-        const savedPattern = localStorage.getItem('arikanaRecurringPattern');
-        const pattern = savedPattern ? JSON.parse(savedPattern) : {};
-        
-        const today = new Date();
-        today.setHours(0, 0, 0, 0);
-        
-        let hasChanges = false;
-        Object.keys(overrides).forEach(dateStr => {
-          const date = new Date(dateStr + 'T00:00:00');
-          const dayOfWeek = date.getDay();
-          const recurringClasses = pattern[dayOfWeek] || [];
-          
-          // If override is an empty array but recurring pattern has classes, remove the override
-          // This handles cases where classes were accidentally deleted
-          if (Array.isArray(overrides[dateStr]) && 
-              overrides[dateStr].length === 0 && 
-              recurringClasses.length > 0) {
-            delete overrides[dateStr];
-            hasChanges = true;
-          }
-          
-          // Also remove empty overrides from past dates
-          if (Array.isArray(overrides[dateStr]) && 
-              overrides[dateStr].length === 0 && 
-              date < today) {
-            delete overrides[dateStr];
-            hasChanges = true;
-          }
-        });
-        
-        if (hasChanges) {
-          localStorage.setItem('arikanaDateOverrides', JSON.stringify(overrides));
-        }
-      } catch (e) {
-        console.error('Error repairing overrides:', e);
-      }
-    }
-
     setIsLoading(false);
   }, []);
 
@@ -774,12 +731,6 @@ Since Mar 1, 2026</p>
     recurringPattern, dateOverrides, getClassesForDate
   }) => {
     const [selectedInstructor, setSelectedInstructor] = useState('all');
-    const [refreshKey, setRefreshKey] = useState(0);
-
-    // Force re-render when schedule changes
-    useEffect(() => {
-      setRefreshKey(prev => prev + 1);
-    }, [recurringPattern, dateOverrides]);
 
     // Class descriptions
     const classDescriptions = {
@@ -1206,7 +1157,7 @@ Since Mar 1, 2026</p>
           ) : (
             <div className="space-y-2">
               {filteredClasses.map((cls) => (
-                <div key={`${cls.id}-${refreshKey}`} className="bg-white border border-stone-200 rounded-lg p-3 hover:shadow-md transition-all">
+                <div key={cls.id} className="bg-white border border-stone-200 rounded-lg p-3 hover:shadow-md transition-all">
                   <div className="flex justify-between items-start mb-1">
                     <div>
                       <h4 className="font-semibold text-stone-900 text-xs">{cls.name}</h4>
@@ -2272,7 +2223,6 @@ Since Mar 1, 2026</p>
   const tabContent = {
     home: <HomeTab bookings={bookings} setBookings={setBookings} />,
     book: <BookTab 
-      key={`book-${JSON.stringify(Object.keys(recurringPattern))}-${Object.keys(dateOverrides).length}`}
       bookings={bookings}
       setBookings={setBookings}
       bookingView={bookingView}
