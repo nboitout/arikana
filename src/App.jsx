@@ -1540,13 +1540,57 @@ Since Mar 1, 2026</p>
     // Calendar Editor View - only for Lead Trainer
     if (selectedMenuItem === 'calendar' && currentUser?.role === 'lead-trainer') {
       const baseWeeklySchedule = {
-        1: 'Monday - Pilates Mat (09:00), Core Strength (10:30), Speed Skating (09:30)',
-        2: 'Tuesday - Pelvic Curl Flow (08:00), Ice Skating (07:00), Pilates Reformer (09:00), Advanced Pilates (18:30)',
-        3: 'Wednesday - Deep Core Activation (11:00), Pilates Mat (17:00), Speed Skating (09:30)',
-        4: 'Thursday - Advanced Pelvic Techniques (17:00), Core Strength (10:30), Ice Skating Techniques (16:00)',
-        5: 'Friday - Pilates Fusion (19:00), Pilates Reformer (09:00), Crossfit on Ice (18:00)',
-        6: 'Saturday - Pelvic Curl Flow (10:30), Advanced Pilates (18:30), Speed Skating (09:30)',
-        0: 'Sunday - ☀️ Rest Day (No Classes)',
+        0: [], // Sunday
+        1: [ // Monday
+          { name: 'Pilates Mat', time: '09:00', duration: '60 min', instructor: 'Angelina', spots: 8 },
+          { name: 'Core Strength', time: '10:30', duration: '45 min', instructor: 'Nicolas', spots: 12 },
+          { name: 'Speed Skating', time: '09:30', duration: '50 min', instructor: 'Sergey', spots: 11 },
+        ],
+        2: [ // Tuesday
+          { name: 'Pelvic Curl Flow', time: '08:00', duration: '50 min', instructor: 'Angelina', spots: 10 },
+          { name: 'Ice Skating with Grace', time: '07:00', duration: '60 min', instructor: 'Sergey', spots: 14 },
+          { name: 'Pilates Reformer', time: '09:00', duration: '60 min', instructor: 'Nicolas', spots: 8 },
+          { name: 'Advanced Pilates', time: '18:30', duration: '60 min', instructor: 'Nicolas', spots: 6 },
+        ],
+        3: [ // Wednesday
+          { name: 'Deep Core Activation', time: '11:00', duration: '60 min', instructor: 'Angelina', spots: 9 },
+          { name: 'Pilates Mat', time: '17:00', duration: '50 min', instructor: 'Nicolas', spots: 15 },
+          { name: 'Speed Skating', time: '09:30', duration: '50 min', instructor: 'Sergey', spots: 11 },
+        ],
+        4: [ // Thursday
+          { name: 'Advanced Pelvic Techniques', time: '17:00', duration: '60 min', instructor: 'Angelina', spots: 7 },
+          { name: 'Core Strength', time: '10:30', duration: '45 min', instructor: 'Nicolas', spots: 12 },
+          { name: 'Ice Skating Techniques', time: '16:00', duration: '60 min', instructor: 'Sergey', spots: 8 },
+        ],
+        5: [ // Friday
+          { name: 'Pilates Fusion', time: '19:00', duration: '55 min', instructor: 'Angelina', spots: 12 },
+          { name: 'Pilates Reformer', time: '09:00', duration: '60 min', instructor: 'Nicolas', spots: 7 },
+          { name: 'Crossfit on Ice', time: '18:00', duration: '55 min', instructor: 'Sergey', spots: 6 },
+        ],
+        6: [ // Saturday
+          { name: 'Pelvic Curl Flow', time: '10:30', duration: '50 min', instructor: 'Angelina', spots: 6 },
+          { name: 'Advanced Pilates', time: '18:30', duration: '60 min', instructor: 'Nicolas', spots: 5 },
+          { name: 'Speed Skating', time: '09:30', duration: '50 min', instructor: 'Sergey', spots: 11 },
+        ],
+      };
+
+      const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+      
+      // Group sessions by time for each day
+      const getSessionsGroupedByTime = (dayNum) => {
+        const sessions = baseWeeklySchedule[dayNum] || [];
+        const timeGroups = {};
+        
+        sessions.forEach(session => {
+          if (!timeGroups[session.time]) {
+            timeGroups[session.time] = [];
+          }
+          timeGroups[session.time].push(session);
+        });
+        
+        return Object.entries(timeGroups)
+          .sort(([timeA], [timeB]) => timeA.localeCompare(timeB))
+          .map(([time, sessions]) => ({ time, sessions }));
       };
 
       return (
@@ -1555,30 +1599,88 @@ Since Mar 1, 2026</p>
           <div style={{ background: `linear-gradient(to bottom, ${ARIKANA_COLOR}, ${ARIKANA_COLOR}cc)` }} className="text-white px-6 py-4">
             <div className="flex items-center gap-3">
               <button onClick={() => setSelectedMenuItem(null)} className="text-2xl">←</button>
-              <h1 className="text-2xl font-light flex-1">Class Schedule</h1>
+              <h1 className="text-2xl font-light flex-1">Weekly Schedule</h1>
             </div>
           </div>
 
-          {/* Content */}
-          <div className="px-6 py-6">
-            <div className="mb-6 p-4 bg-amber-50 border border-amber-200 rounded-lg">
-              <p className="text-sm text-amber-900">
-                📌 <strong>Recurring Pattern:</strong> This schedule repeats every week. Each day has the same classes every week.
-              </p>
-            </div>
+          {/* Calendar Grid */}
+          <div className="px-3 py-6 overflow-x-auto">
+            <div className="grid grid-cols-7 gap-2 min-w-max" style={{ minWidth: '100vw' }}>
+              {dayNames.map((dayName, dayNum) => {
+                const timeGroups = getSessionsGroupedByTime(dayNum);
+                const isRestDay = dayNum === 0;
 
-            <div className="space-y-3">
-              {Object.entries(baseWeeklySchedule).map(([dayNum, schedule]) => (
-                <div key={dayNum} className="border border-stone-200 rounded-xl p-4 bg-white hover:bg-stone-50 transition-colors">
-                  <p className="font-semibold text-stone-900">{schedule}</p>
-                  <p className="text-xs text-stone-500 mt-2">Click to edit (coming soon)</p>
-                </div>
-              ))}
-            </div>
+                return (
+                  <div
+                    key={dayNum}
+                    className="border-2 border-stone-200 rounded-xl overflow-hidden bg-white"
+                    style={{ minWidth: '150px' }}
+                  >
+                    {/* Day Header */}
+                    <div
+                      style={{ backgroundColor: ARIKANA_COLOR }}
+                      className="text-white px-3 py-2 text-center font-bold text-sm"
+                    >
+                      {dayName}
+                    </div>
 
-            <div className="mt-8 p-4 bg-blue-50 border border-blue-200 rounded-lg">
-              <p className="text-sm text-blue-900">
-                💡 <strong>Tip:</strong> To edit the calendar, contact your system administrator or update through the system settings.
+                    {/* Sessions Container */}
+                    <div className="p-2 min-h-96">
+                      {isRestDay ? (
+                        <div className="h-full flex flex-col items-center justify-center text-center py-8">
+                          <p className="text-2xl mb-2">☀️</p>
+                          <p className="text-xs font-semibold text-stone-900">Rest Day</p>
+                          <p className="text-xs text-stone-500 mt-1">Recharge!</p>
+                        </div>
+                      ) : timeGroups.length === 0 ? (
+                        <div className="h-full flex items-center justify-center text-center py-8">
+                          <p className="text-xs text-stone-500">No sessions</p>
+                        </div>
+                      ) : (
+                        <div className="space-y-2">
+                          {timeGroups.map(({ time, sessions }, timeIdx) => (
+                            <div key={timeIdx}>
+                              {/* Time Label */}
+                              <p className="text-xs font-bold text-stone-600 px-1 mb-1">
+                                {time}
+                              </p>
+
+                              {/* Sessions at this time */}
+                              <div className={`grid gap-1 ${sessions.length > 1 ? 'grid-cols-2' : 'grid-cols-1'}`}>
+                                {sessions.map((session, sessIdx) => (
+                                  <div
+                                    key={sessIdx}
+                                    style={{ borderColor: ARIKANA_COLOR, backgroundColor: `${ARIKANA_COLOR}10` }}
+                                    className="border-l-4 rounded px-2 py-1.5 text-left"
+                                  >
+                                    <p className="text-xs font-semibold text-stone-900 leading-tight">
+                                      {session.name}
+                                    </p>
+                                    <p className="text-xs text-stone-600 leading-tight">
+                                      {session.instructor}
+                                    </p>
+                                    <p className="text-xs text-stone-500 leading-tight">
+                                      {session.duration}
+                                    </p>
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Legend */}
+          <div className="px-6 mt-6">
+            <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg">
+              <p className="text-xs text-blue-900">
+                <span className="font-semibold">📅 Weekly View:</span> Each column shows one day. If 2 sessions occur at the same time, they display side-by-side.
               </p>
             </div>
           </div>
