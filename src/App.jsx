@@ -857,10 +857,10 @@ Since Mar 1, 2026</p>
           {/* Content */}
           <div className="flex-1 px-6 py-8 flex flex-col items-center justify-center">
             {/* Success Icon */}
-            <div className="text-8xl mb-6">✅</div>
+            <div className="text-6xl mb-6">✅</div>
             
             {/* Success Message */}
-            <h2 className="text-3xl font-bold text-stone-900 mb-2">You're Booked!</h2>
+            <h2 className="text-2xl font-bold text-stone-900 mb-2">You're Booked!</h2>
             <p className="text-lg text-stone-600 mb-10">Your spot is confirmed. See you soon!</p>
 
             {/* Booking Details - 2 Column Grid */}
@@ -891,13 +891,6 @@ Since Mar 1, 2026</p>
                   <p className="text-lg font-bold text-stone-900">{lastBookedClass.duration}</p>
                 </div>
               </div>
-            </div>
-
-            {/* Info Box */}
-            <div className="w-full bg-blue-50 border-2 border-blue-300 rounded-2xl p-5 mb-8">
-              <p className="text-base text-blue-900 font-semibold">
-                <span className="text-2xl mr-3">📧</span>Confirmation email sent to your account
-              </p>
             </div>
           </div>
 
