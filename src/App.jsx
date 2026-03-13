@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Home, Calendar, ShoppingBag, User, MoreHorizontal, ChevronRight, Eye, EyeOff } from 'lucide-react';
 import './App.css';
+import { auth, db } from './firebase-config';
 
 // EmailJS configuration - You'll need to sign up at emailjs.com
 const EMAILJS_SERVICE_ID = 'service_arikana'; // Replace with your service ID
