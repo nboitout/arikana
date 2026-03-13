@@ -758,18 +758,18 @@ Since Mar 1, 2026</p>
                 <div className="px-6 py-6 max-h-96 overflow-y-auto">
                   <div className="space-y-4">
                     {[
-                      { id: 'head', label: 'Head', icon: '🧠' },
-                      { id: 'neck', label: 'Neck', icon: '🫀' },
-                      { id: 'shoulders', label: 'Shoulders', icon: '💪' },
-                      { id: 'upperBack', label: 'Upper Back', icon: '🫘' },
-                      { id: 'lowerBack', label: 'Lower Back', icon: '🫘' },
-                      { id: 'elbows', label: 'Elbows', icon: '💪' },
-                      { id: 'wrists', label: 'Wrists', icon: '🤲' },
-                      { id: 'hips', label: 'Hips', icon: '🦵' },
-                      { id: 'knees', label: 'Knees', icon: '🦵' },
-                      { id: 'ankles', label: 'Ankles', icon: '🦵' },
-                      { id: 'feet', label: 'Feet', icon: '🦶' },
-                    ].map(({ id, label, icon }) => (
+                      { id: 'head', label: 'Head' },
+                      { id: 'neck', label: 'Neck' },
+                      { id: 'shoulders', label: 'Shoulders' },
+                      { id: 'upperBack', label: 'Upper Back' },
+                      { id: 'lowerBack', label: 'Lower Back' },
+                      { id: 'elbows', label: 'Elbows' },
+                      { id: 'wrists', label: 'Wrists' },
+                      { id: 'hips', label: 'Hips' },
+                      { id: 'knees', label: 'Knees' },
+                      { id: 'ankles', label: 'Ankles' },
+                      { id: 'feet', label: 'Feet' },
+                    ].map(({ id, label }) => (
                       <div key={id} className="border border-stone-200 rounded-lg p-3">
                         <div className="flex items-center justify-between mb-2">
                           <label className="flex items-center gap-2 cursor-pointer flex-1">
@@ -784,7 +784,6 @@ Since Mar 1, 2026</p>
                               }}
                               className="w-4 h-4 cursor-pointer"
                             />
-                            <span className="text-lg">{icon}</span>
                             <span className="font-medium text-stone-900">{label}</span>
                           </label>
                         </div>
