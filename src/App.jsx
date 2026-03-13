@@ -1334,9 +1334,6 @@ Since Mar 1, 2026</p>
                       <h4 className="font-semibold text-stone-900 text-xs">{cls.name}</h4>
                       <p className="text-xs text-stone-600 mt-1">with {cls.instructor}</p>
                     </div>
-                    <span style={{ backgroundColor: ARIKANA_COLOR }} className="text-xs font-medium text-white px-2 py-0.5 rounded-full whitespace-nowrap">
-                      {cls.spots} spots
-                    </span>
                   </div>
 
                   <div className="flex gap-3 text-xs text-stone-600 mb-2">
@@ -2352,7 +2349,7 @@ Since Mar 1, 2026</p>
           <div className="space-y-2">
             {[
               ...(currentUser.role === 'lead-trainer' ? [{ label: 'Class Schedule', icon: '📋', id: 'calendar' }] : []),
-              { label: 'My Bookings', icon: '📅', id: 'bookings' },
+              { label: 'Booking History', icon: '📅', id: 'bookings' },
               { label: 'Membership', icon: '🎫', id: 'membership' },
               { label: 'Payment Methods', icon: '💳', id: 'payment-methods' },
               { label: 'Notifications', icon: '🔔', id: 'notifications' },
