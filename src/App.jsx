@@ -1265,13 +1265,23 @@ Since Mar 1, 2026</p>
             >
               Book Multiple
             </button>
-            <button 
-              style={{ backgroundColor: ARIKANA_COLOR }}
-              className="flex-1 text-white py-3 rounded-lg font-semibold hover:opacity-90 transition-opacity"
-              onClick={handleBooking}
-            >
-              Book
-            </button>
+            {sessionInPast && currentUser.role !== 'lead-trainer' ? (
+              <button 
+                style={{ backgroundColor: '#ccc' }}
+                className="flex-1 text-gray-600 py-3 rounded-lg font-semibold cursor-not-allowed"
+                disabled
+              >
+                Cannot Book Past Classes
+              </button>
+            ) : (
+              <button 
+                style={{ backgroundColor: ARIKANA_COLOR }}
+                className="flex-1 text-white py-3 rounded-lg font-semibold hover:opacity-90 transition-opacity"
+                onClick={handleBooking}
+              >
+                Book
+              </button>
+            )}
           </div>
         </div>
       );
@@ -1722,6 +1732,12 @@ Since Mar 1, 2026</p>
     const [selectedMenuItem, setSelectedMenuItem] = useState(null);
     const [selectedClass, setSelectedClass] = useState(null);
     const [attendanceCheckboxes, setAttendanceCheckboxes] = useState({});
+    const [currentAttendanceList, setCurrentAttendanceList] = useState([
+      { id: 'sarah', name: 'Sarah Johnson', health: 'Lower back pain' },
+      { id: 'emma', name: 'Emma Davis', health: 'Neck tension' },
+      { id: 'lisa', name: 'Lisa Chen', health: 'No issues' },
+    ]);
+    const [selectedMemberToAdd, setSelectedMemberToAdd] = useState('');
     const [formData, setFormData] = useState({
       name: '',
       instructor: 'nicolas',
@@ -1840,26 +1856,25 @@ Since Mar 1, 2026</p>
                 </select>
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-semibold text-stone-900 mb-2">Start Time</label>
-                  <input 
-                    type="time" 
-                    value={formData.timeStart}
-                    onChange={(e) => setFormData({...formData, timeStart: e.target.value})}
-                    className="w-full border border-stone-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-semibold text-stone-900 mb-2">Duration (min)</label>
-                  <input 
-                    type="number" 
-                    placeholder="60" 
-                    value={formData.duration}
-                    onChange={(e) => setFormData({...formData, duration: e.target.value})}
-                    className="w-full border border-stone-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2"
-                  />
-                </div>
+              <div>
+                <label className="block text-sm font-semibold text-stone-900 mb-2">Start Time</label>
+                <input 
+                  type="time" 
+                  value={formData.timeStart}
+                  onChange={(e) => setFormData({...formData, timeStart: e.target.value})}
+                  className="w-full border border-stone-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-semibold text-stone-900 mb-2">Duration (minutes)</label>
+                <input 
+                  type="number" 
+                  placeholder="60" 
+                  value={formData.duration}
+                  onChange={(e) => setFormData({...formData, duration: e.target.value})}
+                  className="w-full border border-stone-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2"
+                />
               </div>
 
               <div className="border-t border-stone-300 pt-4">
@@ -1943,25 +1958,24 @@ Since Mar 1, 2026</p>
                 </select>
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-semibold text-stone-900 mb-2">Start Time</label>
-                  <input 
-                    type="time" 
-                    value={formData.timeStart}
-                    onChange={(e) => setFormData({...formData, timeStart: e.target.value})}
-                    className="w-full border border-stone-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-semibold text-stone-900 mb-2">Duration (min)</label>
-                  <input 
-                    type="number" 
-                    value={formData.duration}
-                    onChange={(e) => setFormData({...formData, duration: e.target.value})}
-                    className="w-full border border-stone-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2"
-                  />
-                </div>
+              <div>
+                <label className="block text-sm font-semibold text-stone-900 mb-2">Start Time</label>
+                <input 
+                  type="time" 
+                  value={formData.timeStart}
+                  onChange={(e) => setFormData({...formData, timeStart: e.target.value})}
+                  className="w-full border border-stone-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-semibold text-stone-900 mb-2">Duration (minutes)</label>
+                <input 
+                  type="number" 
+                  value={formData.duration}
+                  onChange={(e) => setFormData({...formData, duration: e.target.value})}
+                  className="w-full border border-stone-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2"
+                />
               </div>
 
               <div className="border-t border-stone-300 pt-4">
@@ -2129,26 +2143,42 @@ Since Mar 1, 2026</p>
         { id: 'lisa', name: 'Lisa Chen', health: 'No issues' },
       ];
 
-      // Initialize checkboxes - default ALL to TRUE (everyone attended)
-      if (Object.keys(attendanceCheckboxes).length === 0) {
-        const initialState = {};
-        attendanceList.forEach(member => {
-          initialState[member.id] = true; // Default: attended
-        });
-        setAttendanceCheckboxes(initialState);
-      }
+      // All available members (for adding missing ones)
+      const allMembers = [
+        { id: 'sarah', name: 'Sarah Johnson', health: 'Lower back pain' },
+        { id: 'emma', name: 'Emma Davis', health: 'Neck tension' },
+        { id: 'lisa', name: 'Lisa Chen', health: 'No issues' },
+        { id: 'jane', name: 'Jane Smith', health: 'Knee pain' },
+        { id: 'susan', name: 'Susan Brown', health: 'No issues' },
+        { id: 'alice', name: 'Alice Wilson', health: 'Shoulder tension' },
+      ];
+
+      const addMemberToAttendance = () => {
+        if (!selectedMemberToAdd) return;
+        
+        const memberToAdd = allMembers.find(m => m.id === selectedMemberToAdd);
+        if (memberToAdd && !currentAttendanceList.find(m => m.id === selectedMemberToAdd)) {
+          setCurrentAttendanceList([...currentAttendanceList, memberToAdd]);
+          // Check them by default
+          setAttendanceCheckboxes({
+            ...attendanceCheckboxes,
+            [selectedMemberToAdd]: true
+          });
+          setSelectedMemberToAdd('');
+        }
+      };
 
       const handleSaveAttendance = async () => {
         // Build attendance records
-        const attendanceRecords = attendanceList.map(member => ({
+        const attendanceRecords = currentAttendanceList.map(member => ({
           name: member.name,
           health: member.health,
-          attended: attendanceCheckboxes[member.id] !== false, // Unchecked = no-show
+          attended: attendanceCheckboxes[member.id] !== false,
         }));
 
-        // Identify no-shows (unchecked members)
-        const noShows = attendanceList.filter(member => attendanceCheckboxes[member.id] === false).map(m => m.name);
-        const attended = attendanceList.filter(member => attendanceCheckboxes[member.id] !== false).map(m => m.name);
+        // Identify no-shows and attended
+        const noShows = currentAttendanceList.filter(member => attendanceCheckboxes[member.id] === false).map(m => m.name);
+        const attended = currentAttendanceList.filter(member => attendanceCheckboxes[member.id] !== false).map(m => m.name);
 
         console.log('📝 Attendance Summary:');
         console.log('✅ Attended:', attended);
@@ -2161,6 +2191,7 @@ Since Mar 1, 2026</p>
         alert(`✅ Attendance saved!\n\nAttended: ${attended.length}\nNo-shows: ${noShows.length}`);
         setSelectedClass(null);
         setAttendanceCheckboxes({});
+        setCurrentAttendanceList(attendanceList);
       };
 
       return (
@@ -2173,15 +2204,41 @@ Since Mar 1, 2026</p>
           <div className="px-6 py-6">
             <div className="bg-stone-100 rounded-lg p-4 mb-6">
               <p className="text-sm text-stone-600">🕐 {selectedClass.time}</p>
-              <p className="text-sm text-stone-600">👥 {attendanceList.length} members booked</p>
+              <p className="text-sm text-stone-600">👥 {currentAttendanceList.length} members</p>
               <p className="text-xs text-stone-600 mt-2">Attended: <span className="font-bold text-green-600">{Object.values(attendanceCheckboxes).filter(Boolean).length}</span> | No-show: <span className="font-bold text-red-600">{Object.values(attendanceCheckboxes).filter(v => v === false).length}</span></p>
+            </div>
+
+            {/* Add Missing Members */}
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
+              <h3 className="font-bold text-stone-900 mb-3">➕ Add Missing Member</h3>
+              <div className="flex gap-2">
+                <select 
+                  value={selectedMemberToAdd}
+                  onChange={(e) => setSelectedMemberToAdd(e.target.value)}
+                  className="flex-1 border border-stone-300 rounded-lg px-3 py-2 text-sm focus:outline-none"
+                >
+                  <option value="">Select a member...</option>
+                  {allMembers
+                    .filter(m => !currentAttendanceList.find(a => a.id === m.id))
+                    .map(member => (
+                      <option key={member.id} value={member.id}>{member.name}</option>
+                    ))}
+                </select>
+                <button 
+                  onClick={addMemberToAttendance}
+                  style={{ backgroundColor: ARIKANA_COLOR }}
+                  className="text-white px-4 rounded-lg font-semibold hover:opacity-90 transition-opacity text-sm"
+                >
+                  Add
+                </button>
+              </div>
             </div>
 
             <h3 className="font-bold text-stone-900 mb-2">Mark Absent/No-Show</h3>
             <p className="text-xs text-stone-600 mb-3">Uncheck members who did not attend</p>
             
             <div className="space-y-2">
-              {attendanceList.map((member) => (
+              {currentAttendanceList.map((member) => (
                 <div key={member.id} className="flex items-center gap-3 border border-stone-200 rounded-lg p-3 bg-white">
                   <input 
                     type="checkbox" 
