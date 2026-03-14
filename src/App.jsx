@@ -1743,6 +1743,9 @@ Since Mar 1, 2026</p>
   const ProfileTab = ({ recurringPattern, setRecurringPattern, dateOverrides, setDateOverrides, getClassesForDate, currentUser, setCurrentUser, markClassAsNew, markClassAsUpdated }) => {
     const [selectedMenuItem, setSelectedMenuItem] = useState(null);
     const [selectedClass, setSelectedClass] = useState(null);
+    const [attendanceCheckboxes, setAttendanceCheckboxes] = useState({});
+    const [currentAttendanceList, setCurrentAttendanceList] = useState([]);
+    const [selectedMemberToAdd, setSelectedMemberToAdd] = useState('');
     const [editingClass, setEditingClass] = useState(null);
     const [editingDayNum, setEditingDayNum] = useState(null);
     const [editForm, setEditForm] = useState({});
@@ -1768,6 +1771,28 @@ Since Mar 1, 2026</p>
     // Add state for tracking which date/edit mode we're in
     const [editingDateStr, setEditingDateStr] = useState(null);
     const [editMode, setEditMode] = useState(null); // 'dateOnly' or 'recurring'
+
+    // Initialize attendance data when a class is selected
+    useEffect(() => {
+      if (selectedClass) {
+        setAttendanceCheckboxes({
+          'sarah': true,
+          'emma': true,
+          'lisa': true,
+        });
+        setCurrentAttendanceList([
+          { id: 'sarah', name: 'Sarah Johnson', health: 'Lower back pain' },
+          { id: 'emma', name: 'Emma Davis', health: 'Neck tension' },
+          { id: 'lisa', name: 'Lisa Chen', health: 'No issues' },
+        ]);
+        setSelectedMemberToAdd('');
+      } else {
+        // Reset when going back
+        setAttendanceCheckboxes({});
+        setCurrentAttendanceList([]);
+        setSelectedMemberToAdd('');
+      }
+    }, [selectedClass]);
 
     const paymentMethods = [
       { type: 'Mastercard', last4: '9909', expires: '09/2029' },
@@ -2383,18 +2408,6 @@ Since Mar 1, 2026</p>
 
     // Attendance Detail View - Mark attendance for a specific class
     if (selectedMenuItem === 'attendance' && currentUser?.role === 'lead-trainer' && selectedClass) {
-      const [attendanceCheckboxes, setAttendanceCheckboxes] = useState({
-        'sarah': true,
-        'emma': true,
-        'lisa': true,
-      });
-      const [currentAttendanceList, setCurrentAttendanceList] = useState([
-        { id: 'sarah', name: 'Sarah Johnson', health: 'Lower back pain' },
-        { id: 'emma', name: 'Emma Davis', health: 'Neck tension' },
-        { id: 'lisa', name: 'Lisa Chen', health: 'No issues' },
-      ]);
-      const [selectedMemberToAdd, setSelectedMemberToAdd] = useState('');
-
       const allMembers = [
         { id: 'sarah', name: 'Sarah Johnson', health: 'Lower back pain' },
         { id: 'emma', name: 'Emma Davis', health: 'Neck tension' },
