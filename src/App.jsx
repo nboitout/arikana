@@ -1697,6 +1697,102 @@ Since Mar 1, 2026</p>
       setCurrentUser(null);
     };
 
+    // Create New Class View
+    if (selectedMenuItem === 'class-schedule' && currentUser.role === 'lead-trainer' && selectedClass === 'create-new') {
+      return (
+        <div className="pb-28">
+          <div style={{ backgroundColor: ARIKANA_COLOR }} className="text-white px-6 py-4 flex items-center gap-3">
+            <button onClick={() => setSelectedClass(null)} className="text-2xl">←</button>
+            <h1 className="text-2xl font-light">Create New Class</h1>
+          </div>
+
+          <div className="px-6 py-6">
+            <form className="space-y-4">
+              <div>
+                <label className="block text-sm font-semibold text-stone-900 mb-2">Class Name</label>
+                <input type="text" placeholder="e.g., Pilates Mat" className="w-full border border-stone-300 rounded-lg px-4 py-2" />
+              </div>
+              <div>
+                <label className="block text-sm font-semibold text-stone-900 mb-2">Time</label>
+                <input type="time" className="w-full border border-stone-300 rounded-lg px-4 py-2" />
+              </div>
+              <div>
+                <label className="block text-sm font-semibold text-stone-900 mb-2">Duration (minutes)</label>
+                <input type="number" placeholder="60" className="w-full border border-stone-300 rounded-lg px-4 py-2" />
+              </div>
+              <div>
+                <label className="block text-sm font-semibold text-stone-900 mb-2">Days</label>
+                <div className="flex gap-2 flex-wrap">
+                  {['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map(day => (
+                    <label key={day} className="flex items-center gap-2">
+                      <input type="checkbox" />
+                      <span className="text-sm">{day}</span>
+                    </label>
+                  ))}
+                </div>
+              </div>
+              <button 
+                type="button"
+                onClick={() => {
+                  alert('Class created!');
+                  setSelectedClass(null);
+                }}
+                style={{ backgroundColor: ARIKANA_COLOR }}
+                className="w-full text-white py-3 rounded-lg font-semibold hover:opacity-90 transition-opacity mt-6"
+              >
+                ✅ Create Class
+              </button>
+            </form>
+          </div>
+        </div>
+      );
+    }
+
+    // Edit Class View
+    if (selectedMenuItem === 'class-schedule' && currentUser.role === 'lead-trainer' && typeof selectedClass === 'object' && selectedClass?.edit) {
+      return (
+        <div className="pb-28">
+          <div style={{ backgroundColor: ARIKANA_COLOR }} className="text-white px-6 py-4 flex items-center gap-3">
+            <button onClick={() => setSelectedClass(null)} className="text-2xl">←</button>
+            <h1 className="text-2xl font-light">Edit {selectedClass.name}</h1>
+          </div>
+
+          <div className="px-6 py-6">
+            <form className="space-y-4">
+              <div>
+                <label className="block text-sm font-semibold text-stone-900 mb-2">Class Name</label>
+                <input type="text" defaultValue={selectedClass.name} className="w-full border border-stone-300 rounded-lg px-4 py-2" />
+              </div>
+              <div>
+                <label className="block text-sm font-semibold text-stone-900 mb-2">Time</label>
+                <input type="time" defaultValue="09:00" className="w-full border border-stone-300 rounded-lg px-4 py-2" />
+              </div>
+              <div className="flex gap-3 mt-6">
+                <button 
+                  type="button"
+                  onClick={() => setSelectedClass(null)}
+                  className="flex-1 border-2 border-stone-300 py-3 rounded-lg font-semibold hover:bg-stone-100 transition-colors"
+                >
+                  Cancel
+                </button>
+                <button 
+                  type="button"
+                  onClick={() => {
+                    alert('Class updated!');
+                    setSelectedClass(null);
+                  }}
+                  style={{ backgroundColor: ARIKANA_COLOR }}
+                  className="flex-1 text-white py-3 rounded-lg font-semibold hover:opacity-90 transition-opacity"
+                >
+                  ✅ Save Changes
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      );
+    }
+
     // Class Schedule View
     if (selectedMenuItem === 'class-schedule' && currentUser.role === 'lead-trainer') {
       // Generate next 14 days
@@ -1710,13 +1806,32 @@ Since Mar 1, 2026</p>
 
       // Sample recurring classes mapping
       const classSchedule = {
-        'Monday': ['Pilates Mat (09:00)', 'Core Strength (10:30)'],
-        'Tuesday': ['Pelvic Curl Flow (08:00)', 'Pilates Reformer (09:00)', 'Advanced Pilates (18:30)'],
-        'Wednesday': ['Deep Core (11:00)', 'Pilates Mat (17:00)'],
-        'Thursday': ['Advanced Pelvic (17:00)', 'Core Strength (10:30)'],
-        'Friday': ['Pilates Fusion (19:00)', 'Pilates Reformer (09:00)'],
-        'Saturday': ['Pelvic Curl Flow (10:30)', 'Advanced Pilates (18:30)'],
-        'Sunday': [], // Rest day
+        'Monday': [
+          { id: 1, name: 'Pilates Mat', time: '09:00' },
+          { id: 2, name: 'Core Strength', time: '10:30' }
+        ],
+        'Tuesday': [
+          { id: 3, name: 'Pelvic Curl Flow', time: '08:00' },
+          { id: 4, name: 'Pilates Reformer', time: '09:00' },
+          { id: 5, name: 'Advanced Pilates', time: '18:30' }
+        ],
+        'Wednesday': [
+          { id: 6, name: 'Deep Core', time: '11:00' },
+          { id: 7, name: 'Pilates Mat', time: '17:00' }
+        ],
+        'Thursday': [
+          { id: 8, name: 'Advanced Pelvic', time: '17:00' },
+          { id: 9, name: 'Core Strength', time: '10:30' }
+        ],
+        'Friday': [
+          { id: 10, name: 'Pilates Fusion', time: '19:00' },
+          { id: 11, name: 'Pilates Reformer', time: '09:00' }
+        ],
+        'Saturday': [
+          { id: 12, name: 'Pelvic Curl Flow', time: '10:30' },
+          { id: 13, name: 'Advanced Pilates', time: '18:30' }
+        ],
+        'Sunday': [],
       };
 
       const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
@@ -1730,8 +1845,9 @@ Since Mar 1, 2026</p>
 
           <div className="px-3 py-6">
             <button 
+              onClick={() => setSelectedClass('create-new')}
               style={{ backgroundColor: ARIKANA_COLOR }}
-              className="w-full text-white py-3 rounded-lg font-semibold hover:opacity-90 transition-opacity mb-6"
+              className="w-full text-white py-3 rounded-lg font-semibold hover:opacity-90 transition-opacity mb-6 cursor-pointer"
             >
               ➕ Create New Class
             </button>
@@ -1751,7 +1867,7 @@ Since Mar 1, 2026</p>
                         backgroundColor: isToday ? `${ARIKANA_COLOR}20` : '#f9fafb',
                         borderColor: isToday ? ARIKANA_COLOR : '#e5e7eb',
                       }}
-                      className="flex-shrink-0 w-32 border-2 rounded-lg p-3"
+                      className="flex-shrink-0 w-36 border-2 rounded-lg p-3"
                     >
                       <div className="mb-3">
                         <p className="text-xs font-bold text-stone-600">{dayName.slice(0, 3)}</p>
@@ -1763,11 +1879,15 @@ Since Mar 1, 2026</p>
                         <p className="text-xs text-stone-500 italic">Rest day</p>
                       ) : (
                         <div className="space-y-1">
-                          {classes.map((cls, i) => (
-                            <div key={i} className="text-xs bg-white rounded px-2 py-1 border border-stone-200">
-                              <p className="font-medium text-stone-900">{cls.split(' (')[0]}</p>
-                              <p className="text-stone-600">{cls.split(' (')[1].replace(')', '')}</p>
-                            </div>
+                          {classes.map((cls) => (
+                            <button
+                              key={cls.id}
+                              onClick={() => setSelectedClass({ ...cls, edit: true })}
+                              className="w-full text-left text-xs bg-white rounded px-2 py-1.5 border border-stone-200 hover:shadow-md transition-shadow cursor-pointer group"
+                            >
+                              <p className="font-medium text-stone-900 group-hover:underline">{cls.name}</p>
+                              <p className="text-stone-600">{cls.time}</p>
+                            </button>
                           ))}
                         </div>
                       )}
@@ -1784,6 +1904,12 @@ Since Mar 1, 2026</p>
     // Attendance View
     if (selectedMenuItem === 'attendance' && currentUser.role === 'lead-trainer') {
       if (selectedClass) {
+        const attendanceList = [
+          { name: 'Sarah Johnson', health: 'Lower back pain' },
+          { name: 'Emma Davis', health: 'Neck tension' },
+          { name: 'Lisa Chen', health: 'No issues' },
+        ];
+
         return (
           <div className="pb-28">
             <div style={{ backgroundColor: ARIKANA_COLOR }} className="text-white px-6 py-4 flex items-center gap-3">
@@ -1794,16 +1920,12 @@ Since Mar 1, 2026</p>
             <div className="px-6 py-6">
               <div className="bg-stone-100 rounded-lg p-4 mb-6">
                 <p className="text-sm text-stone-600">🕐 {selectedClass.time}</p>
-                <p className="text-sm text-stone-600">👥 {selectedClass.members} members booked</p>
+                <p className="text-sm text-stone-600">👥 {attendanceList.length} members booked</p>
               </div>
 
               <h3 className="font-bold text-stone-900 mb-3">Mark Attendance</h3>
               <div className="space-y-2">
-                {[
-                  { name: 'Sarah Johnson', health: 'Lower back pain' },
-                  { name: 'Emma Davis', health: 'Neck tension' },
-                  { name: 'Lisa Chen', health: 'No issues' },
-                ].map((member, i) => (
+                {attendanceList.map((member, i) => (
                   <div key={i} className="flex items-center gap-3 border border-stone-200 rounded-lg p-3 bg-white">
                     <input type="checkbox" className="w-5 h-5" />
                     <div className="flex-1">
@@ -1815,8 +1937,12 @@ Since Mar 1, 2026</p>
               </div>
 
               <button
+                onClick={() => {
+                  alert('✅ Attendance saved!');
+                  setSelectedClass(null);
+                }}
                 style={{ backgroundColor: ARIKANA_COLOR }}
-                className="w-full text-white py-3 rounded-lg font-semibold hover:opacity-90 transition-opacity mt-6"
+                className="w-full text-white py-3 rounded-lg font-semibold hover:opacity-90 transition-opacity mt-6 cursor-pointer"
               >
                 💾 Save Attendance
               </button>
@@ -1840,7 +1966,7 @@ Since Mar 1, 2026</p>
               
               {[
                 { name: 'Pilates Mat', time: '09:00 - 10:00', members: 3 },
-                { name: 'Core Strength', time: '10:30 - 11:15', members: 2 },
+                { name: 'Core Strength', time: '10:30 - 11:15', members: 3 },
               ].map((cls, i) => (
                 <div key={i} className="border border-stone-200 rounded-lg p-4">
                   <div className="flex justify-between items-start mb-3">
