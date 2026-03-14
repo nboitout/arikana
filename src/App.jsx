@@ -60,27 +60,6 @@ const useCountUp = (targetValue, duration = 1500) => {
 };
 
 
-export default function App() {
-  
-  useEffect(() => {
-    console.log('✅ Firebase Auth:', auth);
-    console.log('✅ Firestore:', db);
-  }, []);
-  
-  const testFirebase = async () => {
-    // ... test function
-  };
-  
-  return (                    // ← INSIDE function
-    <div>
-      <button onClick={testFirebase}>
-        Test Firebase
-      </button>
-      {/* rest of app */}
-    </div>
-  );
-}
-
 
 export default function ArikanaApp() {
   const [activeTab, setActiveTab] = useState('home');
