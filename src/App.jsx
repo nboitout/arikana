@@ -2337,8 +2337,6 @@ Since Mar 1, 2026</p>
 
     // Attendance View - List of today's classes
     if (selectedMenuItem === 'attendance' && currentUser?.role === 'lead-trainer' && !selectedClass) {
-      const [selectedAttendanceClass, setSelectedAttendanceClass] = useState(null);
-      
       return (
         <div className="pb-28">
           <div style={{ background: `linear-gradient(to bottom, ${ARIKANA_COLOR}, ${ARIKANA_COLOR}cc)` }} className="text-white px-6 py-4">
@@ -2369,7 +2367,7 @@ Since Mar 1, 2026</p>
                     </span>
                   </div>
                   <button 
-                    onClick={() => setSelectedAttendanceClass(cls)}
+                    onClick={() => setSelectedClass(cls)}
                     style={{ borderColor: ARIKANA_COLOR, color: ARIKANA_COLOR }}
                     className="w-full border-2 py-2 rounded-lg font-semibold hover:bg-yellow-50 transition-colors text-sm cursor-pointer"
                   >
