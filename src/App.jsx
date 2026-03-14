@@ -1922,9 +1922,9 @@ Since Mar 1, 2026</p>
               ➕ Create New Class
             </button>
 
-            {/* 2-Week Calendar */}
+            {/* 2-Week Calendar - LARGER DAY COLUMNS */}
             <div className="overflow-x-auto scrollbar-hide">
-              <div className="flex gap-2" style={{ minWidth: 'min-content' }}>
+              <div className="flex gap-3" style={{ minWidth: 'min-content' }}>
                 {days.map((date, idx) => {
                   const dayName = dayNames[date.getDay()];
                   const classes = classSchedule[dayName] || [];
@@ -1937,28 +1937,36 @@ Since Mar 1, 2026</p>
                         backgroundColor: isToday ? `${ARIKANA_COLOR}20` : '#f9fafb',
                         borderColor: isToday ? ARIKANA_COLOR : '#e5e7eb',
                       }}
-                      className="flex-shrink-0 w-36 border-2 rounded-lg p-3"
+                      className="flex-shrink-0 w-48 border-2 rounded-lg p-4 min-h-80"
                     >
-                      <div className="mb-3">
-                        <p className="text-xs font-bold text-stone-600">{dayName.slice(0, 3)}</p>
-                        <p className="text-lg font-bold text-stone-900">{date.getDate()}</p>
+                      {/* Day Header */}
+                      <div className="mb-4 pb-3 border-b border-stone-300">
+                        <p className="text-xs font-bold text-stone-600 uppercase">{dayName.slice(0, 3)}</p>
+                        <p className="text-2xl font-bold text-stone-900">{date.getDate()}</p>
                         <p className="text-xs text-stone-600">{date.toLocaleDateString('en-US', { month: 'short' })}</p>
                       </div>
 
+                      {/* Classes */}
                       {dayName === 'Sunday' ? (
-                        <p className="text-xs text-stone-500 italic">Rest day</p>
+                        <p className="text-sm text-stone-500 italic text-center mt-8">😌 Rest day</p>
                       ) : (
-                        <div className="space-y-1">
-                          {classes.map((cls) => (
-                            <button
-                              key={cls.id}
-                              onClick={() => setSelectedClass({ ...cls, edit: true })}
-                              className="w-full text-left text-xs bg-white rounded px-2 py-1.5 border border-stone-200 hover:shadow-md transition-shadow cursor-pointer group"
-                            >
-                              <p className="font-medium text-stone-900 group-hover:underline">{cls.name}</p>
-                              <p className="text-stone-600">{cls.time}</p>
-                            </button>
-                          ))}
+                        <div className="space-y-2">
+                          {classes.length === 0 ? (
+                            <p className="text-xs text-stone-400 text-center mt-8">No classes</p>
+                          ) : (
+                            classes.map((cls) => (
+                              <button
+                                key={cls.id}
+                                onClick={() => setSelectedClass({ ...cls, edit: true })}
+                                className="w-full text-left text-xs bg-white rounded-lg p-2.5 border-2 hover:shadow-lg transition-all cursor-pointer group"
+                                style={{ borderColor: ARIKANA_COLOR }}
+                              >
+                                <p className="font-bold text-stone-900 group-hover:underline line-clamp-2">{cls.name}</p>
+                                <p className="text-stone-600 font-semibold mt-1">🕐 {cls.time}</p>
+                                <p className="text-xs text-stone-500 mt-1.5 italic group-hover:text-stone-700">tap to edit →</p>
+                              </button>
+                            ))
+                          )}
                         </div>
                       )}
                     </div>
@@ -1979,11 +1987,11 @@ Since Mar 1, 2026</p>
         { id: 'lisa', name: 'Lisa Chen', health: 'No issues' },
       ];
 
-      // Initialize checkboxes if not already done
+      // Initialize checkboxes - default ALL to TRUE (everyone attended)
       if (Object.keys(attendanceCheckboxes).length === 0) {
         const initialState = {};
         attendanceList.forEach(member => {
-          initialState[member.id] = false;
+          initialState[member.id] = true; // Default: attended
         });
         setAttendanceCheckboxes(initialState);
       }
@@ -1993,21 +2001,22 @@ Since Mar 1, 2026</p>
         const attendanceRecords = attendanceList.map(member => ({
           name: member.name,
           health: member.health,
-          attended: attendanceCheckboxes[member.id] || false,
+          attended: attendanceCheckboxes[member.id] !== false, // Unchecked = no-show
         }));
 
-        // Identify no-shows (booked but not attended)
-        const noShows = attendanceList.filter(member => !attendanceCheckboxes[member.id]).map(m => m.name);
+        // Identify no-shows (unchecked members)
+        const noShows = attendanceList.filter(member => attendanceCheckboxes[member.id] === false).map(m => m.name);
+        const attended = attendanceList.filter(member => attendanceCheckboxes[member.id] !== false).map(m => m.name);
 
         console.log('📝 Attendance Summary:');
-        console.log('✅ Attended:', attendanceRecords.filter(a => a.attended).map(a => a.name));
+        console.log('✅ Attended:', attended);
         console.log('❌ No-shows:', noShows);
 
         // Save to Firestore
         await saveAttendanceToFirestore(selectedClass, attendanceRecords);
 
         // Show summary
-        alert(`✅ Attendance saved!\n\nAttended: ${attendanceRecords.filter(a => a.attended).length}\nNo-shows: ${noShows.length}`);
+        alert(`✅ Attendance saved!\n\nAttended: ${attended.length}\nNo-shows: ${noShows.length}`);
         setSelectedClass(null);
         setAttendanceCheckboxes({});
       };
@@ -2023,21 +2032,23 @@ Since Mar 1, 2026</p>
             <div className="bg-stone-100 rounded-lg p-4 mb-6">
               <p className="text-sm text-stone-600">🕐 {selectedClass.time}</p>
               <p className="text-sm text-stone-600">👥 {attendanceList.length} members booked</p>
-              <p className="text-xs text-stone-600 mt-2">Attended: <span className="font-bold text-green-600">{Object.values(attendanceCheckboxes).filter(Boolean).length}</span> | No-show: <span className="font-bold text-red-600">{Object.values(attendanceCheckboxes).filter(v => !v).length}</span></p>
+              <p className="text-xs text-stone-600 mt-2">Attended: <span className="font-bold text-green-600">{Object.values(attendanceCheckboxes).filter(Boolean).length}</span> | No-show: <span className="font-bold text-red-600">{Object.values(attendanceCheckboxes).filter(v => v === false).length}</span></p>
             </div>
 
-            <h3 className="font-bold text-stone-900 mb-3">Mark Attendance</h3>
+            <h3 className="font-bold text-stone-900 mb-2">Mark Absent/No-Show</h3>
+            <p className="text-xs text-stone-600 mb-3">Uncheck members who did not attend</p>
+            
             <div className="space-y-2">
               {attendanceList.map((member) => (
                 <div key={member.id} className="flex items-center gap-3 border border-stone-200 rounded-lg p-3 bg-white">
                   <input 
                     type="checkbox" 
                     className="w-5 h-5 cursor-pointer"
-                    checked={attendanceCheckboxes[member.id] || false}
+                    checked={attendanceCheckboxes[member.id] !== false}
                     onChange={(e) => {
                       setAttendanceCheckboxes({
                         ...attendanceCheckboxes,
-                        [member.id]: e.target.checked
+                        [member.id]: e.target.checked ? true : false
                       });
                     }}
                   />
@@ -2046,7 +2057,7 @@ Since Mar 1, 2026</p>
                     <p className="text-xs text-stone-600">{member.health}</p>
                   </div>
                   <span className="text-sm">
-                    {attendanceCheckboxes[member.id] ? '✅' : '❌'}
+                    {attendanceCheckboxes[member.id] !== false ? '✅' : '❌'}
                   </span>
                 </div>
               ))}
