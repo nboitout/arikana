@@ -2104,16 +2104,26 @@ Since Mar 1, 2026</p>
                     if (editMode === 'dateOnly') {
                       // Delete from date override
                       const updatedOverrides = { ...dateOverrides };
-                      if (!updatedOverrides[editingDateStr]) {
-                        updatedOverrides[editingDateStr] = getClassesForDate(new Date(editingDateStr + 'T00:00:00'));
+                      const dateToEdit = new Date(editingDateStr + 'T00:00:00');
+                      
+                      // Get all current classes for this date
+                      let classesForThisDate = [];
+                      if (updatedOverrides[editingDateStr]) {
+                        classesForThisDate = [...updatedOverrides[editingDateStr]];
+                      } else {
+                        classesForThisDate = [...getClassesForDate(dateToEdit)];
                       }
-                      updatedOverrides[editingDateStr] = updatedOverrides[editingDateStr].filter((_, idx) => idx !== editingClass.index);
+                      
+                      // Filter out the class being deleted by ID
+                      classesForThisDate = classesForThisDate.filter(cls => cls.id !== editForm.id);
+                      
+                      updatedOverrides[editingDateStr] = classesForThisDate;
                       setDateOverrides(updatedOverrides);
                     } else {
-                      // Delete from recurring pattern
+                      // Delete from recurring pattern - by ID
                       const dayOfWeek = new Date(editingDateStr + 'T00:00:00').getDay();
                       const updatedPattern = { ...recurringPattern };
-                      updatedPattern[dayOfWeek] = updatedPattern[dayOfWeek].filter((_, idx) => idx !== editingClass.index);
+                      updatedPattern[dayOfWeek] = updatedPattern[dayOfWeek].filter(cls => cls.id !== editForm.id);
                       setRecurringPattern(updatedPattern);
                     }
                     
@@ -2143,24 +2153,34 @@ Since Mar 1, 2026</p>
                     }
                     
                     if (editMode === 'dateOnly') {
-                      // Save to date override
+                      // Save to date override - get ALL current classes for this date first
                       const updatedOverrides = { ...dateOverrides };
-                      if (!updatedOverrides[editingDateStr]) {
-                        updatedOverrides[editingDateStr] = getClassesForDate(new Date(editingDateStr + 'T00:00:00'));
+                      const dateToEdit = new Date(editingDateStr + 'T00:00:00');
+                      
+                      // Get all classes currently on this date (from recurring + any existing overrides)
+                      let classesForThisDate = [];
+                      if (updatedOverrides[editingDateStr]) {
+                        classesForThisDate = [...updatedOverrides[editingDateStr]];
+                      } else {
+                        classesForThisDate = [...getClassesForDate(dateToEdit)];
                       }
-                      updatedOverrides[editingDateStr] = updatedOverrides[editingDateStr].map((cls, idx) => 
-                        idx === editingClass.index ? { ...editForm, id: cls.id } : cls
+                      
+                      // Find and update the specific class by ID
+                      classesForThisDate = classesForThisDate.map(cls => 
+                        cls.id === editForm.id ? { ...editForm, id: cls.id } : cls
                       );
+                      
+                      updatedOverrides[editingDateStr] = classesForThisDate;
                       setDateOverrides(updatedOverrides);
                       
                       // Mark this class as UPDATED in the Book tab
                       markClassAsUpdated(editForm.id);
                     } else {
-                      // Save to recurring pattern
+                      // Save to recurring pattern - update by class ID
                       const dayOfWeek = new Date(editingDateStr + 'T00:00:00').getDay();
                       const updatedPattern = { ...recurringPattern };
-                      updatedPattern[dayOfWeek] = updatedPattern[dayOfWeek].map((cls, idx) => 
-                        idx === editingClass.index ? { ...editForm, id: cls.id } : cls
+                      updatedPattern[dayOfWeek] = updatedPattern[dayOfWeek].map(cls => 
+                        cls.id === editForm.id ? { ...editForm, id: cls.id } : cls
                       );
                       setRecurringPattern(updatedPattern);
                       
