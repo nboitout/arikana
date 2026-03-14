@@ -1696,6 +1696,88 @@ Since Mar 1, 2026</p>
       setCurrentUser(null);
     };
 
+    // Class Schedule View
+    if (selectedMenuItem === 'class-schedule' && currentUser.role === 'lead-trainer') {
+      return (
+        <div className="pb-28">
+          <div style={{ backgroundColor: ARIKANA_COLOR }} className="text-white px-6 py-4 flex items-center gap-3">
+            <button onClick={() => setSelectedMenuItem(null)} className="text-2xl">←</button>
+            <h1 className="text-2xl font-light">Class Schedule</h1>
+          </div>
+
+          <div className="px-6 py-6">
+            <p className="text-stone-600 text-sm mb-4">Manage your classes here - create, edit, and delete one-shot or recurring classes.</p>
+            
+            <button 
+              style={{ backgroundColor: ARIKANA_COLOR }}
+              className="w-full text-white py-3 rounded-lg font-semibold hover:opacity-90 transition-opacity mb-6"
+            >
+              ➕ Create New Class
+            </button>
+
+            <div className="space-y-3">
+              <h3 className="font-bold text-stone-900">Recurring Classes</h3>
+              {['Pilates Mat', 'Core Strength', 'Pelvic Curl Flow'].map((cls, i) => (
+                <div key={i} className="border border-stone-200 rounded-lg p-3 flex justify-between items-center">
+                  <div>
+                    <p className="font-medium text-stone-900">{cls}</p>
+                    <p className="text-xs text-stone-600">Mon, Wed, Fri • 09:00</p>
+                  </div>
+                  <div className="flex gap-2">
+                    <button className="text-stone-600 hover:text-stone-900">✏️</button>
+                    <button className="text-red-500 hover:text-red-700">🗑️</button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    // Attendance View
+    if (selectedMenuItem === 'attendance' && currentUser.role === 'lead-trainer') {
+      return (
+        <div className="pb-28">
+          <div style={{ backgroundColor: ARIKANA_COLOR }} className="text-white px-6 py-4 flex items-center gap-3">
+            <button onClick={() => setSelectedMenuItem(null)} className="text-2xl">←</button>
+            <h1 className="text-2xl font-light">Attendance</h1>
+          </div>
+
+          <div className="px-6 py-6">
+            <p className="text-stone-600 text-sm mb-4">View class bookings and mark member attendance.</p>
+            
+            <div className="space-y-4">
+              <h3 className="font-bold text-stone-900">Today's Classes</h3>
+              
+              {[
+                { name: 'Pilates Mat', time: '09:00 - 10:00', members: 3 },
+                { name: 'Core Strength', time: '10:30 - 11:15', members: 2 },
+              ].map((cls, i) => (
+                <div key={i} className="border border-stone-200 rounded-lg p-4">
+                  <div className="flex justify-between items-start mb-3">
+                    <div>
+                      <p className="font-bold text-stone-900">{cls.name}</p>
+                      <p className="text-sm text-stone-600">🕐 {cls.time}</p>
+                    </div>
+                    <span style={{ backgroundColor: ARIKANA_COLOR }} className="text-white text-xs font-bold px-2 py-1 rounded">
+                      {cls.members} members
+                    </span>
+                  </div>
+                  <button 
+                    style={{ borderColor: ARIKANA_COLOR, color: ARIKANA_COLOR }}
+                    className="w-full border-2 py-2 rounded-lg font-semibold hover:bg-yellow-50 transition-colors text-sm"
+                  >
+                    View & Mark Attendance
+                  </button>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      );
+    }
+
     return (
       <div className="pb-28">
         <div style={{ background: `linear-gradient(to bottom, ${ARIKANA_COLOR}, ${ARIKANA_COLOR}cc)` }} className="text-white px-6 py-8 rounded-b-3xl">
