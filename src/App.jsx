@@ -1,14 +1,16 @@
 import React, { useState, useEffect } from 'react';
 import { Home, Calendar, ShoppingBag, User, MoreHorizontal, ChevronRight, Eye, EyeOff } from 'lucide-react';
 import './App.css';
-
-// ============================================================================
-// FIREBASE CONFIGURATION
-// ============================================================================
 import { initializeApp } from 'firebase/app';
 import { getAuth } from 'firebase/auth';
-import { getFirestore, addDoc, collection, getDocs, doc, deleteDoc, setDoc } from 'firebase/firestore';
+import { getFirestore, addDoc, collection, getDocs } from 'firebase/firestore';
 
+// EmailJS configuration - You'll need to sign up at emailjs.com
+const EMAILJS_SERVICE_ID = 'service_arikana'; // Replace with your service ID
+const EMAILJS_TEMPLATE_ID = 'template_arikana'; // Replace with your template ID
+const EMAILJS_PUBLIC_KEY = 'YOUR_PUBLIC_KEY'; // Replace with your public key
+
+// Firebase configuration
 const FIREBASE_CONFIG = {
   apiKey: "AIzaSyAcIzGaIAc_gOmR81AuIkeRdEW1tGXTV6k",
   authDomain: "arikana-1e213.firebaseapp.com",
@@ -24,9 +26,7 @@ const app = initializeApp(FIREBASE_CONFIG);
 export const auth = getAuth(app);
 export const db = getFirestore(app);
 
-// ============================================================================
-// FIREBASE CONNECTION TEST FUNCTION
-// ============================================================================
+// Firebase Connection Test Function
 const testFirebaseConnection = async () => {
   try {
     const timestamp = new Date().toISOString();
@@ -44,7 +44,7 @@ const testFirebaseConnection = async () => {
     const querySnapshot = await getDocs(collection(db, 'test'));
     const docs = querySnapshot.docs.map(doc => doc.data());
     
-    console.log('✅ Firebase Read Success! Documents:', docs);
+    console.log('✅ Firebase Read Success! Documents:', docs.length);
     
     return {
       success: true,
@@ -60,6 +60,16 @@ const testFirebaseConnection = async () => {
       error: error
     };
   }
+};
+
+// Load EmailJS library
+const loadEmailJS = () => {
+  const script = document.createElement('script');
+  script.src = 'https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/index.min.js';
+  script.onload = () => {
+    window.emailjs.init(EMAILJS_PUBLIC_KEY);
+  };
+  document.head.appendChild(script);
 };
 
 // Count-up animation hook
@@ -187,44 +197,6 @@ export default function ArikanaApp() {
     if (saved) return JSON.parse(saved);
     return {};
   });
-
-  // Track newly created classes (classId -> createdAt timestamp)
-  const [newClassesIds, setNewClassesIds] = useState(new Set());
-  
-  // Track updated classes (classId -> updatedAt timestamp)
-  const [updatedClassesIds, setUpdatedClassesIds] = useState(new Set());
-
-  // Helper function to mark a class as new
-  const markClassAsNew = (classId) => {
-    const newSet = new Set(newClassesIds);
-    newSet.add(classId);
-    setNewClassesIds(newSet);
-    
-    // Remove "new" badge after 24 hours
-    setTimeout(() => {
-      setNewClassesIds(prev => {
-        const updated = new Set(prev);
-        updated.delete(classId);
-        return updated;
-      });
-    }, 24 * 60 * 60 * 1000);
-  };
-
-  // Helper function to mark a class as updated
-  const markClassAsUpdated = (classId) => {
-    const newSet = new Set(updatedClassesIds);
-    newSet.add(classId);
-    setUpdatedClassesIds(newSet);
-    
-    // Remove "updated" badge after 24 hours
-    setTimeout(() => {
-      setUpdatedClassesIds(prev => {
-        const updated = new Set(prev);
-        updated.delete(classId);
-        return updated;
-      });
-    }, 24 * 60 * 60 * 1000);
-  };
 
   // Helper: Get classes for a specific date (merges recurring + overrides)
   const getClassesForDate = (date) => {
@@ -725,7 +697,7 @@ export default function ArikanaApp() {
       <div className="pb-28">
         {/* Header with gradient */}
         <div style={{ background: `linear-gradient(to bottom, ${ARIKANA_COLOR}, ${ARIKANA_COLOR}cc)` }} className="text-white px-6 py-6">
-          <div className="flex justify-between items-start mb-4">
+          <div className="flex justify-between items-start mb-3">
             <div className="flex-1">
               <p className="text-sm font-light mb-1">Hi, Anechka</p>
               <h1 className="text-2xl font-light">Welcome to Arikana Studio</h1>
@@ -742,10 +714,10 @@ export default function ArikanaApp() {
           
           {/* Firebase Test Result */}
           {firebaseTestResult && (
-            <div className={`mt-3 text-xs p-2 rounded-lg ${firebaseTestResult.success ? 'bg-green-500 bg-opacity-20' : 'bg-red-500 bg-opacity-20'}`}>
+            <div className={`text-xs p-2 rounded-lg ${firebaseTestResult.success ? 'bg-green-500 bg-opacity-20' : 'bg-red-500 bg-opacity-20'}`}>
               <p className="whitespace-pre-wrap text-white">{firebaseTestResult.message}</p>
               {firebaseTestResult.success && firebaseTestResult.docCount !== undefined && (
-                <p className="text-xs mt-1 opacity-80">Docs in test collection: {firebaseTestResult.docCount}</p>
+                <p className="text-xs mt-1 opacity-80">📊 Docs in test collection: {firebaseTestResult.docCount}</p>
               )}
             </div>
           )}
@@ -1005,8 +977,7 @@ Since Mar 1, 2026</p>
     selectedBookingClass, setSelectedBookingClass,
     selectedDate, setSelectedDate,
     bookingCalendarStart,
-    recurringPattern, dateOverrides, getClassesForDate,
-    newClassesIds, updatedClassesIds
+    recurringPattern, dateOverrides, getClassesForDate
   }) => {
     const [selectedInstructor, setSelectedInstructor] = useState('all');
 
@@ -1433,17 +1404,7 @@ Since Mar 1, 2026</p>
           ) : (
             <div className="space-y-2">
               {filteredClasses.map((cls) => (
-                <div key={cls.id} className="bg-white border border-stone-200 rounded-lg p-3 hover:shadow-md transition-all relative">
-                  {/* New/Updated Badges */}
-                  <div className="absolute top-2 right-2 flex gap-1">
-                    {newClassesIds.has(cls.id) && (
-                      <span className="bg-green-100 text-green-800 text-xs font-bold px-2 py-0.5 rounded-full">🆕 New</span>
-                    )}
-                    {updatedClassesIds.has(cls.id) && (
-                      <span className="bg-blue-100 text-blue-800 text-xs font-bold px-2 py-0.5 rounded-full">✏️ Updated</span>
-                    )}
-                  </div>
-
+                <div key={cls.id} className="bg-white border border-stone-200 rounded-lg p-3 hover:shadow-md transition-all">
                   <div className="flex justify-between items-start mb-1">
                     <div>
                       <h4 className="font-semibold text-stone-900 text-xs">{cls.name}</h4>
@@ -1806,12 +1767,8 @@ Since Mar 1, 2026</p>
   };
 
   // Profile Tab Content
-  const ProfileTab = ({ recurringPattern, setRecurringPattern, dateOverrides, setDateOverrides, getClassesForDate, currentUser, setCurrentUser, markClassAsNew, markClassAsUpdated }) => {
+  const ProfileTab = ({ recurringPattern, setRecurringPattern, dateOverrides, setDateOverrides, getClassesForDate, currentUser, setCurrentUser }) => {
     const [selectedMenuItem, setSelectedMenuItem] = useState(null);
-    const [selectedClass, setSelectedClass] = useState(null);
-    const [attendanceCheckboxes, setAttendanceCheckboxes] = useState({});
-    const [currentAttendanceList, setCurrentAttendanceList] = useState([]);
-    const [selectedMemberToAdd, setSelectedMemberToAdd] = useState('');
     const [editingClass, setEditingClass] = useState(null);
     const [editingDayNum, setEditingDayNum] = useState(null);
     const [editForm, setEditForm] = useState({});
@@ -1837,28 +1794,6 @@ Since Mar 1, 2026</p>
     // Add state for tracking which date/edit mode we're in
     const [editingDateStr, setEditingDateStr] = useState(null);
     const [editMode, setEditMode] = useState(null); // 'dateOnly' or 'recurring'
-
-    // Initialize attendance data when a class is selected
-    useEffect(() => {
-      if (selectedClass) {
-        setAttendanceCheckboxes({
-          'sarah': true,
-          'emma': true,
-          'lisa': true,
-        });
-        setCurrentAttendanceList([
-          { id: 'sarah', name: 'Sarah Johnson', health: 'Lower back pain' },
-          { id: 'emma', name: 'Emma Davis', health: 'Neck tension' },
-          { id: 'lisa', name: 'Lisa Chen', health: 'No issues' },
-        ]);
-        setSelectedMemberToAdd('');
-      } else {
-        // Reset when going back
-        setAttendanceCheckboxes({});
-        setCurrentAttendanceList([]);
-        setSelectedMemberToAdd('');
-      }
-    }, [selectedClass]);
 
     const paymentMethods = [
       { type: 'Mastercard', last4: '9909', expires: '09/2029' },
@@ -2042,9 +1977,6 @@ Since Mar 1, 2026</p>
                     }
                     updatedOverrides[dateStr].push(newClass);
                     setDateOverrides(updatedOverrides);
-                    
-                    // Mark this class as NEW in the Book tab
-                    markClassAsNew(newClass.id);
                   }
                   
                   setShowCreateForm(false);
@@ -2196,26 +2128,16 @@ Since Mar 1, 2026</p>
                     if (editMode === 'dateOnly') {
                       // Delete from date override
                       const updatedOverrides = { ...dateOverrides };
-                      const dateToEdit = new Date(editingDateStr + 'T00:00:00');
-                      
-                      // Get all current classes for this date
-                      let classesForThisDate = [];
-                      if (updatedOverrides[editingDateStr]) {
-                        classesForThisDate = [...updatedOverrides[editingDateStr]];
-                      } else {
-                        classesForThisDate = [...getClassesForDate(dateToEdit)];
+                      if (!updatedOverrides[editingDateStr]) {
+                        updatedOverrides[editingDateStr] = getClassesForDate(new Date(editingDateStr + 'T00:00:00'));
                       }
-                      
-                      // Filter out the class being deleted by ID
-                      classesForThisDate = classesForThisDate.filter(cls => cls.id !== editForm.id);
-                      
-                      updatedOverrides[editingDateStr] = classesForThisDate;
+                      updatedOverrides[editingDateStr] = updatedOverrides[editingDateStr].filter((_, idx) => idx !== editingClass.index);
                       setDateOverrides(updatedOverrides);
                     } else {
-                      // Delete from recurring pattern - by ID
+                      // Delete from recurring pattern
                       const dayOfWeek = new Date(editingDateStr + 'T00:00:00').getDay();
                       const updatedPattern = { ...recurringPattern };
-                      updatedPattern[dayOfWeek] = updatedPattern[dayOfWeek].filter(cls => cls.id !== editForm.id);
+                      updatedPattern[dayOfWeek] = updatedPattern[dayOfWeek].filter((_, idx) => idx !== editingClass.index);
                       setRecurringPattern(updatedPattern);
                     }
                     
@@ -2245,39 +2167,23 @@ Since Mar 1, 2026</p>
                     }
                     
                     if (editMode === 'dateOnly') {
-                      // Save to date override - get ALL current classes for this date first
+                      // Save to date override
                       const updatedOverrides = { ...dateOverrides };
-                      const dateToEdit = new Date(editingDateStr + 'T00:00:00');
-                      
-                      // Get all classes currently on this date (from recurring + any existing overrides)
-                      let classesForThisDate = [];
-                      if (updatedOverrides[editingDateStr]) {
-                        classesForThisDate = [...updatedOverrides[editingDateStr]];
-                      } else {
-                        classesForThisDate = [...getClassesForDate(dateToEdit)];
+                      if (!updatedOverrides[editingDateStr]) {
+                        updatedOverrides[editingDateStr] = getClassesForDate(new Date(editingDateStr + 'T00:00:00'));
                       }
-                      
-                      // Find and update the specific class by ID
-                      classesForThisDate = classesForThisDate.map(cls => 
-                        cls.id === editForm.id ? { ...editForm, id: cls.id } : cls
+                      updatedOverrides[editingDateStr] = updatedOverrides[editingDateStr].map((cls, idx) => 
+                        idx === editingClass.index ? { ...editForm, id: cls.id } : cls
                       );
-                      
-                      updatedOverrides[editingDateStr] = classesForThisDate;
                       setDateOverrides(updatedOverrides);
-                      
-                      // Mark this class as UPDATED in the Book tab
-                      markClassAsUpdated(editForm.id);
                     } else {
-                      // Save to recurring pattern - update by class ID
+                      // Save to recurring pattern
                       const dayOfWeek = new Date(editingDateStr + 'T00:00:00').getDay();
                       const updatedPattern = { ...recurringPattern };
-                      updatedPattern[dayOfWeek] = updatedPattern[dayOfWeek].map(cls => 
-                        cls.id === editForm.id ? { ...editForm, id: cls.id } : cls
+                      updatedPattern[dayOfWeek] = updatedPattern[dayOfWeek].map((cls, idx) => 
+                        idx === editingClass.index ? { ...editForm, id: cls.id } : cls
                       );
                       setRecurringPattern(updatedPattern);
-                      
-                      // Mark this class as UPDATED in the Book tab
-                      markClassAsUpdated(editForm.id);
                     }
                     
                     setEditingClass(null);
@@ -2426,358 +2332,6 @@ Since Mar 1, 2026</p>
       );
     }
 
-    // Attendance View - List of today's classes
-    if (selectedMenuItem === 'attendance' && currentUser?.role === 'lead-trainer' && !selectedClass) {
-      return (
-        <div className="pb-28">
-          <div style={{ background: `linear-gradient(to bottom, ${ARIKANA_COLOR}, ${ARIKANA_COLOR}cc)` }} className="text-white px-6 py-4">
-            <div className="flex items-center gap-3">
-              <button onClick={() => setSelectedMenuItem(null)} className="text-2xl">←</button>
-              <h1 className="text-2xl font-light flex-1">Attendance</h1>
-            </div>
-          </div>
-
-          <div className="px-6 py-6">
-            <p className="text-stone-600 text-sm mb-4">View class bookings and mark member attendance.</p>
-            
-            <div className="space-y-4">
-              <h3 className="font-bold text-stone-900">Today's Classes</h3>
-              
-              {[
-                { id: 1, name: 'Pilates Mat', time: '09:00 - 10:00', members: 3 },
-                { id: 2, name: 'Core Strength', time: '10:30 - 11:15', members: 3 },
-              ].map((cls) => (
-                <div key={cls.id} className="border border-stone-200 rounded-lg p-4">
-                  <div className="flex justify-between items-start mb-3">
-                    <div>
-                      <p className="font-bold text-stone-900">{cls.name}</p>
-                      <p className="text-sm text-stone-600">🕐 {cls.time}</p>
-                    </div>
-                    <span style={{ backgroundColor: ARIKANA_COLOR }} className="text-white text-xs font-bold px-2 py-1 rounded">
-                      {cls.members} members
-                    </span>
-                  </div>
-                  <button 
-                    onClick={() => setSelectedClass(cls)}
-                    style={{ borderColor: ARIKANA_COLOR, color: ARIKANA_COLOR }}
-                    className="w-full border-2 py-2 rounded-lg font-semibold hover:bg-yellow-50 transition-colors text-sm cursor-pointer"
-                  >
-                    View & Mark Attendance
-                  </button>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-      );
-    }
-
-    // Attendance Detail View - Mark attendance for a specific class
-    if (selectedMenuItem === 'attendance' && currentUser?.role === 'lead-trainer' && selectedClass) {
-      const allMembers = [
-        { id: 'sarah', name: 'Sarah Johnson', health: 'Lower back pain' },
-        { id: 'emma', name: 'Emma Davis', health: 'Neck tension' },
-        { id: 'lisa', name: 'Lisa Chen', health: 'No issues' },
-        { id: 'jane', name: 'Jane Smith', health: 'Knee pain' },
-        { id: 'susan', name: 'Susan Brown', health: 'No issues' },
-        { id: 'alice', name: 'Alice Wilson', health: 'Shoulder tension' },
-      ];
-
-      const addMemberToAttendance = () => {
-        if (!selectedMemberToAdd) return;
-        
-        const memberToAdd = allMembers.find(m => m.id === selectedMemberToAdd);
-        if (memberToAdd && !currentAttendanceList.find(m => m.id === selectedMemberToAdd)) {
-          setCurrentAttendanceList([...currentAttendanceList, memberToAdd]);
-          setAttendanceCheckboxes({
-            ...attendanceCheckboxes,
-            [selectedMemberToAdd]: true
-          });
-          setSelectedMemberToAdd('');
-        }
-      };
-
-      const handleSaveAttendance = () => {
-        const attended = currentAttendanceList.filter(m => attendanceCheckboxes[m.id] !== false).map(m => m.name);
-        const noShows = currentAttendanceList.filter(m => attendanceCheckboxes[m.id] === false).map(m => m.name);
-        
-        alert(`✅ Attendance saved!\n\nAttended: ${attended.length}\nNo-shows: ${noShows.length}`);
-        setSelectedClass(null);
-        setAttendanceCheckboxes({});
-        setCurrentAttendanceList([]);
-      };
-
-      return (
-        <div className="pb-28">
-          <div style={{ backgroundColor: ARIKANA_COLOR }} className="text-white px-6 py-4 flex items-center gap-3">
-            <button onClick={() => setSelectedClass(null)} className="text-2xl">←</button>
-            <h1 className="text-2xl font-light">{selectedClass.name}</h1>
-          </div>
-
-          <div className="px-6 py-6">
-            <div className="bg-stone-100 rounded-lg p-4 mb-6">
-              <p className="text-sm text-stone-600">🕐 {selectedClass.time}</p>
-              <p className="text-sm text-stone-600">👥 {currentAttendanceList.length} members</p>
-              <p className="text-xs text-stone-600 mt-2">Attended: <span className="font-bold text-green-600">{Object.values(attendanceCheckboxes).filter(Boolean).length}</span> | No-show: <span className="font-bold text-red-600">{Object.values(attendanceCheckboxes).filter(v => v === false).length}</span></p>
-            </div>
-
-            {/* Add Missing Members */}
-            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
-              <h3 className="font-bold text-stone-900 mb-3">➕ Add Missing Member</h3>
-              <div className="flex gap-2">
-                <select 
-                  value={selectedMemberToAdd}
-                  onChange={(e) => setSelectedMemberToAdd(e.target.value)}
-                  className="flex-1 border border-stone-300 rounded-lg px-3 py-2 text-sm focus:outline-none"
-                >
-                  <option value="">Select a member...</option>
-                  {allMembers
-                    .filter(m => !currentAttendanceList.find(a => a.id === m.id))
-                    .map(member => (
-                      <option key={member.id} value={member.id}>{member.name}</option>
-                    ))}
-                </select>
-                <button 
-                  onClick={addMemberToAttendance}
-                  style={{ backgroundColor: ARIKANA_COLOR }}
-                  className="text-white px-4 rounded-lg font-semibold hover:opacity-90 transition-opacity text-sm cursor-pointer"
-                >
-                  Add
-                </button>
-              </div>
-            </div>
-
-            <h3 className="font-bold text-stone-900 mb-2">Mark Absent/No-Show</h3>
-            <p className="text-xs text-stone-600 mb-3">Uncheck members who did not attend</p>
-            
-            <div className="space-y-2">
-              {currentAttendanceList.map((member) => (
-                <div key={member.id} className="flex items-center gap-3 border border-stone-200 rounded-lg p-3 bg-white">
-                  <input 
-                    type="checkbox" 
-                    className="w-5 h-5 cursor-pointer"
-                    checked={attendanceCheckboxes[member.id] !== false}
-                    onChange={(e) => {
-                      setAttendanceCheckboxes({
-                        ...attendanceCheckboxes,
-                        [member.id]: e.target.checked ? true : false
-                      });
-                    }}
-                  />
-                  <div className="flex-1">
-                    <p className="font-medium text-stone-900">{member.name}</p>
-                    <p className="text-xs text-stone-600">{member.health}</p>
-                  </div>
-                  <span className="text-sm">
-                    {attendanceCheckboxes[member.id] !== false ? '✅' : '❌'}
-                  </span>
-                </div>
-              ))}
-            </div>
-
-            <button
-              onClick={handleSaveAttendance}
-              style={{ backgroundColor: ARIKANA_COLOR }}
-              className="w-full text-white py-3 rounded-lg font-semibold hover:opacity-90 transition-opacity mt-6 cursor-pointer"
-            >
-              💾 Save Attendance
-            </button>
-          </div>
-        </div>
-      );
-    }
-
-    // Booking History View
-    if (selectedMenuItem === 'bookings') {
-      return (
-        <div className="pb-28">
-          <div style={{ background: `linear-gradient(to bottom, ${ARIKANA_COLOR}, ${ARIKANA_COLOR}cc)` }} className="text-white px-6 py-4">
-            <div className="flex items-center gap-3">
-              <button onClick={() => setSelectedMenuItem(null)} className="text-2xl">←</button>
-              <h1 className="text-2xl font-light flex-1">Booking History</h1>
-            </div>
-          </div>
-          <div className="px-6 py-6">
-            <div className="space-y-3">
-              {[
-                { className: 'Pilates Mat', date: 'Mar 10, 2026', time: '09:00', instructor: 'Angelina', status: 'Attended' },
-                { className: 'Core Strength', date: 'Mar 08, 2026', time: '10:30', instructor: 'Nicolas', status: 'Attended' },
-                { className: 'Pelvic Curl Flow', date: 'Mar 05, 2026', time: '08:00', instructor: 'Angelina', status: 'No-Show' },
-              ].map((booking, i) => (
-                <div key={i} className="border border-stone-200 rounded-lg p-4">
-                  <div className="flex justify-between items-start">
-                    <div>
-                      <p className="font-bold text-stone-900">{booking.className}</p>
-                      <p className="text-sm text-stone-600">📅 {booking.date} • 🕐 {booking.time}</p>
-                      <p className="text-xs text-stone-600">with {booking.instructor}</p>
-                    </div>
-                    <span className={`text-xs font-bold px-2 py-1 rounded ${booking.status === 'Attended' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
-                      {booking.status === 'Attended' ? '✅' : '❌'} {booking.status}
-                    </span>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-      );
-    }
-
-    // Membership View
-    if (selectedMenuItem === 'membership') {
-      return (
-        <div className="pb-28">
-          <div style={{ background: `linear-gradient(to bottom, ${ARIKANA_COLOR}, ${ARIKANA_COLOR}cc)` }} className="text-white px-6 py-4">
-            <div className="flex items-center gap-3">
-              <button onClick={() => setSelectedMenuItem(null)} className="text-2xl">←</button>
-              <h1 className="text-2xl font-light flex-1">Membership</h1>
-            </div>
-          </div>
-          <div className="px-6 py-6">
-            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
-              <p className="font-bold text-stone-900 mb-2">Current Plan</p>
-              <p className="text-2xl font-bold" style={{ color: ARIKANA_COLOR }}>Premium Monthly</p>
-              <p className="text-sm text-stone-600 mt-2">Unlimited classes • Priority booking</p>
-            </div>
-            <div className="space-y-3">
-              <div className="border border-stone-200 rounded-lg p-4">
-                <p className="font-bold text-stone-900">Classes Used</p>
-                <p className="text-2xl font-bold text-stone-600">8 / Unlimited</p>
-              </div>
-              <div className="border border-stone-200 rounded-lg p-4">
-                <p className="font-bold text-stone-900">Next Renewal</p>
-                <p className="text-lg text-stone-600">April 14, 2026</p>
-              </div>
-            </div>
-          </div>
-        </div>
-      );
-    }
-
-    // Notifications View
-    if (selectedMenuItem === 'notifications') {
-      return (
-        <div className="pb-28">
-          <div style={{ background: `linear-gradient(to bottom, ${ARIKANA_COLOR}, ${ARIKANA_COLOR}cc)` }} className="text-white px-6 py-4">
-            <div className="flex items-center gap-3">
-              <button onClick={() => setSelectedMenuItem(null)} className="text-2xl">←</button>
-              <h1 className="text-2xl font-light flex-1">Notifications</h1>
-            </div>
-          </div>
-          <div className="px-6 py-6">
-            <div className="space-y-4">
-              <div>
-                <label className="flex items-center gap-3 cursor-pointer">
-                  <input type="checkbox" defaultChecked className="w-4 h-4" />
-                  <span className="text-sm font-medium text-stone-900">Class Reminders</span>
-                </label>
-              </div>
-              <div>
-                <label className="flex items-center gap-3 cursor-pointer">
-                  <input type="checkbox" defaultChecked className="w-4 h-4" />
-                  <span className="text-sm font-medium text-stone-900">New Classes</span>
-                </label>
-              </div>
-              <div>
-                <label className="flex items-center gap-3 cursor-pointer">
-                  <input type="checkbox" defaultChecked className="w-4 h-4" />
-                  <span className="text-sm font-medium text-stone-900">Promotions</span>
-                </label>
-              </div>
-            </div>
-          </div>
-        </div>
-      );
-    }
-
-    // Preferences View
-    if (selectedMenuItem === 'preferences') {
-      return (
-        <div className="pb-28">
-          <div style={{ background: `linear-gradient(to bottom, ${ARIKANA_COLOR}, ${ARIKANA_COLOR}cc)` }} className="text-white px-6 py-4">
-            <div className="flex items-center gap-3">
-              <button onClick={() => setSelectedMenuItem(null)} className="text-2xl">←</button>
-              <h1 className="text-2xl font-light flex-1">Preferences</h1>
-            </div>
-          </div>
-          <div className="px-6 py-6">
-            <div className="space-y-4">
-              <div>
-                <label className="block text-sm font-semibold text-stone-900 mb-2">Language</label>
-                <select className="w-full border border-stone-300 rounded-lg px-4 py-2">
-                  <option>English</option>
-                  <option>Română</option>
-                </select>
-              </div>
-              <div>
-                <label className="block text-sm font-semibold text-stone-900 mb-2">Theme</label>
-                <select className="w-full border border-stone-300 rounded-lg px-4 py-2">
-                  <option>Light</option>
-                  <option>Dark</option>
-                </select>
-              </div>
-            </div>
-          </div>
-        </div>
-      );
-    }
-
-    // Help & Support View
-    if (selectedMenuItem === 'help') {
-      return (
-        <div className="pb-28">
-          <div style={{ background: `linear-gradient(to bottom, ${ARIKANA_COLOR}, ${ARIKANA_COLOR}cc)` }} className="text-white px-6 py-4">
-            <div className="flex items-center gap-3">
-              <button onClick={() => setSelectedMenuItem(null)} className="text-2xl">←</button>
-              <h1 className="text-2xl font-light flex-1">Help & Support</h1>
-            </div>
-          </div>
-          <div className="px-6 py-6">
-            <div className="space-y-4">
-              <div>
-                <p className="font-bold text-stone-900 mb-2">📧 Email Support</p>
-                <p className="text-sm text-stone-600">support@arikana.com</p>
-              </div>
-              <div>
-                <p className="font-bold text-stone-900 mb-2">📞 Phone</p>
-                <p className="text-sm text-stone-600">+40 (0)31 230 8888</p>
-              </div>
-              <div>
-                <p className="font-bold text-stone-900 mb-2">🕒 Business Hours</p>
-                <p className="text-sm text-stone-600">Monday - Friday: 9:00 - 18:00</p>
-                <p className="text-sm text-stone-600">Saturday - Sunday: 10:00 - 16:00</p>
-              </div>
-            </div>
-          </div>
-        </div>
-      );
-    }
-
-    // About Arikana View
-    if (selectedMenuItem === 'about') {
-      return (
-        <div className="pb-28">
-          <div style={{ background: `linear-gradient(to bottom, ${ARIKANA_COLOR}, ${ARIKANA_COLOR}cc)` }} className="text-white px-6 py-4">
-            <div className="flex items-center gap-3">
-              <button onClick={() => setSelectedMenuItem(null)} className="text-2xl">←</button>
-              <h1 className="text-2xl font-light flex-1">About Arikana</h1>
-            </div>
-          </div>
-          <div className="px-6 py-6">
-            <div className="text-center mb-6">
-              <p style={{ color: ARIKANA_COLOR }} className="text-3xl font-bold">Arikana</p>
-              <p className="text-sm text-stone-600 mt-1">Yoga • Pilates • Mindfulness</p>
-            </div>
-            <div className="space-y-4 text-sm text-stone-700">
-              <p>Welcome to Arikana Studios, your sanctuary for wellness and inner peace. We offer a carefully curated selection of Yoga and Pilates classes designed to transform your body and mind.</p>
-              <p><strong>App Version:</strong> 1.0.0</p>
-              <p><strong>Location:</strong> Giurgiu, Romania</p>
-            </div>
-          </div>
-        </div>
-      );
-    }
-
 
     // Payment Methods Detail View
     if (selectedMenuItem === 'payment-methods') {
@@ -2870,10 +2424,7 @@ Since Mar 1, 2026</p>
           {/* Menu Items */}
           <div className="space-y-2">
             {[
-              ...(currentUser.role === 'lead-trainer' ? [
-                { label: 'Class Schedule', icon: '📋', id: 'calendar' },
-                { label: 'Attendance', icon: '✅', id: 'attendance' }
-              ] : []),
+              ...(currentUser.role === 'lead-trainer' ? [{ label: 'Class Schedule', icon: '📋', id: 'calendar' }] : []),
               { label: 'Booking History', icon: '📅', id: 'bookings' },
               { label: 'Membership', icon: '🎫', id: 'membership' },
               { label: 'Payment Methods', icon: '💳', id: 'payment-methods' },
@@ -2973,8 +2524,6 @@ Since Mar 1, 2026</p>
       recurringPattern={recurringPattern}
       dateOverrides={dateOverrides}
       getClassesForDate={getClassesForDate}
-      newClassesIds={newClassesIds}
-      updatedClassesIds={updatedClassesIds}
     />,
     buy: <BuyTab />,
     profile: <ProfileTab 
@@ -2984,9 +2533,7 @@ Since Mar 1, 2026</p>
       setDateOverrides={setDateOverrides}
       getClassesForDate={getClassesForDate}
       currentUser={currentUser} 
-      setCurrentUser={setCurrentUser}
-      markClassAsNew={markClassAsNew}
-      markClassAsUpdated={markClassAsUpdated}
+      setCurrentUser={setCurrentUser} 
     />,
     more: <MoreTab />,
   };
