@@ -1696,6 +1696,98 @@ Since Mar 1, 2026</p>
       setCurrentUser(null);
     };
 
+    // Trainer Dashboard View
+    if (selectedMenuItem === 'class-schedule' && currentUser.role === 'lead-trainer') {
+      return (
+        <div className="pb-28">
+          <div style={{ backgroundColor: ARIKANA_COLOR }} className="text-white px-6 py-4 flex items-center gap-3">
+            <button onClick={() => setSelectedMenuItem(null)} className="text-2xl">←</button>
+            <h1 className="text-2xl font-light">Class Schedule</h1>
+          </div>
+
+          <div className="px-6 py-6">
+            {/* Tabs */}
+            <div className="flex gap-2 mb-6 border-b border-stone-200">
+              <button className="pb-3 px-3 font-semibold text-stone-900 border-b-2" style={{ borderColor: ARIKANA_COLOR }}>
+                📅 Today's Classes
+              </button>
+              <button className="pb-3 px-3 text-stone-600 hover:text-stone-900">
+                📆 This Week
+              </button>
+              <button className="pb-3 px-3 text-stone-600 hover:text-stone-900">
+                ➕ Create Class
+              </button>
+            </div>
+
+            {/* Today's Classes */}
+            <div className="space-y-4">
+              {[
+                {
+                  name: 'Pilates Mat',
+                  time: '09:00 - 10:00',
+                  members: [
+                    { name: 'Sarah Johnson', status: 'booked', health: 'Lower back pain' },
+                    { name: 'Emma Davis', status: 'booked', health: 'Neck tension' },
+                    { name: 'Lisa Chen', status: 'booked', health: 'No issues' },
+                  ]
+                },
+                {
+                  name: 'Core Strength',
+                  time: '10:30 - 11:15',
+                  members: [
+                    { name: 'John Smith', status: 'booked', health: 'Knee pain' },
+                    { name: 'Michael Brown', status: 'booked', health: 'No issues' },
+                  ]
+                },
+              ].map((cls, idx) => (
+                <div key={idx} className="border border-stone-200 rounded-2xl p-4 hover:shadow-md transition-shadow">
+                  <div className="flex justify-between items-start mb-3">
+                    <div>
+                      <h3 className="font-bold text-stone-900 text-lg">{cls.name}</h3>
+                      <p className="text-sm text-stone-600">🕐 {cls.time}</p>
+                    </div>
+                    <button 
+                      style={{ color: ARIKANA_COLOR }}
+                      className="text-sm font-semibold hover:opacity-80 transition-opacity"
+                    >
+                      ✏️ Edit
+                    </button>
+                  </div>
+
+                  {/* Member List */}
+                  <div className="bg-stone-50 rounded-lg p-3 mb-3">
+                    <p className="text-xs font-bold text-stone-600 uppercase mb-2">Members ({cls.members.length})</p>
+                    <div className="space-y-2">
+                      {cls.members.map((member, i) => (
+                        <div key={i} className="flex items-center justify-between text-sm bg-white rounded p-2">
+                          <div>
+                            <p className="font-medium text-stone-900">{member.name}</p>
+                            <p className="text-xs text-stone-600">{member.health}</p>
+                          </div>
+                          <div className="flex gap-2">
+                            <input type="checkbox" className="w-4 h-4" title="Mark attended" />
+                            <button className="text-xs text-stone-600 hover:text-stone-900">👁️</button>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Save Attendance */}
+                  <button 
+                    style={{ backgroundColor: ARIKANA_COLOR }}
+                    className="w-full text-white py-2 rounded-lg font-semibold text-sm hover:opacity-90 transition-opacity"
+                  >
+                    💾 Save Attendance
+                  </button>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      );
+    }
+
     return (
       <div className="pb-28">
         <div style={{ background: `linear-gradient(to bottom, ${ARIKANA_COLOR}, ${ARIKANA_COLOR}cc)` }} className="text-white px-6 py-8 rounded-b-3xl">
