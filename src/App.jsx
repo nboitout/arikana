@@ -2020,11 +2020,40 @@ Since Mar 1, 2026</p>
             const attendanceSnapshot = await getDocs(collection(db, 'users', String(currentUser.id), 'attendance'));
             const today = new Date().toISOString().split('T')[0]; // YYYY-MM-DD
             
+            console.log('📂 All attendance records in Firestore:', attendanceSnapshot.docs.map(doc => {
+              const data = doc.data();
+              return {
+                className: data.className,
+                classDate: data.classDate,
+                memberCount: data.attendance?.length || 0,
+                members: data.attendance?.map(m => m.name) || []
+              };
+            }));
+            
             // Find attendance record for this class today
             const savedAttendance = attendanceSnapshot.docs.find(doc => {
               const data = doc.data();
-              return data.className === selectedClass.name && 
+              const matches = data.className === selectedClass.name && 
                      data.classDate === today;
+              
+              if (!matches && data.classDate === today) {
+                // Log mismatches on the same date
+                console.warn('⚠️ Class name mismatch:', {
+                  saved: data.className,
+                  searching: selectedClass.name,
+                  savedDate: data.classDate,
+                  todayDate: today
+                });
+              }
+              
+              return matches;
+            });
+            
+            console.log('🔍 Searching for:', {
+              className: selectedClass.name,
+              classDate: today,
+              totalRecordsFound: attendanceSnapshot.docs.length,
+              recordMatched: !!savedAttendance
             });
             
             const initialCheckboxes = {};
@@ -2797,10 +2826,18 @@ Since Mar 1, 2026</p>
         const attended = currentAttendanceList.filter(m => attendanceCheckboxes[m.id] !== false).map(m => m.name);
         const noShows = currentAttendanceList.filter(m => attendanceCheckboxes[m.id] === false).map(m => m.name);
         
-        console.log('💾 Saving attendance:', {
+        const classDate = new Date().toISOString().split('T')[0];
+        
+        console.log('💾 SAVING ATTENDANCE:', {
           className: selectedClass.name,
+          classTime: selectedClass.time,
+          classDate: classDate,
           totalMembers: currentAttendanceList.length,
-          members: currentAttendanceList.map(m => m.name),
+          members: currentAttendanceList.map(m => ({ 
+            name: m.name, 
+            id: m.id,
+            health: m.health 
+          })),
           attended: attended,
           noShows: noShows
         });
@@ -2809,13 +2846,15 @@ Since Mar 1, 2026</p>
         const attendanceData = {
           className: selectedClass.name,
           classTime: selectedClass.time.split(' - ')[0],
-          classDate: new Date().toISOString().split('T')[0],
+          classDate: classDate,
           attendance: currentAttendanceList.map(m => ({
             name: m.name,
             health: m.health,
             attended: attendanceCheckboxes[m.id] !== false
           }))
         };
+        
+        console.log('📤 Sending to Firestore:', attendanceData);
 
         // Save to Firestore
         if (currentUser?.id) {
@@ -2849,6 +2888,12 @@ Since Mar 1, 2026</p>
 
       return (
         <div className="pb-28">
+          {console.log('👁️ DETAIL VIEW STATE:', {
+            className: selectedClass.name,
+            memberCount: currentAttendanceList.length,
+            members: currentAttendanceList.map(m => ({ name: m.name, id: m.id })),
+            checkboxes: Object.entries(attendanceCheckboxes).map(([id, checked]) => ({ id, checked }))
+          })}
           <div style={{ backgroundColor: ARIKANA_COLOR }} className="text-white px-6 py-4 flex items-center gap-3 justify-between">
             <div className="flex items-center gap-3">
               <button onClick={() => setSelectedClass(null)} className="text-2xl">←</button>
