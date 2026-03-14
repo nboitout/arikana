@@ -1979,6 +1979,7 @@ Since Mar 1, 2026</p>
     const [newClassForm, setNewClassForm] = useState({ name: '', time: '', duration: '60 min', instructor: 'Nicolas', spots: 10, dayOfWeek: 1, recurringEveryWeek: true });
     const [attendanceRefresh, setAttendanceRefresh] = useState(0); // Force re-render every 30 seconds
     const [attendanceSaved, setAttendanceSaved] = useState(false); // Track if attendance was just saved
+    const [attendanceListData, setAttendanceListData] = useState([]); // Loaded attendance data with actual counts
 
     // Generate 7 days starting from TODAY
     const getTodayPlus7Days = () => {
@@ -2636,37 +2637,71 @@ Since Mar 1, 2026</p>
       // Get ALL classes for today (past, present, future)
       const now = new Date();
       
-      // Collect all classes for today
-      const upcomingClasses = [];
-      
-      // Check today's classes (recurring + overrides)
-      const todayClasses = getClassesForDate(now);
-      
-      // Show ALL classes for today - no time filtering
-      todayClasses.forEach(cls => {
-        // Count members booked for this class
-        const membersBooked = bookings.filter(b => 
-          b.classId === cls.id && 
-          new Date(b.dateObj).toDateString() === now.toDateString()
-        ).length;
+      // Load attendance counts from Firestore and update list
+      useEffect(() => {
+        const loadAttendanceCounts = async () => {
+          const now = new Date();
+          const todayClasses = getClassesForDate(now);
+          const today = now.toISOString().split('T')[0]; // YYYY-MM-DD
+          
+          const classesWithCounts = [];
+          
+          // Try to load attendance records from Firestore
+          let attendanceRecords = [];
+          if (currentUser?.id) {
+            try {
+              const attendanceSnapshot = await getDocs(collection(db, 'users', String(currentUser.id), 'attendance'));
+              attendanceRecords = attendanceSnapshot.docs
+                .map(doc => doc.data())
+                .filter(record => record.classDate === today);
+            } catch (error) {
+              console.log('ℹ️ Could not load attendance records:', error.message);
+            }
+          }
+          
+          // For each class, determine member count
+          todayClasses.forEach(cls => {
+            const attendanceRecord = attendanceRecords.find(r => r.className === cls.name);
+            
+            let memberCount = 0;
+            if (attendanceRecord && attendanceRecord.attendance) {
+              // Count people marked as attended
+              memberCount = attendanceRecord.attendance.filter(a => a.attended === true).length;
+            } else {
+              // Fall back to booking count
+              memberCount = bookings.filter(b => 
+                b.classId === cls.id && 
+                new Date(b.dateObj).toDateString() === now.toDateString()
+              ).length;
+            }
+            
+            classesWithCounts.push({
+              id: cls.id,
+              name: cls.name,
+              time: cls.time,
+              instructor: cls.instructor,
+              members: memberCount || 0,
+              duration: cls.duration,
+              classObj: cls
+            });
+          });
+          
+          // Sort by time
+          classesWithCounts.sort((a, b) => {
+            const [aH, aM] = a.time.split(':').map(Number);
+            const [bH, bM] = b.time.split(':').map(Number);
+            return (aH * 60 + aM) - (bH * 60 + bM);
+          });
+          
+          setAttendanceListData(classesWithCounts);
+        };
         
-        upcomingClasses.push({
-          id: cls.id,
-          name: cls.name,
-          time: cls.time,
-          instructor: cls.instructor,
-          members: membersBooked || 0,
-          duration: cls.duration,
-          classObj: cls
-        });
-      });
-      
-      // Sort by time
-      upcomingClasses.sort((a, b) => {
-        const [aH, aM] = a.time.split(':').map(Number);
-        const [bH, bM] = b.time.split(':').map(Number);
-        return (aH * 60 + aM) - (bH * 60 + bM);
-      });
+        if (selectedMenuItem === 'attendance' && !selectedClass) {
+          loadAttendanceCounts();
+        }
+      }, [selectedMenuItem, selectedClass, bookings, attendanceRefresh, currentUser?.id]);
+
+      const upcomingClasses = attendanceListData;
 
       return (
         <div className="pb-28" key={`attendance-list-${attendanceRefresh}`}>
