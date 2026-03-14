@@ -2035,12 +2035,17 @@ Since Mar 1, 2026</p>
               const attendanceData = savedAttendance.data();
               const attendanceList = attendanceData.attendance || [];
               
+              console.log('📋 Saved attendance found with', attendanceList.length, 'members:', attendanceList.map(a => a.name));
+              
               // Set checkboxes based on saved data
               attendanceList.forEach(record => {
                 const member = allAvailableMembers.find(m => m.name === record.name);
                 if (member) {
                   membersToShow.push(member);
                   initialCheckboxes[member.id] = record.attended !== false;
+                  console.log('✅ Loaded:', record.name, '- Attended:', record.attended);
+                } else {
+                  console.warn('⚠️ Member not found in available list:', record.name);
                 }
               });
               
@@ -2123,8 +2128,8 @@ Since Mar 1, 2026</p>
           
           let memberCount = 0;
           if (attendanceRecord && attendanceRecord.attendance) {
-            // Count people marked as attended
-            memberCount = attendanceRecord.attendance.filter(a => a.attended === true).length;
+            // Count ALL people in the attendance record (attended + no-show + added)
+            memberCount = attendanceRecord.attendance.length;
           } else {
             // Fall back to booking count
             memberCount = bookings.filter(b => 
@@ -2781,6 +2786,14 @@ Since Mar 1, 2026</p>
         const attended = currentAttendanceList.filter(m => attendanceCheckboxes[m.id] !== false).map(m => m.name);
         const noShows = currentAttendanceList.filter(m => attendanceCheckboxes[m.id] === false).map(m => m.name);
         
+        console.log('💾 Saving attendance:', {
+          className: selectedClass.name,
+          totalMembers: currentAttendanceList.length,
+          members: currentAttendanceList.map(m => m.name),
+          attended: attended,
+          noShows: noShows
+        });
+        
         // Prepare attendance data
         const attendanceData = {
           className: selectedClass.name,
@@ -2797,11 +2810,16 @@ Since Mar 1, 2026</p>
         if (currentUser?.id) {
           const result = await saveAttendanceToFirestore(currentUser.id, attendanceData);
           if (result.success) {
-            console.log('✅ Attendance saved to Firestore!');
+            console.log('✅ Attendance saved to Firestore!', {
+              docId: result.docId,
+              totalMembers: currentAttendanceList.length,
+              attended: attended.length,
+              noShows: noShows.length
+            });
             setAttendanceSaved(true);
             
             // Show success message
-            alert(`✅ Attendance saved!\n\nAttended: ${attended.length}\nNo-shows: ${noShows.length}`);
+            alert(`✅ Attendance saved!\n\nTotal: ${currentAttendanceList.length} members\nAttended: ${attended.length}\nNo-shows: ${noShows.length}`);
             
             // After showing alert, return to list
             setTimeout(() => {
