@@ -552,7 +552,7 @@ export default function ArikanaApp() {
   // Main app continues from here...
 
   // Home Tab Content
-  const HomeTab = ({ bookings, setBookings, healthData, setHealthData }) => {
+  const HomeTab = ({ bookings, setBookings, healthData, setHealthData, testFirebase }) => {
     const [showHealthForm, setShowHealthForm] = useState(false);
     const [healthForm, setHealthForm] = useState(healthData.bodyRegions);
     const count172 = useCountUp(172, 1200);
@@ -2435,7 +2435,7 @@ Since Mar 1, 2026</p>
   );
 
   const tabContent = {
-    home: <HomeTab bookings={bookings} setBookings={setBookings} healthData={healthData} setHealthData={setHealthData} />,
+    home: <HomeTab bookings={bookings} setBookings={setBookings} healthData={healthData} setHealthData={setHealthData} testFirebase={testFirebase} />,
     book: <BookTab 
       bookings={bookings}
       setBookings={setBookings}
