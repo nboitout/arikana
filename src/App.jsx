@@ -2570,39 +2570,32 @@ Since Mar 1, 2026</p>
 
     // Attendance List View - Show today's classes
     if (selectedMenuItem === 'attendance' && currentUser?.role === 'lead-trainer' && !selectedClass) {
-      // Get all classes from now until end of day
+      // Get ALL classes for today (past, present, future)
       const now = new Date();
-      const endOfDay = new Date(now);
-      endOfDay.setHours(23, 59, 59);
       
-      // Collect all classes from now until end of day
+      // Collect all classes for today
       const upcomingClasses = [];
       
       // Check today's classes (recurring + overrides)
       const todayClasses = getClassesForDate(now);
+      
+      // Show ALL classes for today - no time filtering
       todayClasses.forEach(cls => {
-        const [hours, minutes] = cls.time.split(':').map(Number);
-        const classTime = new Date(now);
-        classTime.setHours(hours, minutes, 0);
+        // Count members booked for this class
+        const membersBooked = bookings.filter(b => 
+          b.classId === cls.id && 
+          new Date(b.dateObj).toDateString() === now.toDateString()
+        ).length;
         
-        // Show classes from now until end of day
-        if (classTime >= now && classTime <= endOfDay) {
-          // Count members booked for this class
-          const membersBooked = bookings.filter(b => 
-            b.classId === cls.id && 
-            new Date(b.dateObj).toDateString() === now.toDateString()
-          ).length;
-          
-          upcomingClasses.push({
-            id: cls.id,
-            name: cls.name,
-            time: cls.time,
-            instructor: cls.instructor,
-            members: membersBooked || 0,
-            duration: cls.duration,
-            classObj: cls
-          });
-        }
+        upcomingClasses.push({
+          id: cls.id,
+          name: cls.name,
+          time: cls.time,
+          instructor: cls.instructor,
+          members: membersBooked || 0,
+          duration: cls.duration,
+          classObj: cls
+        });
       });
       
       // Sort by time
