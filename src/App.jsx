@@ -60,30 +60,26 @@ const useCountUp = (targetValue, duration = 1500) => {
 };
 
 
-const testFirebase = async () => {
-  try {
-    // Write test data to Firestore
-    const { addDoc, collection } = await import('firebase/firestore');
-    await addDoc(collection(db, 'test'), {
-      message: 'Firebase is working!',
-      timestamp: new Date()
-    });
-    console.log('✅ Data written to Firebase!');
-  } catch (error) {
-    console.error('❌ Error:', error);
-  }
-};
-
-
-return (
-  <div>
-    <button onClick={testFirebase} style={{ padding: '10px' }}>
-      Test Firebase
-    </button>
-    {/* rest of app */}
-  </div>
-);
-
+export default function App() {
+  
+  useEffect(() => {
+    console.log('✅ Firebase Auth:', auth);
+    console.log('✅ Firestore:', db);
+  }, []);
+  
+  const testFirebase = async () => {
+    // ... test function
+  };
+  
+  return (                    // ← INSIDE function
+    <div>
+      <button onClick={testFirebase}>
+        Test Firebase
+      </button>
+      {/* rest of app */}
+    </div>
+  );
+}
 
 
 export default function ArikanaApp() {
