@@ -2012,14 +2012,21 @@ Since Mar 1, 2026</p>
     // Initialize attendance data when a class is selected
     useEffect(() => {
       if (selectedClass) {
-        // Initialize all members as attended (checked) by default
+        // Get the actual number of members who booked this class
+        const memberCount = selectedClass.memberCount || 0;
+        
+        // Show only the number of members that actually booked
+        // Select from the available members pool
+        const membersToShow = allAvailableMembers.slice(0, memberCount);
+        
+        // Initialize all selected members as attended (checked) by default
         const initialCheckboxes = {};
-        allAvailableMembers.forEach(member => {
+        membersToShow.forEach(member => {
           initialCheckboxes[member.id] = true;
         });
         
         setAttendanceCheckboxes(initialCheckboxes);
-        setCurrentAttendanceList(allAvailableMembers);
+        setCurrentAttendanceList(membersToShow);
         setSelectedMemberToAdd('');
       } else {
         setAttendanceCheckboxes({});
@@ -2642,7 +2649,7 @@ Since Mar 1, 2026</p>
                       </span>
                     </div>
                     <button 
-                      onClick={() => setSelectedClass(cls.classObj)}
+                      onClick={() => setSelectedClass({...cls.classObj, memberCount: cls.members})}
                       style={{ borderColor: ARIKANA_COLOR, color: ARIKANA_COLOR }}
                       className="w-full border-2 py-2 rounded-lg font-semibold hover:bg-yellow-50 transition-colors text-sm cursor-pointer"
                     >
