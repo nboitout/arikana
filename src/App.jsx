@@ -1999,19 +1999,27 @@ Since Mar 1, 2026</p>
     const [editingDateStr, setEditingDateStr] = useState(null);
     const [editMode, setEditMode] = useState(null); // 'dateOnly' or 'recurring'
 
+    // All available members in the studio
+    const allAvailableMembers = [
+      { id: 'maria', name: 'Maria Popescu', health: 'Lower back pain' },
+      { id: 'olga', name: 'Olga Petrov', health: 'Neck tension' },
+      { id: 'elena', name: 'Elena Ionescu', health: 'No issues' },
+      { id: 'natasha', name: 'Natasha Dumitrescu', health: 'Knee pain' },
+      { id: 'cristina', name: 'Cristina Vasilescu', health: 'No issues' },
+      { id: 'irina', name: 'Irina Georgescu', health: 'Shoulder tension' },
+    ];
+
     // Initialize attendance data when a class is selected
     useEffect(() => {
       if (selectedClass) {
-        setAttendanceCheckboxes({
-          'sarah': true,
-          'emma': true,
-          'lisa': true,
+        // Initialize all members as attended (checked) by default
+        const initialCheckboxes = {};
+        allAvailableMembers.forEach(member => {
+          initialCheckboxes[member.id] = true;
         });
-        setCurrentAttendanceList([
-          { id: 'sarah', name: 'Sarah Johnson', health: 'Lower back pain' },
-          { id: 'emma', name: 'Emma Davis', health: 'Neck tension' },
-          { id: 'lisa', name: 'Lisa Chen', health: 'No issues' },
-        ]);
+        
+        setAttendanceCheckboxes(initialCheckboxes);
+        setCurrentAttendanceList(allAvailableMembers);
         setSelectedMemberToAdd('');
       } else {
         setAttendanceCheckboxes({});
@@ -2657,12 +2665,12 @@ Since Mar 1, 2026</p>
     // Attendance Detail View - Mark attendance for a specific class
     if (selectedMenuItem === 'attendance' && currentUser?.role === 'lead-trainer' && selectedClass) {
       const allMembers = [
-        { id: 'sarah', name: 'Sarah Johnson', health: 'Lower back pain' },
-        { id: 'emma', name: 'Emma Davis', health: 'Neck tension' },
-        { id: 'lisa', name: 'Lisa Chen', health: 'No issues' },
-        { id: 'jane', name: 'Jane Smith', health: 'Knee pain' },
-        { id: 'susan', name: 'Susan Brown', health: 'No issues' },
-        { id: 'alice', name: 'Alice Wilson', health: 'Shoulder tension' },
+        { id: 'maria', name: 'Maria Popescu', health: 'Lower back pain' },
+        { id: 'olga', name: 'Olga Petrov', health: 'Neck tension' },
+        { id: 'elena', name: 'Elena Ionescu', health: 'No issues' },
+        { id: 'natasha', name: 'Natasha Dumitrescu', health: 'Knee pain' },
+        { id: 'cristina', name: 'Cristina Vasilescu', health: 'No issues' },
+        { id: 'irina', name: 'Irina Georgescu', health: 'Shoulder tension' },
       ];
 
       const addMemberToAttendance = () => {
