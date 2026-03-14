@@ -2739,6 +2739,98 @@ Since Mar 1, 2026</p>
       );
     }
 
+    // Booking History View
+    if (selectedMenuItem === 'bookings') {
+      const now = new Date();
+      const pastBookings = bookings.filter(b => new Date(b.dateObj) < now);
+      const futureBookings = bookings.filter(b => new Date(b.dateObj) >= now);
+
+      return (
+        <div className="pb-28">
+          {/* Header */}
+          <div style={{ background: `linear-gradient(to bottom, ${ARIKANA_COLOR}, ${ARIKANA_COLOR}cc)` }} className="text-white px-6 py-4">
+            <div className="flex items-center gap-3">
+              <button onClick={() => setSelectedMenuItem(null)} className="text-2xl">←</button>
+              <h1 className="text-2xl font-light flex-1">Booking History</h1>
+            </div>
+          </div>
+
+          {/* Content */}
+          <div className="px-6 py-6">
+            {/* Upcoming Bookings */}
+            {futureBookings.length > 0 && (
+              <>
+                <h3 className="font-bold text-stone-900 mb-3">Upcoming Classes</h3>
+                <div className="space-y-2 mb-6">
+                  {futureBookings.map(booking => (
+                    <div key={booking.id} className="border border-stone-200 rounded-lg p-4 bg-white">
+                      <div className="flex justify-between items-start">
+                        <div className="flex-1">
+                          <h4 className="font-semibold text-stone-900">{booking.className}</h4>
+                          <p className="text-xs text-stone-600 mt-1">with {booking.instructor}</p>
+                          <p className="text-sm text-stone-600 mt-2">📅 {booking.displayDate}</p>
+                          <p className="text-sm text-stone-600">🕐 {booking.time} • {booking.duration}</p>
+                        </div>
+                        <span style={{ backgroundColor: ARIKANA_COLOR }} className="text-white text-xs font-bold px-2 py-1 rounded whitespace-nowrap ml-2">
+                          Upcoming
+                        </span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </>
+            )}
+
+            {/* Past Bookings */}
+            <h3 className="font-bold text-stone-900 mb-3">Past Classes</h3>
+            {pastBookings.length > 0 ? (
+              <div className="space-y-2">
+                {pastBookings.map(booking => (
+                  <div key={booking.id} className="border border-stone-200 rounded-lg p-4 bg-stone-50">
+                    <div className="flex justify-between items-start">
+                      <div className="flex-1">
+                        <h4 className="font-semibold text-stone-900">{booking.className}</h4>
+                        <p className="text-xs text-stone-600 mt-1">with {booking.instructor}</p>
+                        <p className="text-sm text-stone-600 mt-2">📅 {booking.displayDate}</p>
+                        <p className="text-sm text-stone-600">🕐 {booking.time} • {booking.duration}</p>
+                      </div>
+                      <div className="flex flex-col items-end gap-1 ml-2">
+                        {booking.attended === true ? (
+                          <span className="text-xs font-bold text-green-700 bg-green-100 px-2 py-1 rounded whitespace-nowrap">
+                            ✅ Attended
+                          </span>
+                        ) : booking.attended === false ? (
+                          <span className="text-xs font-bold text-red-700 bg-red-100 px-2 py-1 rounded whitespace-nowrap">
+                            ❌ No-show
+                          </span>
+                        ) : (
+                          <span className="text-xs font-bold text-gray-700 bg-gray-100 px-2 py-1 rounded whitespace-nowrap">
+                            🗑️ Cancelled
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="bg-stone-100 rounded-lg p-6 text-center">
+                <p className="text-stone-600">No past classes yet</p>
+              </div>
+            )}
+
+            {/* Empty State */}
+            {bookings.length === 0 && (
+              <div className="bg-stone-100 rounded-lg p-6 text-center">
+                <p className="text-stone-600">No bookings yet</p>
+                <p className="text-sm text-stone-500 mt-2">Your bookings will appear here</p>
+              </div>
+            )}
+          </div>
+        </div>
+      );
+    }
+
 
     // Payment Methods Detail View
     if (selectedMenuItem === 'payment-methods') {
