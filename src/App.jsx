@@ -659,14 +659,28 @@ const testFirebase = async () => {
 
     const nextSessions = getNextUpcomingSessions();
 
+
+
+
+    
+
+
+    
     return (
       <div className="pb-28">
-        {/* Header with gradient */}
-        <div style={{ background: `linear-gradient(to bottom, ${ARIKANA_COLOR}, ${ARIKANA_COLOR}cc)` }} className="text-white px-6 py-6">
-          <p className="text-sm font-light mb-1">Hi, Anechka</p>
-          <h1 className="text-2xl font-light">Welcome to Arikana Studio</h1>
+        {/* Test Firebase Button */}
+        <div className="px-6 pt-6 pb-3">
+          <button 
+            onClick={testFirebase}
+            style={{ backgroundColor: ARIKANA_COLOR }}
+            className="w-full text-white py-2 rounded-lg font-semibold hover:opacity-90 transition-opacity text-sm"
+          >
+            🧪 Test Firebase Connection
+          </button>
         </div>
 
+        {/* Header with gradient */}
+        <div style={{ background: `linear-gradient(to bottom, ${ARIKANA_COLOR}, ${ARIKANA_COLOR}cc)` }} className="text-white px-6 py-6"></div>
         {/* Achievements Section */}
         <div className="px-6 mt-6 mb-8">
           <h2 className="text-2xl font-bold text-stone-900 mb-4">Achievements</h2>
