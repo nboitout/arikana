@@ -62,7 +62,108 @@ const testFirebaseConnection = async () => {
   }
 };
 
-// Load EmailJS library
+// ============================================================================
+// FIRESTORE BOOKING & ATTENDANCE FUNCTIONS
+// ============================================================================
+
+// Save a booking to Firestore
+const saveBookingToFirestore = async (userId, bookingData) => {
+  try {
+    if (!userId) {
+      throw new Error('User ID is required');
+    }
+
+    // Add Firestore-specific fields
+    const firestoreBooking = {
+      ...bookingData,
+      createdAt: new Date().toISOString(),
+      attended: false,
+      classDate: bookingData.displayDate.split(', ')[2], // Extract YYYY-MM-DD from "Monday, Mar 14, 2026"
+      dateObj: bookingData.dateObj.toISOString(), // Convert Date to ISO string for Firestore
+    };
+
+    const docRef = await addDoc(collection(db, 'users', String(userId), 'bookings'), firestoreBooking);
+    
+    console.log('✅ Booking saved to Firestore! ID:', docRef.id);
+    return {
+      success: true,
+      bookingId: docRef.id,
+      message: 'Booking saved successfully'
+    };
+  } catch (error) {
+    console.error('❌ Error saving booking to Firestore:', error);
+    return {
+      success: false,
+      message: error.message
+    };
+  }
+};
+
+// Load bookings from Firestore
+const loadBookingsFromFirestore = async (userId) => {
+  try {
+    if (!userId) {
+      throw new Error('User ID is required');
+    }
+
+    const querySnapshot = await getDocs(collection(db, 'users', String(userId), 'bookings'));
+    const bookingsArray = querySnapshot.docs.map(doc => {
+      const data = doc.data();
+      return {
+        ...data,
+        id: doc.id,
+        dateObj: new Date(data.dateObj), // Convert ISO string back to Date object
+      };
+    });
+
+    // Sort by date/time (closest first)
+    bookingsArray.sort((a, b) => new Date(a.dateObj) - new Date(b.dateObj));
+
+    console.log('✅ Bookings loaded from Firestore! Count:', bookingsArray.length);
+    return {
+      success: true,
+      bookings: bookingsArray,
+      message: `Loaded ${bookingsArray.length} bookings`
+    };
+  } catch (error) {
+    console.error('❌ Error loading bookings from Firestore:', error);
+    return {
+      success: false,
+      bookings: [],
+      message: error.message
+    };
+  }
+};
+
+// Save attendance to Firestore
+const saveAttendanceToFirestore = async (userId, attendanceData) => {
+  try {
+    if (!userId) {
+      throw new Error('User ID is required');
+    }
+
+    // Prepare Firestore attendance record
+    const firestoreAttendance = {
+      ...attendanceData,
+      recordedAt: new Date().toISOString(),
+    };
+
+    const docRef = await addDoc(collection(db, 'users', String(userId), 'attendance'), firestoreAttendance);
+    
+    console.log('✅ Attendance saved to Firestore! ID:', docRef.id);
+    return {
+      success: true,
+      attendanceId: docRef.id,
+      message: 'Attendance recorded successfully'
+    };
+  } catch (error) {
+    console.error('❌ Error saving attendance to Firestore:', error);
+    return {
+      success: false,
+      message: error.message
+    };
+  }
+};
 const loadEmailJS = () => {
   const script = document.createElement('script');
   script.src = 'https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/index.min.js';
@@ -248,6 +349,34 @@ export default function ArikanaApp() {
   useEffect(() => {
     localStorage.setItem('arikanaHealthData', JSON.stringify(healthData));
   }, [healthData]);
+
+  // Load bookings from Firestore when currentUser is authenticated
+  useEffect(() => {
+    const loadBookings = async () => {
+      if (currentUser?.id) {
+        const result = await loadBookingsFromFirestore(currentUser.id);
+        if (result.success) {
+          setBookings(result.bookings);
+          console.log('✅ Bookings loaded from Firestore:', result.bookings.length);
+        } else {
+          console.warn('⚠️ Failed to load bookings from Firestore:', result.message);
+          // Fall back to localStorage if Firestore fails
+          const savedBookings = localStorage.getItem('arikanaBookings');
+          if (savedBookings) {
+            const parsed = JSON.parse(savedBookings);
+            const withDateObj = parsed.map(b => ({
+              ...b,
+              dateObj: new Date(b.dateObj)
+            }));
+            setBookings(withDateObj);
+            console.log('✅ Bookings loaded from localStorage (Firestore fallback)');
+          }
+        }
+      }
+    };
+
+    loadBookings();
+  }, [currentUser?.id]);
 
   // Auth Screens
   const AuthScreen = () => {
@@ -1053,7 +1182,7 @@ Since Mar 1, 2026</p>
     };
 
     // Handle booking confirmation
-    const handleBooking = () => {
+    const handleBooking = async () => {
       // Check if session is in the past and user hasn't confirmed yet
       if (isSessionInPast() && bookingView !== 'warning') {
         setBookingView('warning');
@@ -1087,6 +1216,16 @@ Since Mar 1, 2026</p>
 
       // Save to localStorage
       localStorage.setItem('arikanaBookings', JSON.stringify(updatedBookings));
+
+      // Save to Firestore if user is authenticated
+      if (currentUser?.id) {
+        const result = await saveBookingToFirestore(currentUser.id, newBooking);
+        if (result.success) {
+          console.log('✅ Booking synced to Firestore');
+        } else {
+          console.warn('⚠️ Booking saved locally but Firestore sync failed:', result.message);
+        }
+      }
 
       // Show confirmation page
       setLastBookedClass(newBooking);
