@@ -139,6 +139,37 @@ export default function ArikanaApp() {
     return {};
   });
 
+  // Shared class schedule state - indexed by day name for trainer dashboard
+  // This is synchronized between Profile (Class Schedule) and Book tabs
+  const [classScheduleByDay, setClassScheduleByDay] = useState({
+    'Monday': [
+      { id: 1, name: 'Pilates Mat', time: '09:00' },
+      { id: 2, name: 'Core Strength', time: '10:30' }
+    ],
+    'Tuesday': [
+      { id: 3, name: 'Pelvic Curl Flow', time: '08:00' },
+      { id: 4, name: 'Pilates Reformer', time: '09:00' },
+      { id: 5, name: 'Advanced Pilates', time: '18:30' }
+    ],
+    'Wednesday': [
+      { id: 6, name: 'Deep Core', time: '11:00' },
+      { id: 7, name: 'Pilates Mat', time: '17:00' }
+    ],
+    'Thursday': [
+      { id: 8, name: 'Advanced Pelvic', time: '17:00' },
+      { id: 9, name: 'Core Strength', time: '10:30' }
+    ],
+    'Friday': [
+      { id: 10, name: 'Pilates Fusion', time: '19:00' },
+      { id: 11, name: 'Pilates Reformer', time: '09:00' }
+    ],
+    'Saturday': [
+      { id: 12, name: 'Pelvic Curl Flow', time: '10:30' },
+      { id: 13, name: 'Advanced Pilates', time: '18:30' }
+    ],
+    'Sunday': [],
+  });
+
   const getClassesForDate = (date) => {
     const dateStr = date.toISOString().split('T')[0];
     const dayOfWeek = date.getDay();
@@ -651,70 +682,38 @@ export default function ArikanaApp() {
 
     const getNextUpcomingSessions = () => {
       const now = new Date();
-      const allSessions = [];
 
-      const classSchedule = {
-        '2026-03-09': [
-          { id: 1, name: 'Pilates Mat', time: '09:00', instructor: 'Angelina', spots: 8 },
-          { id: 2, name: 'Core Strength', time: '10:30', instructor: 'Nicolas', spots: 12 },
-          { id: 3, name: 'Speed Skating', time: '09:30', instructor: 'Sergey', spots: 11 },
-        ],
-        '2026-03-10': [
-          { id: 4, name: 'Pilates Reformer', time: '08:00', instructor: 'Nicolas', spots: 10 },
-          { id: 5, name: 'Pelvic Curl Flow', time: '10:00', instructor: 'Angelina', spots: 9 },
-          { id: 6, name: 'Ice Skating with Grace', time: '14:00', instructor: 'Sergey', spots: 7 },
-          { id: 7, name: 'Advanced Pilates', time: '18:00', instructor: 'Nicolas', spots: 5 },
-        ],
-        '2026-03-11': [
-          { id: 8, name: 'Deep Core Activation', time: '09:00', instructor: 'Angelina', spots: 6 },
-          { id: 9, name: 'Pilates Mat', time: '11:00', instructor: 'Nicolas', spots: 8 },
-          { id: 10, name: 'Speed Skating', time: '15:00', instructor: 'Sergey', spots: 10 },
-        ],
-        '2026-03-12': [
-          { id: 11, name: 'Advanced Pelvic Techniques', time: '10:00', instructor: 'Angelina', spots: 4 },
-          { id: 12, name: 'Core Strength', time: '12:00', instructor: 'Nicolas', spots: 9 },
-          { id: 13, name: 'Ice Skating Techniques', time: '16:00', instructor: 'Sergey', spots: 6 },
-        ],
-        '2026-03-13': [
-          { id: 14, name: 'Pilates Fusion', time: '09:30', instructor: 'Angelina', spots: 7 },
-          { id: 15, name: 'Pilates Reformer', time: '14:00', instructor: 'Nicolas', spots: 11 },
-          { id: 16, name: 'Crossfit on Ice', time: '17:00', instructor: 'Sergey', spots: 8 },
-        ],
-        '2026-03-14': [
-          { id: 17, name: 'Pelvic Curl Flow', time: '10:00', instructor: 'Angelina', spots: 5 },
-          { id: 18, name: 'Advanced Pilates', time: '15:00', instructor: 'Nicolas', spots: 9 },
-          { id: 19, name: 'Speed Skating', time: '17:30', instructor: 'Sergey', spots: 12 },
-        ],
-        '2026-03-16': [
-          { id: 20, name: 'Pilates Mat', time: '09:00', instructor: 'Angelina', spots: 8 },
-          { id: 21, name: 'Pilates Reformer', time: '14:00', instructor: 'Nicolas', spots: 10 },
-          { id: 22, name: 'Ice Skating with Grace', time: '16:30', instructor: 'Sergey', spots: 7 },
-        ],
+      // Helper function to get classes for a specific date based on classScheduleByDay
+      const getClassesForDateFromSchedule = (date) => {
+        const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+        const dayName = dayNames[date.getDay()];
+        return classScheduleByDay[dayName] || [];
       };
 
-      Object.keys(classSchedule).forEach(dateStr => {
-        const [year, month, day] = dateStr.split('-').map(Number);
-        classSchedule[dateStr].forEach(session => {
-          const sessionTime = new Date(year, month - 1, day);
-          const [hours, minutes] = session.time.split(':').map(Number);
-          sessionTime.setHours(hours, minutes, 0, 0);
-
-          const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
-          const dayName = dayNames[sessionTime.getDay()];
-          const dateStr2 = sessionTime.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
-
+      // Build sessions for the next 42 days
+      const allSessions = [];
+      const startDate = new Date(bookingCalendarStart);
+      
+      for (let i = 0; i < 42; i++) {
+        const date = new Date(startDate);
+        date.setDate(date.getDate() + i);
+        const classesForDate = getClassesForDateFromSchedule(date);
+        
+        classesForDate.forEach(cls => {
+          const sessionDate = new Date(date);
+          const [hours, minutes] = cls.time.split(':').map(Number);
+          sessionDate.setHours(hours, minutes, 0, 0);
+          
           allSessions.push({
-            id: session.id,
-            name: session.name,
-            time: session.time,
-            instructor: session.instructor,
-            spots: session.spots,
-            dateObj: sessionTime,
-            displayDate: `${dayName}, ${dateStr2}`,
+            ...cls,
+            displayDate: formatDateDetail(sessionDate),
+            dateObj: sessionDate,
+            classDate: sessionDate.toISOString().split('T')[0],
           });
         });
-      });
+      }
 
+      // Filter future sessions and return top 2
       const futureSessions = allSessions.filter(s => s.dateObj > now);
       futureSessions.sort((a, b) => a.dateObj - b.dateObj);
       return futureSessions.slice(0, 2);
@@ -1001,7 +1000,8 @@ Since Mar 1, 2026</p>
     selectedBookingClass, setSelectedBookingClass,
     selectedDate, setSelectedDate,
     bookingCalendarStart,
-    recurringPattern, dateOverrides, getClassesForDate
+    recurringPattern, dateOverrides, getClassesForDate,
+    classScheduleByDay
   }) => {
     const [selectedInstructor, setSelectedInstructor] = useState('all');
 
@@ -1728,7 +1728,7 @@ Since Mar 1, 2026</p>
 
   // ===== PROFILE TAB =====
 
-  const ProfileTab = ({ currentUser, setCurrentUser }) => {
+  const ProfileTab = ({ currentUser, setCurrentUser, classScheduleByDay, setClassScheduleByDay }) => {
     const [selectedMenuItem, setSelectedMenuItem] = useState(null);
     const [selectedClass, setSelectedClass] = useState(null);
     const [attendanceCheckboxes, setAttendanceCheckboxes] = useState({});
@@ -1903,8 +1903,16 @@ Since Mar 1, 2026</p>
                 <button 
                   type="button"
                   onClick={() => {
+                    handleCreateClass(formData);
                     alert(`✅ Class created!\n\n${formData.name}\n${formData.timeStart} (${formData.duration}min)\n${formData.recurring ? 'Recurring Weekly' : 'One-time'}`);
                     setSelectedClass(null);
+                    setFormData({
+                      name: '',
+                      instructor: 'nicolas',
+                      timeStart: '09:00',
+                      duration: '60',
+                      recurring: false,
+                    });
                   }}
                   style={{ backgroundColor: ARIKANA_COLOR }}
                   className="flex-1 text-white py-3 rounded-lg font-semibold hover:opacity-90 transition-opacity"
@@ -2031,36 +2039,43 @@ Since Mar 1, 2026</p>
       }
 
       // Sample recurring classes mapping
-      const classSchedule = {
-        'Monday': [
-          { id: 1, name: 'Pilates Mat', time: '09:00' },
-          { id: 2, name: 'Core Strength', time: '10:30' }
-        ],
-        'Tuesday': [
-          { id: 3, name: 'Pelvic Curl Flow', time: '08:00' },
-          { id: 4, name: 'Pilates Reformer', time: '09:00' },
-          { id: 5, name: 'Advanced Pilates', time: '18:30' }
-        ],
-        'Wednesday': [
-          { id: 6, name: 'Deep Core', time: '11:00' },
-          { id: 7, name: 'Pilates Mat', time: '17:00' }
-        ],
-        'Thursday': [
-          { id: 8, name: 'Advanced Pelvic', time: '17:00' },
-          { id: 9, name: 'Core Strength', time: '10:30' }
-        ],
-        'Friday': [
-          { id: 10, name: 'Pilates Fusion', time: '19:00' },
-          { id: 11, name: 'Pilates Reformer', time: '09:00' }
-        ],
-        'Saturday': [
-          { id: 12, name: 'Pelvic Curl Flow', time: '10:30' },
-          { id: 13, name: 'Advanced Pilates', time: '18:30' }
-        ],
-        'Sunday': [],
-      };
+      const classSchedule = classScheduleByDay;
 
       const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+
+      const handleCreateClass = (classData) => {
+        const dayName = dayNames[(new Date()).getDay()]; // Default to current day for demo
+        const newClass = {
+          id: Date.now(),
+          name: classData.name,
+          time: classData.timeStart,
+        };
+        setClassScheduleByDay({
+          ...classScheduleByDay,
+          [dayName]: [...(classScheduleByDay[dayName] || []), newClass]
+        });
+      };
+
+      const handleEditClass = (classData) => {
+        // Find and update the class in the schedule
+        const updated = { ...classScheduleByDay };
+        for (const day in updated) {
+          updated[day] = updated[day].map(cls => 
+            cls.id === classData.id 
+              ? { ...cls, name: classData.name, time: classData.timeStart }
+              : cls
+          );
+        }
+        setClassScheduleByDay(updated);
+      };
+
+      const handleDeleteClass = (classId) => {
+        const updated = { ...classScheduleByDay };
+        for (const day in updated) {
+          updated[day] = updated[day].filter(cls => cls.id !== classId);
+        }
+        setClassScheduleByDay(updated);
+      };
 
       return (
         <div className="pb-28">
@@ -2440,9 +2455,10 @@ Since Mar 1, 2026</p>
       recurringPattern={recurringPattern}
       dateOverrides={dateOverrides}
       getClassesForDate={getClassesForDate}
+      classScheduleByDay={classScheduleByDay}
     />,
     buy: <BuyTab />,
-    profile: <ProfileTab currentUser={currentUser} setCurrentUser={setCurrentUser} />,
+    profile: <ProfileTab currentUser={currentUser} setCurrentUser={setCurrentUser} classScheduleByDay={classScheduleByDay} setClassScheduleByDay={setClassScheduleByDay} />,
     more: <MoreTab />,
   };
 
