@@ -2334,6 +2334,197 @@ Since Mar 1, 2026</p>
       );
     }
 
+    // Booking History View
+    if (selectedMenuItem === 'bookings') {
+      return (
+        <div className="pb-28">
+          <div style={{ background: `linear-gradient(to bottom, ${ARIKANA_COLOR}, ${ARIKANA_COLOR}cc)` }} className="text-white px-6 py-4">
+            <div className="flex items-center gap-3">
+              <button onClick={() => setSelectedMenuItem(null)} className="text-2xl">←</button>
+              <h1 className="text-2xl font-light flex-1">Booking History</h1>
+            </div>
+          </div>
+          <div className="px-6 py-6">
+            <div className="space-y-3">
+              {[
+                { className: 'Pilates Mat', date: 'Mar 10, 2026', time: '09:00', instructor: 'Angelina', status: 'Attended' },
+                { className: 'Core Strength', date: 'Mar 08, 2026', time: '10:30', instructor: 'Nicolas', status: 'Attended' },
+                { className: 'Pelvic Curl Flow', date: 'Mar 05, 2026', time: '08:00', instructor: 'Angelina', status: 'No-Show' },
+              ].map((booking, i) => (
+                <div key={i} className="border border-stone-200 rounded-lg p-4">
+                  <div className="flex justify-between items-start">
+                    <div>
+                      <p className="font-bold text-stone-900">{booking.className}</p>
+                      <p className="text-sm text-stone-600">📅 {booking.date} • 🕐 {booking.time}</p>
+                      <p className="text-xs text-stone-600">with {booking.instructor}</p>
+                    </div>
+                    <span className={`text-xs font-bold px-2 py-1 rounded ${booking.status === 'Attended' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
+                      {booking.status === 'Attended' ? '✅' : '❌'} {booking.status}
+                    </span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    // Membership View
+    if (selectedMenuItem === 'membership') {
+      return (
+        <div className="pb-28">
+          <div style={{ background: `linear-gradient(to bottom, ${ARIKANA_COLOR}, ${ARIKANA_COLOR}cc)` }} className="text-white px-6 py-4">
+            <div className="flex items-center gap-3">
+              <button onClick={() => setSelectedMenuItem(null)} className="text-2xl">←</button>
+              <h1 className="text-2xl font-light flex-1">Membership</h1>
+            </div>
+          </div>
+          <div className="px-6 py-6">
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
+              <p className="font-bold text-stone-900 mb-2">Current Plan</p>
+              <p className="text-2xl font-bold" style={{ color: ARIKANA_COLOR }}>Premium Monthly</p>
+              <p className="text-sm text-stone-600 mt-2">Unlimited classes • Priority booking</p>
+            </div>
+            <div className="space-y-3">
+              <div className="border border-stone-200 rounded-lg p-4">
+                <p className="font-bold text-stone-900">Classes Used</p>
+                <p className="text-2xl font-bold text-stone-600">8 / Unlimited</p>
+              </div>
+              <div className="border border-stone-200 rounded-lg p-4">
+                <p className="font-bold text-stone-900">Next Renewal</p>
+                <p className="text-lg text-stone-600">April 14, 2026</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    // Notifications View
+    if (selectedMenuItem === 'notifications') {
+      return (
+        <div className="pb-28">
+          <div style={{ background: `linear-gradient(to bottom, ${ARIKANA_COLOR}, ${ARIKANA_COLOR}cc)` }} className="text-white px-6 py-4">
+            <div className="flex items-center gap-3">
+              <button onClick={() => setSelectedMenuItem(null)} className="text-2xl">←</button>
+              <h1 className="text-2xl font-light flex-1">Notifications</h1>
+            </div>
+          </div>
+          <div className="px-6 py-6">
+            <div className="space-y-4">
+              <div>
+                <label className="flex items-center gap-3 cursor-pointer">
+                  <input type="checkbox" defaultChecked className="w-4 h-4" />
+                  <span className="text-sm font-medium text-stone-900">Class Reminders</span>
+                </label>
+              </div>
+              <div>
+                <label className="flex items-center gap-3 cursor-pointer">
+                  <input type="checkbox" defaultChecked className="w-4 h-4" />
+                  <span className="text-sm font-medium text-stone-900">New Classes</span>
+                </label>
+              </div>
+              <div>
+                <label className="flex items-center gap-3 cursor-pointer">
+                  <input type="checkbox" defaultChecked className="w-4 h-4" />
+                  <span className="text-sm font-medium text-stone-900">Promotions</span>
+                </label>
+              </div>
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    // Preferences View
+    if (selectedMenuItem === 'preferences') {
+      return (
+        <div className="pb-28">
+          <div style={{ background: `linear-gradient(to bottom, ${ARIKANA_COLOR}, ${ARIKANA_COLOR}cc)` }} className="text-white px-6 py-4">
+            <div className="flex items-center gap-3">
+              <button onClick={() => setSelectedMenuItem(null)} className="text-2xl">←</button>
+              <h1 className="text-2xl font-light flex-1">Preferences</h1>
+            </div>
+          </div>
+          <div className="px-6 py-6">
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-semibold text-stone-900 mb-2">Language</label>
+                <select className="w-full border border-stone-300 rounded-lg px-4 py-2">
+                  <option>English</option>
+                  <option>Română</option>
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-semibold text-stone-900 mb-2">Theme</label>
+                <select className="w-full border border-stone-300 rounded-lg px-4 py-2">
+                  <option>Light</option>
+                  <option>Dark</option>
+                </select>
+              </div>
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    // Help & Support View
+    if (selectedMenuItem === 'help') {
+      return (
+        <div className="pb-28">
+          <div style={{ background: `linear-gradient(to bottom, ${ARIKANA_COLOR}, ${ARIKANA_COLOR}cc)` }} className="text-white px-6 py-4">
+            <div className="flex items-center gap-3">
+              <button onClick={() => setSelectedMenuItem(null)} className="text-2xl">←</button>
+              <h1 className="text-2xl font-light flex-1">Help & Support</h1>
+            </div>
+          </div>
+          <div className="px-6 py-6">
+            <div className="space-y-4">
+              <div>
+                <p className="font-bold text-stone-900 mb-2">📧 Email Support</p>
+                <p className="text-sm text-stone-600">support@arikana.com</p>
+              </div>
+              <div>
+                <p className="font-bold text-stone-900 mb-2">📞 Phone</p>
+                <p className="text-sm text-stone-600">+40 (0)31 230 8888</p>
+              </div>
+              <div>
+                <p className="font-bold text-stone-900 mb-2">🕒 Business Hours</p>
+                <p className="text-sm text-stone-600">Monday - Friday: 9:00 - 18:00</p>
+                <p className="text-sm text-stone-600">Saturday - Sunday: 10:00 - 16:00</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    // About Arikana View
+    if (selectedMenuItem === 'about') {
+      return (
+        <div className="pb-28">
+          <div style={{ background: `linear-gradient(to bottom, ${ARIKANA_COLOR}, ${ARIKANA_COLOR}cc)` }} className="text-white px-6 py-4">
+            <div className="flex items-center gap-3">
+              <button onClick={() => setSelectedMenuItem(null)} className="text-2xl">←</button>
+              <h1 className="text-2xl font-light flex-1">About Arikana</h1>
+            </div>
+          </div>
+          <div className="px-6 py-6">
+            <div className="text-center mb-6">
+              <p style={{ color: ARIKANA_COLOR }} className="text-3xl font-bold">Arikana</p>
+              <p className="text-sm text-stone-600 mt-1">Yoga • Pilates • Mindfulness</p>
+            </div>
+            <div className="space-y-4 text-sm text-stone-700">
+              <p>Welcome to Arikana Studios, your sanctuary for wellness and inner peace. We offer a carefully curated selection of Yoga and Pilates classes designed to transform your body and mind.</p>
+              <p><strong>App Version:</strong> 1.0.0</p>
+              <p><strong>Location:</strong> Giurgiu, Romania</p>
+            </div>
+          </div>
+        </div>
+      );
+    }
+
 
     // Payment Methods Detail View
     if (selectedMenuItem === 'payment-methods') {
