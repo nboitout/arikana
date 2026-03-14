@@ -1978,6 +1978,7 @@ Since Mar 1, 2026</p>
     const [showCreateForm, setShowCreateForm] = useState(false);
     const [newClassForm, setNewClassForm] = useState({ name: '', time: '', duration: '60 min', instructor: 'Nicolas', spots: 10, dayOfWeek: 1, recurringEveryWeek: true });
     const [attendanceRefresh, setAttendanceRefresh] = useState(0); // Force re-render every 30 seconds
+    const [attendanceSaved, setAttendanceSaved] = useState(false); // Track if attendance was just saved
 
     // Generate 7 days starting from TODAY
     const getTodayPlus7Days = () => {
@@ -2011,29 +2012,76 @@ Since Mar 1, 2026</p>
 
     // Initialize attendance data when a class is selected
     useEffect(() => {
-      if (selectedClass) {
-        // Get the actual number of members who booked this class
-        const memberCount = selectedClass.memberCount || 0;
-        
-        // Show only the number of members that actually booked
-        // Select from the available members pool
-        const membersToShow = allAvailableMembers.slice(0, memberCount);
-        
-        // Initialize all selected members as attended (checked) by default
-        const initialCheckboxes = {};
-        membersToShow.forEach(member => {
-          initialCheckboxes[member.id] = true;
-        });
-        
-        setAttendanceCheckboxes(initialCheckboxes);
-        setCurrentAttendanceList(membersToShow);
-        setSelectedMemberToAdd('');
-      } else {
-        setAttendanceCheckboxes({});
-        setCurrentAttendanceList([]);
-        setSelectedMemberToAdd('');
-      }
-    }, [selectedClass]);
+      const initializeAttendance = async () => {
+        if (selectedClass && currentUser?.id) {
+          // Get the actual number of members who booked this class
+          const memberCount = selectedClass.memberCount || 0;
+          
+          // Show only the number of members that actually booked
+          const membersToShow = allAvailableMembers.slice(0, memberCount);
+          
+          // Try to load saved attendance from Firestore
+          try {
+            const attendanceSnapshot = await getDocs(collection(db, 'users', String(currentUser.id), 'attendance'));
+            const today = new Date().toISOString().split('T')[0]; // YYYY-MM-DD
+            
+            // Find attendance record for this class today
+            const savedAttendance = attendanceSnapshot.docs.find(doc => {
+              const data = doc.data();
+              return data.className === selectedClass.name && 
+                     data.classDate === today;
+            });
+            
+            const initialCheckboxes = {};
+            
+            if (savedAttendance) {
+              // Load from saved attendance
+              const attendanceData = savedAttendance.data();
+              const attendanceList = attendanceData.attendance || [];
+              
+              // Set checkboxes based on saved data
+              membersToShow.forEach(member => {
+                const attendanceRecord = attendanceList.find(a => a.name === member.name);
+                if (attendanceRecord) {
+                  // Use saved attendance status
+                  initialCheckboxes[member.id] = attendanceRecord.attended !== false;
+                } else {
+                  // Default to attended if not in saved record
+                  initialCheckboxes[member.id] = true;
+                }
+              });
+              
+              console.log('✅ Attendance loaded from Firestore for', selectedClass.name);
+            } else {
+              // No saved attendance - default all to true (attended)
+              membersToShow.forEach(member => {
+                initialCheckboxes[member.id] = true;
+              });
+            }
+            
+            setAttendanceCheckboxes(initialCheckboxes);
+            setCurrentAttendanceList(membersToShow);
+            setSelectedMemberToAdd('');
+          } catch (error) {
+            console.log('ℹ️ Could not load attendance from Firestore:', error.message);
+            // Fallback: default all to true
+            const initialCheckboxes = {};
+            membersToShow.forEach(member => {
+              initialCheckboxes[member.id] = true;
+            });
+            setAttendanceCheckboxes(initialCheckboxes);
+            setCurrentAttendanceList(membersToShow);
+            setSelectedMemberToAdd('');
+          }
+        } else {
+          setAttendanceCheckboxes({});
+          setCurrentAttendanceList([]);
+          setSelectedMemberToAdd('');
+        }
+      };
+      
+      initializeAttendance();
+    }, [selectedClass, currentUser?.id]);
 
     // Refresh attendance list every 30 seconds when viewing attendance (updates which classes show)
     useEffect(() => {
@@ -2714,29 +2762,52 @@ Since Mar 1, 2026</p>
         if (currentUser?.id) {
           const result = await saveAttendanceToFirestore(currentUser.id, attendanceData);
           if (result.success) {
+            console.log('✅ Attendance saved to Firestore!');
+            setAttendanceSaved(true);
+            
+            // Show success message
             alert(`✅ Attendance saved!\n\nAttended: ${attended.length}\nNo-shows: ${noShows.length}`);
+            
+            // After showing alert, return to list
+            setTimeout(() => {
+              setSelectedClass(null);
+              setAttendanceCheckboxes({});
+              setCurrentAttendanceList([]);
+              setAttendanceSaved(false);
+            }, 500);
           } else {
             alert(`❌ Error: ${result.message}`);
           }
         }
-
-        // Reset
-        setSelectedClass(null);
-        setAttendanceCheckboxes({});
-        setCurrentAttendanceList([]);
       };
 
       return (
         <div className="pb-28">
-          <div style={{ backgroundColor: ARIKANA_COLOR }} className="text-white px-6 py-4 flex items-center gap-3">
-            <button onClick={() => setSelectedClass(null)} className="text-2xl">←</button>
-            <h1 className="text-2xl font-light">{selectedClass.name}</h1>
+          <div style={{ backgroundColor: ARIKANA_COLOR }} className="text-white px-6 py-4 flex items-center gap-3 justify-between">
+            <div className="flex items-center gap-3">
+              <button onClick={() => setSelectedClass(null)} className="text-2xl">←</button>
+              <h1 className="text-2xl font-light">{selectedClass.name}</h1>
+            </div>
+            {attendanceSaved && (
+              <span className="bg-green-500 text-white text-xs font-bold px-3 py-1 rounded-full">
+                ✅ Saved
+              </span>
+            )}
           </div>
 
           <div className="px-6 py-6">
             <div className="bg-stone-100 rounded-lg p-4 mb-6">
-              <p className="text-sm text-stone-600">🕐 {selectedClass.time}</p>
-              <p className="text-sm text-stone-600">👥 {currentAttendanceList.length} members</p>
+              <div className="flex items-center justify-between mb-2">
+                <div>
+                  <p className="text-sm text-stone-600">🕐 {selectedClass.time}</p>
+                  <p className="text-sm text-stone-600">👥 {currentAttendanceList.length} members</p>
+                </div>
+                {attendanceSaved && (
+                  <span className="text-xs bg-green-100 text-green-700 px-2 py-1 rounded font-semibold">
+                    Saved to Firebase ✅
+                  </span>
+                )}
+              </div>
               <p className="text-xs text-stone-600 mt-2">Attended: <span className="font-bold text-green-600">{Object.values(attendanceCheckboxes).filter(Boolean).length}</span> | No-show: <span className="font-bold text-red-600">{Object.values(attendanceCheckboxes).filter(v => v === false).length}</span></p>
             </div>
 
