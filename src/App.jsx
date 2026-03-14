@@ -156,9 +156,6 @@ export default function ArikanaApp() {
 
   const saveBookingToFirestore = async (booking) => {
     try {
-      console.log('🔍 saveBookingToFirestore called with:', { userId: currentUser.id, booking });
-      console.log('🔍 userId type:', typeof currentUser.id, 'value:', currentUser.id);
-      
       if (!currentUser || !currentUser.id) {
         console.log('⚠️ No currentUser or id, skipping Firestore save');
         return;
@@ -178,12 +175,7 @@ export default function ArikanaApp() {
 
   const loadBookingsFromFirestore = async () => {
     try {
-      console.log('🔍 loadBookingsFromFirestore called');
-      console.log('🔍 currentUser:', currentUser);
-      console.log('🔍 userId type:', typeof currentUser?.id, 'value:', currentUser?.id);
-      
       if (!currentUser || !currentUser.id) {
-        console.log('⚠️ No currentUser or id, skipping load');
         setBookings([]);
         return;
       }
@@ -191,17 +183,13 @@ export default function ArikanaApp() {
       const userBookingsRef = collection(db, 'users', String(currentUser.id), 'bookings');
       const snapshot = await getDocs(userBookingsRef);
       
-      console.log('📦 Snapshot docs count:', snapshot.docs.length);
-      
       if (snapshot.empty) {
-        console.log('ℹ️ No bookings found in Firestore');
         setBookings([]);
         return;
       }
       
       const firestoreBookings = snapshot.docs.map(docSnapshot => {
         const data = docSnapshot.data();
-        console.log('📋 Raw booking data:', data);
         
         // Parse dateObj safely
         let dateObj;
@@ -232,7 +220,6 @@ export default function ArikanaApp() {
       console.log('✅ Bookings loaded from Firestore:', firestoreBookings.length);
     } catch (error) {
       console.error('❌ Error loading bookings:', error);
-      console.log('⚠️ Falling back to localStorage');
       const savedBookings = localStorage.getItem('arikanaBookings');
       if (savedBookings) {
         try {
@@ -247,10 +234,7 @@ export default function ArikanaApp() {
 
   const deleteBookingFromFirestore = async (bookingId) => {
     try {
-      console.log('🔍 deleteBookingFromFirestore called with:', { userId: currentUser?.id, bookingId });
-      
       if (!currentUser || !currentUser.id) {
-        console.log('⚠️ No currentUser or id, skipping Firestore delete');
         return;
       }
       
@@ -1093,7 +1077,6 @@ Since Mar 1, 2026</p>
     };
 
     if (bookingView === 'confirmation' && lastBookedClass) {
-      console.log('🟢 CONFIRMATION PAGE RENDERING', { class: lastBookedClass.className });
       return (
         <div className="pb-28 flex flex-col bg-white">
           <div style={{ backgroundColor: ARIKANA_COLOR }} className="text-white px-6 py-3">
@@ -1735,27 +1718,38 @@ Since Mar 1, 2026</p>
           </div>
 
           <div className="space-y-2">
-            {[
-              { label: 'Booking History', icon: '📅', id: 'bookings' },
-              { label: 'Membership', icon: '🎫', id: 'membership' },
-              { label: 'Payment Methods', icon: '💳', id: 'payment' },
-              { label: 'Notifications', icon: '🔔', id: 'notifications' },
-              { label: 'Preferences', icon: '⚙️', id: 'preferences' },
-              { label: 'Help & Support', icon: '❓', id: 'help' },
-              { label: 'About Arikana', icon: 'ℹ️', id: 'about' },
-            ].map((item, i) => (
-              <button 
-                key={i} 
-                onClick={() => setSelectedMenuItem(item.id)}
-                className="w-full text-left border border-stone-200 rounded-xl p-4 hover:bg-stone-50 transition-colors flex items-center justify-between"
-              >
-                <span className="flex items-center gap-3">
-                  <span className="text-xl">{item.icon}</span>
-                  <span className="font-medium text-stone-900">{item.label}</span>
-                </span>
-                <ChevronRight className="w-5 h-5 text-stone-400" />
-              </button>
-            ))}
+            {(() => {
+              // Build menu items - Class Schedule only for lead trainers
+              const menuItems = [];
+              
+              if (currentUser.role === 'lead-trainer') {
+                menuItems.push({ label: 'Class Schedule', icon: '📋', id: 'class-schedule' });
+              }
+              
+              menuItems.push(
+                { label: 'Booking History', icon: '📅', id: 'bookings' },
+                { label: 'Membership', icon: '🎫', id: 'membership' },
+                { label: 'Payment Methods', icon: '💳', id: 'payment' },
+                { label: 'Notifications', icon: '🔔', id: 'notifications' },
+                { label: 'Preferences', icon: '⚙️', id: 'preferences' },
+                { label: 'Help & Support', icon: '❓', id: 'help' },
+                { label: 'About Arikana', icon: 'ℹ️', id: 'about' }
+              );
+              
+              return menuItems.map((item, i) => (
+                <button 
+                  key={i} 
+                  onClick={() => setSelectedMenuItem(item.id)}
+                  className="w-full text-left border border-stone-200 rounded-xl p-4 hover:bg-stone-50 transition-colors flex items-center justify-between"
+                >
+                  <span className="flex items-center gap-3">
+                    <span className="text-xl">{item.icon}</span>
+                    <span className="font-medium text-stone-900">{item.label}</span>
+                  </span>
+                  <ChevronRight className="w-5 h-5 text-stone-400" />
+                </button>
+              ));
+            })()}
           </div>
 
           <button 
