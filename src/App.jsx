@@ -2015,9 +2015,6 @@ Since Mar 1, 2026</p>
     useEffect(() => {
       const initializeAttendance = async () => {
         if (selectedClass && currentUser?.id) {
-          // Always show all available members (trainer can mark who attended)
-          const membersToShow = allAvailableMembers;
-          
           // Try to load saved attendance from Firestore
           try {
             const attendanceSnapshot = await getDocs(collection(db, 'users', String(currentUser.id), 'attendance'));
@@ -2031,30 +2028,34 @@ Since Mar 1, 2026</p>
             });
             
             const initialCheckboxes = {};
+            let membersToShow = [];
             
             if (savedAttendance) {
-              // Load from saved attendance
+              // Load from saved attendance - show ONLY the members in the saved record
               const attendanceData = savedAttendance.data();
               const attendanceList = attendanceData.attendance || [];
               
               // Set checkboxes based on saved data
-              membersToShow.forEach(member => {
-                const attendanceRecord = attendanceList.find(a => a.name === member.name);
-                if (attendanceRecord) {
-                  // Use saved attendance status
-                  initialCheckboxes[member.id] = attendanceRecord.attended !== false;
-                } else {
-                  // Default to attended if not in saved record
-                  initialCheckboxes[member.id] = true;
+              attendanceList.forEach(record => {
+                const member = allAvailableMembers.find(m => m.name === record.name);
+                if (member) {
+                  membersToShow.push(member);
+                  initialCheckboxes[member.id] = record.attended !== false;
                 }
               });
               
-              console.log('✅ Attendance loaded from Firestore for', selectedClass.name);
+              console.log('✅ Attendance loaded from Firestore for', selectedClass.name, '- showing', membersToShow.length, 'members');
             } else {
-              // No saved attendance - default all to true (attended)
+              // No saved attendance - show members with bookings
+              const memberCount = selectedClass.memberCount || 0;
+              membersToShow = allAvailableMembers.slice(0, memberCount);
+              
+              // Default all booked members to attended
               membersToShow.forEach(member => {
                 initialCheckboxes[member.id] = true;
               });
+              
+              console.log('ℹ️ No saved attendance - showing', memberCount, 'booked members');
             }
             
             setAttendanceCheckboxes(initialCheckboxes);
@@ -2062,7 +2063,9 @@ Since Mar 1, 2026</p>
             setSelectedMemberToAdd('');
           } catch (error) {
             console.log('ℹ️ Could not load attendance from Firestore:', error.message);
-            // Fallback: show all members and default all to true
+            // Fallback: show booked members only
+            const memberCount = selectedClass.memberCount || 0;
+            const membersToShow = allAvailableMembers.slice(0, memberCount);
             const initialCheckboxes = {};
             membersToShow.forEach(member => {
               initialCheckboxes[member.id] = true;
