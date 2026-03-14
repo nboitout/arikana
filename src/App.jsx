@@ -172,6 +172,23 @@ export default function ArikanaApp() {
   // Brand color
   const ARIKANA_COLOR = '#B69B4D';
 
+// Firebase test function
+const testFirebase = async () => {
+  try {
+    const { addDoc, collection } = await import('firebase/firestore');
+    await addDoc(collection(db, 'test'), {
+      message: 'Firebase is working!',
+      timestamp: new Date()
+    });
+    console.log('✅ Data written to Firebase!');
+    alert('✅ Test data written to Firebase!\n\nCheck Firebase Console → Firestore → "test" collection');
+  } catch (error) {
+    console.error('❌ Error:', error);
+    alert('❌ Error: ' + error.message);
+  }
+};
+
+
   useEffect(() => {
     // Load EmailJS
     loadEmailJS();
