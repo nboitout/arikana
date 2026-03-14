@@ -2,29 +2,64 @@ import React, { useState, useEffect } from 'react';
 import { Home, Calendar, ShoppingBag, User, MoreHorizontal, ChevronRight, Eye, EyeOff } from 'lucide-react';
 import './App.css';
 
-// EmailJS configuration - You'll need to sign up at emailjs.com
-const EMAILJS_SERVICE_ID = 'service_arikana'; // Replace with your service ID
-const EMAILJS_TEMPLATE_ID = 'template_arikana'; // Replace with your template ID
-const EMAILJS_PUBLIC_KEY = 'YOUR_PUBLIC_KEY'; // Replace with your public key
+// ============================================================================
+// FIREBASE CONFIGURATION
+// ============================================================================
+import { initializeApp } from 'firebase/app';
+import { getAuth } from 'firebase/auth';
+import { getFirestore, addDoc, collection, getDocs, doc, deleteDoc, setDoc } from 'firebase/firestore';
 
-// Firebase configuration
 const FIREBASE_CONFIG = {
-  apiKey: "YOUR_API_KEY",
-  authDomain: "YOUR_AUTH_DOMAIN",
-  projectId: "YOUR_PROJECT_ID",
-  storageBucket: "YOUR_STORAGE_BUCKET",
-  messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
-  appId: "YOUR_APP_ID"
+  apiKey: "AIzaSyAcIzGaIAc_gOmR81AuIkeRdEW1tGXTV6k",
+  authDomain: "arikana-1e213.firebaseapp.com",
+  projectId: "arikana-1e213",
+  storageBucket: "arikana-1e213.firebasestorage.app",
+  messagingSenderId: "312663898307",
+  appId: "1:312663898307:web:dbfc24e1761204e3734a76",
+  measurementId: "G-3FN4SH1C07"
 };
 
-// Load EmailJS library
-const loadEmailJS = () => {
-  const script = document.createElement('script');
-  script.src = 'https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/index.min.js';
-  script.onload = () => {
-    window.emailjs.init(EMAILJS_PUBLIC_KEY);
-  };
-  document.head.appendChild(script);
+// Initialize Firebase
+const app = initializeApp(FIREBASE_CONFIG);
+export const auth = getAuth(app);
+export const db = getFirestore(app);
+
+// ============================================================================
+// FIREBASE CONNECTION TEST FUNCTION
+// ============================================================================
+const testFirebaseConnection = async () => {
+  try {
+    const timestamp = new Date().toISOString();
+    
+    // Write test data
+    const testRef = await addDoc(collection(db, 'test'), {
+      message: 'Firebase connection test',
+      timestamp: timestamp,
+      status: 'success'
+    });
+    
+    console.log('✅ Firebase Write Success! Document ID:', testRef.id);
+    
+    // Read test data
+    const querySnapshot = await getDocs(collection(db, 'test'));
+    const docs = querySnapshot.docs.map(doc => doc.data());
+    
+    console.log('✅ Firebase Read Success! Documents:', docs);
+    
+    return {
+      success: true,
+      message: `✅ Firebase Connected!\nWrote & read test data`,
+      docCount: docs.length,
+      latestWrite: timestamp
+    };
+  } catch (error) {
+    console.error('❌ Firebase Connection Error:', error);
+    return {
+      success: false,
+      message: `❌ Firebase Error:\n${error.message}`,
+      error: error
+    };
+  }
 };
 
 // Count-up animation hook
@@ -64,6 +99,7 @@ export default function ArikanaApp() {
   const [authMode, setAuthMode] = useState('signup'); // 'signup' or 'signin'
   const [isLoading, setIsLoading] = useState(true);
   const [bookings, setBookings] = useState([]);
+  const [firebaseTestResult, setFirebaseTestResult] = useState(null);
   
   // Health questionnaire data
   const [healthData, setHealthData] = useState(() => {
@@ -587,12 +623,20 @@ export default function ArikanaApp() {
   // Main app continues from here...
 
   // Home Tab Content
-  const HomeTab = ({ bookings, setBookings, healthData, setHealthData }) => {
+  const HomeTab = ({ bookings, setBookings, healthData, setHealthData, firebaseTestResult, setFirebaseTestResult }) => {
     const [showHealthForm, setShowHealthForm] = useState(false);
     const [healthForm, setHealthForm] = useState(healthData.bodyRegions);
     const count172 = useCountUp(172, 1200);
     const count100 = useCountUp(100, 1200);
     const [bookingToCancel, setBookingToCancel] = useState(null);
+    const [testingFirebase, setTestingFirebase] = useState(false);
+
+    const handleFirebaseTest = async () => {
+      setTestingFirebase(true);
+      const result = await testFirebaseConnection();
+      setFirebaseTestResult(result);
+      setTestingFirebase(false);
+    };
 
     // Get next 2 upcoming sessions based on current time
     const getNextUpcomingSessions = () => {
@@ -681,8 +725,30 @@ export default function ArikanaApp() {
       <div className="pb-28">
         {/* Header with gradient */}
         <div style={{ background: `linear-gradient(to bottom, ${ARIKANA_COLOR}, ${ARIKANA_COLOR}cc)` }} className="text-white px-6 py-6">
-          <p className="text-sm font-light mb-1">Hi, Anechka</p>
-          <h1 className="text-2xl font-light">Welcome to Arikana Studio</h1>
+          <div className="flex justify-between items-start mb-4">
+            <div className="flex-1">
+              <p className="text-sm font-light mb-1">Hi, Anechka</p>
+              <h1 className="text-2xl font-light">Welcome to Arikana Studio</h1>
+            </div>
+            <button
+              onClick={handleFirebaseTest}
+              disabled={testingFirebase}
+              className="ml-3 px-3 py-2 bg-white bg-opacity-20 hover:bg-opacity-30 rounded-lg text-xs font-semibold transition-all disabled:opacity-50 cursor-pointer whitespace-nowrap"
+              title="Test Firebase connection"
+            >
+              {testingFirebase ? '⏳...' : '🔥 Test'}
+            </button>
+          </div>
+          
+          {/* Firebase Test Result */}
+          {firebaseTestResult && (
+            <div className={`mt-3 text-xs p-2 rounded-lg ${firebaseTestResult.success ? 'bg-green-500 bg-opacity-20' : 'bg-red-500 bg-opacity-20'}`}>
+              <p className="whitespace-pre-wrap text-white">{firebaseTestResult.message}</p>
+              {firebaseTestResult.success && firebaseTestResult.docCount !== undefined && (
+                <p className="text-xs mt-1 opacity-80">Docs in test collection: {firebaseTestResult.docCount}</p>
+              )}
+            </div>
+          )}
         </div>
 
         {/* Achievements Section */}
@@ -2891,7 +2957,7 @@ Since Mar 1, 2026</p>
   );
 
   const tabContent = {
-    home: <HomeTab bookings={bookings} setBookings={setBookings} healthData={healthData} setHealthData={setHealthData} />,
+    home: <HomeTab bookings={bookings} setBookings={setBookings} healthData={healthData} setHealthData={setHealthData} firebaseTestResult={firebaseTestResult} setFirebaseTestResult={setFirebaseTestResult} />,
     book: <BookTab 
       bookings={bookings}
       setBookings={setBookings}
