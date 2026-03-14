@@ -1690,6 +1690,7 @@ Since Mar 1, 2026</p>
 
   const ProfileTab = ({ currentUser, setCurrentUser }) => {
     const [selectedMenuItem, setSelectedMenuItem] = useState(null);
+    const [selectedClass, setSelectedClass] = useState(null);
 
     const handleSignOut = () => {
       localStorage.removeItem('arikanaUser');
@@ -1698,6 +1699,28 @@ Since Mar 1, 2026</p>
 
     // Class Schedule View
     if (selectedMenuItem === 'class-schedule' && currentUser.role === 'lead-trainer') {
+      // Generate next 14 days
+      const today = new Date();
+      const days = [];
+      for (let i = 0; i < 14; i++) {
+        const d = new Date(today);
+        d.setDate(d.getDate() + i);
+        days.push(d);
+      }
+
+      // Sample recurring classes mapping
+      const classSchedule = {
+        'Monday': ['Pilates Mat (09:00)', 'Core Strength (10:30)'],
+        'Tuesday': ['Pelvic Curl Flow (08:00)', 'Pilates Reformer (09:00)', 'Advanced Pilates (18:30)'],
+        'Wednesday': ['Deep Core (11:00)', 'Pilates Mat (17:00)'],
+        'Thursday': ['Advanced Pelvic (17:00)', 'Core Strength (10:30)'],
+        'Friday': ['Pilates Fusion (19:00)', 'Pilates Reformer (09:00)'],
+        'Saturday': ['Pelvic Curl Flow (10:30)', 'Advanced Pilates (18:30)'],
+        'Sunday': [], // Rest day
+      };
+
+      const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+
       return (
         <div className="pb-28">
           <div style={{ backgroundColor: ARIKANA_COLOR }} className="text-white px-6 py-4 flex items-center gap-3">
@@ -1705,9 +1728,7 @@ Since Mar 1, 2026</p>
             <h1 className="text-2xl font-light">Class Schedule</h1>
           </div>
 
-          <div className="px-6 py-6">
-            <p className="text-stone-600 text-sm mb-4">Manage your classes here - create, edit, and delete one-shot or recurring classes.</p>
-            
+          <div className="px-3 py-6">
             <button 
               style={{ backgroundColor: ARIKANA_COLOR }}
               className="w-full text-white py-3 rounded-lg font-semibold hover:opacity-90 transition-opacity mb-6"
@@ -1715,20 +1736,45 @@ Since Mar 1, 2026</p>
               ➕ Create New Class
             </button>
 
-            <div className="space-y-3">
-              <h3 className="font-bold text-stone-900">Recurring Classes</h3>
-              {['Pilates Mat', 'Core Strength', 'Pelvic Curl Flow'].map((cls, i) => (
-                <div key={i} className="border border-stone-200 rounded-lg p-3 flex justify-between items-center">
-                  <div>
-                    <p className="font-medium text-stone-900">{cls}</p>
-                    <p className="text-xs text-stone-600">Mon, Wed, Fri • 09:00</p>
-                  </div>
-                  <div className="flex gap-2">
-                    <button className="text-stone-600 hover:text-stone-900">✏️</button>
-                    <button className="text-red-500 hover:text-red-700">🗑️</button>
-                  </div>
-                </div>
-              ))}
+            {/* 2-Week Calendar */}
+            <div className="overflow-x-auto scrollbar-hide">
+              <div className="flex gap-2" style={{ minWidth: 'min-content' }}>
+                {days.map((date, idx) => {
+                  const dayName = dayNames[date.getDay()];
+                  const classes = classSchedule[dayName] || [];
+                  const isToday = idx === 0;
+                  
+                  return (
+                    <div 
+                      key={idx}
+                      style={{
+                        backgroundColor: isToday ? `${ARIKANA_COLOR}20` : '#f9fafb',
+                        borderColor: isToday ? ARIKANA_COLOR : '#e5e7eb',
+                      }}
+                      className="flex-shrink-0 w-32 border-2 rounded-lg p-3"
+                    >
+                      <div className="mb-3">
+                        <p className="text-xs font-bold text-stone-600">{dayName.slice(0, 3)}</p>
+                        <p className="text-lg font-bold text-stone-900">{date.getDate()}</p>
+                        <p className="text-xs text-stone-600">{date.toLocaleDateString('en-US', { month: 'short' })}</p>
+                      </div>
+
+                      {dayName === 'Sunday' ? (
+                        <p className="text-xs text-stone-500 italic">Rest day</p>
+                      ) : (
+                        <div className="space-y-1">
+                          {classes.map((cls, i) => (
+                            <div key={i} className="text-xs bg-white rounded px-2 py-1 border border-stone-200">
+                              <p className="font-medium text-stone-900">{cls.split(' (')[0]}</p>
+                              <p className="text-stone-600">{cls.split(' (')[1].replace(')', '')}</p>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
             </div>
           </div>
         </div>
@@ -1737,6 +1783,48 @@ Since Mar 1, 2026</p>
 
     // Attendance View
     if (selectedMenuItem === 'attendance' && currentUser.role === 'lead-trainer') {
+      if (selectedClass) {
+        return (
+          <div className="pb-28">
+            <div style={{ backgroundColor: ARIKANA_COLOR }} className="text-white px-6 py-4 flex items-center gap-3">
+              <button onClick={() => setSelectedClass(null)} className="text-2xl">←</button>
+              <h1 className="text-2xl font-light">{selectedClass.name}</h1>
+            </div>
+
+            <div className="px-6 py-6">
+              <div className="bg-stone-100 rounded-lg p-4 mb-6">
+                <p className="text-sm text-stone-600">🕐 {selectedClass.time}</p>
+                <p className="text-sm text-stone-600">👥 {selectedClass.members} members booked</p>
+              </div>
+
+              <h3 className="font-bold text-stone-900 mb-3">Mark Attendance</h3>
+              <div className="space-y-2">
+                {[
+                  { name: 'Sarah Johnson', health: 'Lower back pain' },
+                  { name: 'Emma Davis', health: 'Neck tension' },
+                  { name: 'Lisa Chen', health: 'No issues' },
+                ].map((member, i) => (
+                  <div key={i} className="flex items-center gap-3 border border-stone-200 rounded-lg p-3 bg-white">
+                    <input type="checkbox" className="w-5 h-5" />
+                    <div className="flex-1">
+                      <p className="font-medium text-stone-900">{member.name}</p>
+                      <p className="text-xs text-stone-600">{member.health}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              <button
+                style={{ backgroundColor: ARIKANA_COLOR }}
+                className="w-full text-white py-3 rounded-lg font-semibold hover:opacity-90 transition-opacity mt-6"
+              >
+                💾 Save Attendance
+              </button>
+            </div>
+          </div>
+        );
+      }
+
       return (
         <div className="pb-28">
           <div style={{ backgroundColor: ARIKANA_COLOR }} className="text-white px-6 py-4 flex items-center gap-3">
@@ -1765,8 +1853,9 @@ Since Mar 1, 2026</p>
                     </span>
                   </div>
                   <button 
+                    onClick={() => setSelectedClass(cls)}
                     style={{ borderColor: ARIKANA_COLOR, color: ARIKANA_COLOR }}
-                    className="w-full border-2 py-2 rounded-lg font-semibold hover:bg-yellow-50 transition-colors text-sm"
+                    className="w-full border-2 py-2 rounded-lg font-semibold hover:bg-yellow-50 transition-colors text-sm cursor-pointer"
                   >
                     View & Mark Attendance
                   </button>
