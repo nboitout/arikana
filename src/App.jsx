@@ -2015,11 +2015,8 @@ Since Mar 1, 2026</p>
     useEffect(() => {
       const initializeAttendance = async () => {
         if (selectedClass && currentUser?.id) {
-          // Get the actual number of members who booked this class
-          const memberCount = selectedClass.memberCount || 0;
-          
-          // Show only the number of members that actually booked
-          const membersToShow = allAvailableMembers.slice(0, memberCount);
+          // Always show all available members (trainer can mark who attended)
+          const membersToShow = allAvailableMembers;
           
           // Try to load saved attendance from Firestore
           try {
@@ -2065,7 +2062,7 @@ Since Mar 1, 2026</p>
             setSelectedMemberToAdd('');
           } catch (error) {
             console.log('ℹ️ Could not load attendance from Firestore:', error.message);
-            // Fallback: default all to true
+            // Fallback: show all members and default all to true
             const initialCheckboxes = {};
             membersToShow.forEach(member => {
               initialCheckboxes[member.id] = true;
@@ -2094,6 +2091,70 @@ Since Mar 1, 2026</p>
         return () => clearInterval(interval);
       }
     }, [selectedMenuItem, selectedClass]);
+
+    // Load attendance counts from Firestore
+    useEffect(() => {
+      const loadAttendanceCounts = async () => {
+        const now = new Date();
+        const todayClasses = getClassesForDate(now);
+        const today = now.toISOString().split('T')[0]; // YYYY-MM-DD
+        
+        const classesWithCounts = [];
+        
+        // Try to load attendance records from Firestore
+        let attendanceRecords = [];
+        if (currentUser?.id) {
+          try {
+            const attendanceSnapshot = await getDocs(collection(db, 'users', String(currentUser.id), 'attendance'));
+            attendanceRecords = attendanceSnapshot.docs
+              .map(doc => doc.data())
+              .filter(record => record.classDate === today);
+          } catch (error) {
+            console.log('ℹ️ Could not load attendance records:', error.message);
+          }
+        }
+        
+        // For each class, determine member count
+        todayClasses.forEach(cls => {
+          const attendanceRecord = attendanceRecords.find(r => r.className === cls.name);
+          
+          let memberCount = 0;
+          if (attendanceRecord && attendanceRecord.attendance) {
+            // Count people marked as attended
+            memberCount = attendanceRecord.attendance.filter(a => a.attended === true).length;
+          } else {
+            // Fall back to booking count
+            memberCount = bookings.filter(b => 
+              b.classId === cls.id && 
+              new Date(b.dateObj).toDateString() === now.toDateString()
+            ).length;
+          }
+          
+          classesWithCounts.push({
+            id: cls.id,
+            name: cls.name,
+            time: cls.time,
+            instructor: cls.instructor,
+            members: memberCount || 0,
+            duration: cls.duration,
+            classObj: cls
+          });
+        });
+        
+        // Sort by time
+        classesWithCounts.sort((a, b) => {
+          const [aH, aM] = a.time.split(':').map(Number);
+          const [bH, bM] = b.time.split(':').map(Number);
+          return (aH * 60 + aM) - (bH * 60 + bM);
+        });
+        
+        setAttendanceListData(classesWithCounts);
+      };
+      
+      if (selectedMenuItem === 'attendance' && !selectedClass) {
+        loadAttendanceCounts();
+      }
+    }, [selectedMenuItem, selectedClass, bookings, attendanceRefresh, currentUser?.id]);
 
     const paymentMethods = [
       { type: 'Mastercard', last4: '9909', expires: '09/2029' },
@@ -2636,70 +2697,6 @@ Since Mar 1, 2026</p>
     if (selectedMenuItem === 'attendance' && currentUser?.role === 'lead-trainer' && !selectedClass) {
       // Get ALL classes for today (past, present, future)
       const now = new Date();
-      
-      // Load attendance counts from Firestore and update list
-      useEffect(() => {
-        const loadAttendanceCounts = async () => {
-          const now = new Date();
-          const todayClasses = getClassesForDate(now);
-          const today = now.toISOString().split('T')[0]; // YYYY-MM-DD
-          
-          const classesWithCounts = [];
-          
-          // Try to load attendance records from Firestore
-          let attendanceRecords = [];
-          if (currentUser?.id) {
-            try {
-              const attendanceSnapshot = await getDocs(collection(db, 'users', String(currentUser.id), 'attendance'));
-              attendanceRecords = attendanceSnapshot.docs
-                .map(doc => doc.data())
-                .filter(record => record.classDate === today);
-            } catch (error) {
-              console.log('ℹ️ Could not load attendance records:', error.message);
-            }
-          }
-          
-          // For each class, determine member count
-          todayClasses.forEach(cls => {
-            const attendanceRecord = attendanceRecords.find(r => r.className === cls.name);
-            
-            let memberCount = 0;
-            if (attendanceRecord && attendanceRecord.attendance) {
-              // Count people marked as attended
-              memberCount = attendanceRecord.attendance.filter(a => a.attended === true).length;
-            } else {
-              // Fall back to booking count
-              memberCount = bookings.filter(b => 
-                b.classId === cls.id && 
-                new Date(b.dateObj).toDateString() === now.toDateString()
-              ).length;
-            }
-            
-            classesWithCounts.push({
-              id: cls.id,
-              name: cls.name,
-              time: cls.time,
-              instructor: cls.instructor,
-              members: memberCount || 0,
-              duration: cls.duration,
-              classObj: cls
-            });
-          });
-          
-          // Sort by time
-          classesWithCounts.sort((a, b) => {
-            const [aH, aM] = a.time.split(':').map(Number);
-            const [bH, bM] = b.time.split(':').map(Number);
-            return (aH * 60 + aM) - (bH * 60 + bM);
-          });
-          
-          setAttendanceListData(classesWithCounts);
-        };
-        
-        if (selectedMenuItem === 'attendance' && !selectedClass) {
-          loadAttendanceCounts();
-        }
-      }, [selectedMenuItem, selectedClass, bookings, attendanceRefresh, currentUser?.id]);
 
       const upcomingClasses = attendanceListData;
 
