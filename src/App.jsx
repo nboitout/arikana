@@ -959,10 +959,13 @@ Since Mar 1, 2026</p>
                         <p className="text-sm text-stone-700 mb-6">Are you sure you want to cancel this booking?</p>
                         <div className="flex gap-3">
                           <button type="button" onClick={() => setBookingToCancel(null)} className="flex-1 border-2 border-stone-300 text-stone-900 py-3 rounded-xl font-semibold hover:bg-stone-50 transition-colors cursor-pointer">Keep</button>
-                          <button type="button" onClick={async () => { 
+                          <button type="button" onClick={() => {
+                            // Delete from Firestore (fire and forget)
                             if (bookingToCancel.id) {
-                              await deleteBookingFromFirestore(bookingToCancel.id);
+                              deleteBookingFromFirestore(bookingToCancel.id);
                             }
+                            
+                            // Update local state immediately
                             const updatedBookings = bookings.filter(b => b.id !== bookingToCancel.id); 
                             setBookings(updatedBookings); 
                             localStorage.setItem('arikanaBookings', JSON.stringify(updatedBookings)); 
@@ -1769,6 +1772,20 @@ Since Mar 1, 2026</p>
 
     // Create New Class View
     if (selectedMenuItem === 'class-schedule' && currentUser.role === 'lead-trainer' && selectedClass === 'create-new') {
+      const [formData, setFormData] = useState({
+        name: '',
+        instructor: 'nicolas',
+        timeStart: '09:00',
+        duration: '60',
+        recurring: false,
+      });
+
+      const instructors = [
+        { id: 'nicolas', name: 'Nicolas' },
+        { id: 'angelina', name: 'Angelina' },
+        { id: 'sergey', name: 'Sergey' },
+      ];
+
       return (
         <div className="pb-28">
           <div style={{ backgroundColor: ARIKANA_COLOR }} className="text-white px-6 py-4 flex items-center gap-3">
@@ -1780,63 +1797,66 @@ Since Mar 1, 2026</p>
             <form className="space-y-4">
               <div>
                 <label className="block text-sm font-semibold text-stone-900 mb-2">Class Name</label>
-                <input type="text" placeholder="e.g., Pilates Mat" className="w-full border border-stone-300 rounded-lg px-4 py-2" />
+                <input 
+                  type="text" 
+                  placeholder="e.g., Pilates Mat" 
+                  value={formData.name}
+                  onChange={(e) => setFormData({...formData, name: e.target.value})}
+                  className="w-full border border-stone-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2" 
+                  style={{ focusRingColor: ARIKANA_COLOR }}
+                />
               </div>
+
               <div>
-                <label className="block text-sm font-semibold text-stone-900 mb-2">Time</label>
-                <input type="time" className="w-full border border-stone-300 rounded-lg px-4 py-2" />
-              </div>
-              <div>
-                <label className="block text-sm font-semibold text-stone-900 mb-2">Duration (minutes)</label>
-                <input type="number" placeholder="60" className="w-full border border-stone-300 rounded-lg px-4 py-2" />
-              </div>
-              <div>
-                <label className="block text-sm font-semibold text-stone-900 mb-2">Days</label>
-                <div className="flex gap-2 flex-wrap">
-                  {['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map(day => (
-                    <label key={day} className="flex items-center gap-2">
-                      <input type="checkbox" />
-                      <span className="text-sm">{day}</span>
-                    </label>
+                <label className="block text-sm font-semibold text-stone-900 mb-2">Instructor</label>
+                <select 
+                  value={formData.instructor}
+                  onChange={(e) => setFormData({...formData, instructor: e.target.value})}
+                  className="w-full border border-stone-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2"
+                >
+                  {instructors.map(instr => (
+                    <option key={instr.id} value={instr.id}>{instr.name}</option>
                   ))}
+                </select>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-semibold text-stone-900 mb-2">Start Time</label>
+                  <input 
+                    type="time" 
+                    value={formData.timeStart}
+                    onChange={(e) => setFormData({...formData, timeStart: e.target.value})}
+                    className="w-full border border-stone-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-semibold text-stone-900 mb-2">Duration (min)</label>
+                  <input 
+                    type="number" 
+                    placeholder="60" 
+                    value={formData.duration}
+                    onChange={(e) => setFormData({...formData, duration: e.target.value})}
+                    className="w-full border border-stone-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2"
+                  />
                 </div>
               </div>
-              <button 
-                type="button"
-                onClick={() => {
-                  alert('Class created!');
-                  setSelectedClass(null);
-                }}
-                style={{ backgroundColor: ARIKANA_COLOR }}
-                className="w-full text-white py-3 rounded-lg font-semibold hover:opacity-90 transition-opacity mt-6"
-              >
-                ✅ Create Class
-              </button>
-            </form>
-          </div>
-        </div>
-      );
-    }
 
-    // Edit Class View
-    if (selectedMenuItem === 'class-schedule' && currentUser.role === 'lead-trainer' && typeof selectedClass === 'object' && selectedClass?.edit) {
-      return (
-        <div className="pb-28">
-          <div style={{ backgroundColor: ARIKANA_COLOR }} className="text-white px-6 py-4 flex items-center gap-3">
-            <button onClick={() => setSelectedClass(null)} className="text-2xl">←</button>
-            <h1 className="text-2xl font-light">Edit {selectedClass.name}</h1>
-          </div>
+              <div className="border-t border-stone-300 pt-4">
+                <label className="flex items-center gap-3 cursor-pointer">
+                  <input 
+                    type="checkbox" 
+                    checked={formData.recurring}
+                    onChange={(e) => setFormData({...formData, recurring: e.target.checked})}
+                    className="w-5 h-5"
+                  />
+                  <span className="text-sm font-semibold text-stone-900">Recurring Weekly</span>
+                </label>
+                <p className="text-xs text-stone-600 ml-8 mt-1">
+                  {formData.recurring ? 'This class will repeat every week' : 'This class is one-time only'}
+                </p>
+              </div>
 
-          <div className="px-6 py-6">
-            <form className="space-y-4">
-              <div>
-                <label className="block text-sm font-semibold text-stone-900 mb-2">Class Name</label>
-                <input type="text" defaultValue={selectedClass.name} className="w-full border border-stone-300 rounded-lg px-4 py-2" />
-              </div>
-              <div>
-                <label className="block text-sm font-semibold text-stone-900 mb-2">Time</label>
-                <input type="time" defaultValue="09:00" className="w-full border border-stone-300 rounded-lg px-4 py-2" />
-              </div>
               <div className="flex gap-3 mt-6">
                 <button 
                   type="button"
@@ -1848,7 +1868,117 @@ Since Mar 1, 2026</p>
                 <button 
                   type="button"
                   onClick={() => {
-                    alert('Class updated!');
+                    alert(`✅ Class created!\n\n${formData.name}\n${formData.timeStart} (${formData.duration}min)\n${formData.recurring ? 'Recurring Weekly' : 'One-time'}`);
+                    setSelectedClass(null);
+                  }}
+                  style={{ backgroundColor: ARIKANA_COLOR }}
+                  className="flex-1 text-white py-3 rounded-lg font-semibold hover:opacity-90 transition-opacity"
+                >
+                  ✅ Create Class
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      );
+    }
+
+    // Edit Class View
+    if (selectedMenuItem === 'class-schedule' && currentUser.role === 'lead-trainer' && typeof selectedClass === 'object' && selectedClass?.edit) {
+      const [formData, setFormData] = useState({
+        name: selectedClass.name || '',
+        instructor: 'nicolas',
+        timeStart: selectedClass.time || '09:00',
+        duration: '60',
+        recurring: true,
+      });
+
+      const instructors = [
+        { id: 'nicolas', name: 'Nicolas' },
+        { id: 'angelina', name: 'Angelina' },
+        { id: 'sergey', name: 'Sergey' },
+      ];
+
+      return (
+        <div className="pb-28">
+          <div style={{ backgroundColor: ARIKANA_COLOR }} className="text-white px-6 py-4 flex items-center gap-3">
+            <button onClick={() => setSelectedClass(null)} className="text-2xl">←</button>
+            <h1 className="text-2xl font-light">Edit {selectedClass.name}</h1>
+          </div>
+
+          <div className="px-6 py-6">
+            <form className="space-y-4">
+              <div>
+                <label className="block text-sm font-semibold text-stone-900 mb-2">Class Name</label>
+                <input 
+                  type="text" 
+                  value={formData.name}
+                  onChange={(e) => setFormData({...formData, name: e.target.value})}
+                  className="w-full border border-stone-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-semibold text-stone-900 mb-2">Instructor</label>
+                <select 
+                  value={formData.instructor}
+                  onChange={(e) => setFormData({...formData, instructor: e.target.value})}
+                  className="w-full border border-stone-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2"
+                >
+                  {instructors.map(instr => (
+                    <option key={instr.id} value={instr.id}>{instr.name}</option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-semibold text-stone-900 mb-2">Start Time</label>
+                  <input 
+                    type="time" 
+                    value={formData.timeStart}
+                    onChange={(e) => setFormData({...formData, timeStart: e.target.value})}
+                    className="w-full border border-stone-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-semibold text-stone-900 mb-2">Duration (min)</label>
+                  <input 
+                    type="number" 
+                    value={formData.duration}
+                    onChange={(e) => setFormData({...formData, duration: e.target.value})}
+                    className="w-full border border-stone-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2"
+                  />
+                </div>
+              </div>
+
+              <div className="border-t border-stone-300 pt-4">
+                <label className="flex items-center gap-3 cursor-pointer">
+                  <input 
+                    type="checkbox" 
+                    checked={formData.recurring}
+                    onChange={(e) => setFormData({...formData, recurring: e.target.checked})}
+                    className="w-5 h-5"
+                  />
+                  <span className="text-sm font-semibold text-stone-900">Recurring Weekly</span>
+                </label>
+                <p className="text-xs text-stone-600 ml-8 mt-1">
+                  {formData.recurring ? 'This class will repeat every week' : 'This class is one-time only'}
+                </p>
+              </div>
+
+              <div className="flex gap-3 mt-6">
+                <button 
+                  type="button"
+                  onClick={() => setSelectedClass(null)}
+                  className="flex-1 border-2 border-stone-300 py-3 rounded-lg font-semibold hover:bg-stone-100 transition-colors"
+                >
+                  Cancel
+                </button>
+                <button 
+                  type="button"
+                  onClick={() => {
+                    alert(`✅ Class updated!\n\n${formData.name}\n${formData.timeStart} (${formData.duration}min)\n${formData.recurring ? 'Recurring Weekly' : 'One-time'}`);
                     setSelectedClass(null);
                   }}
                   style={{ backgroundColor: ARIKANA_COLOR }}
