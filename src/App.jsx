@@ -3,20 +3,10 @@ import { Home, Calendar, ShoppingBag, User, MoreHorizontal, ChevronRight, Eye, E
 import './App.css';
 import { auth, db } from './firebase-config';
 
-// EmailJS configuration - You'll need to sign up at emailjs.com
-const EMAILJS_SERVICE_ID = 'service_arikana'; // Replace with your service ID
-const EMAILJS_TEMPLATE_ID = 'template_arikana'; // Replace with your template ID
-const EMAILJS_PUBLIC_KEY = 'YOUR_PUBLIC_KEY'; // Replace with your public key
-
-// Firebase configuration
-const FIREBASE_CONFIG = {
-  apiKey: "YOUR_API_KEY",
-  authDomain: "YOUR_AUTH_DOMAIN",
-  projectId: "YOUR_PROJECT_ID",
-  storageBucket: "YOUR_STORAGE_BUCKET",
-  messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
-  appId: "YOUR_APP_ID"
-};
+// EmailJS configuration
+const EMAILJS_SERVICE_ID = 'service_arikana';
+const EMAILJS_TEMPLATE_ID = 'template_arikana';
+const EMAILJS_PUBLIC_KEY = 'YOUR_PUBLIC_KEY';
 
 // Load EmailJS library
 const loadEmailJS = () => {
@@ -60,15 +50,13 @@ const useCountUp = (targetValue, duration = 1500) => {
 };
 
 
-
 export default function ArikanaApp() {
   const [activeTab, setActiveTab] = useState('home');
   const [currentUser, setCurrentUser] = useState(null);
-  const [authMode, setAuthMode] = useState('signup'); // 'signup' or 'signin'
+  const [authMode, setAuthMode] = useState('signup');
   const [isLoading, setIsLoading] = useState(true);
   const [bookings, setBookings] = useState([]);
   
-  // Health questionnaire data
   const [healthData, setHealthData] = useState(() => {
     const saved = localStorage.getItem('arikanaHealthData');
     if (saved) return JSON.parse(saved);
@@ -90,8 +78,7 @@ export default function ArikanaApp() {
     };
   });
   
-  // Booking flow state (for confirmation page)
-  const [bookingView, setBookingView] = useState('classes'); // 'classes', 'detail', 'confirmation', 'warning'
+  const [bookingView, setBookingView] = useState('classes');
   const [lastBookedClass, setLastBookedClass] = useState(null);
   const [selectedBookingClass, setSelectedBookingClass] = useState(null);
   const [selectedDate, setSelectedDate] = useState(() => {
@@ -100,45 +87,44 @@ export default function ArikanaApp() {
     return today;
   });
   
-  // For Book tab: calendar shows 7 days from this date (doesn't change when selecting a day)
   const [bookingCalendarStart, setBookingCalendarStart] = useState(() => {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
     return today;
   });
-  // Recurring weekly pattern (Mon=1, Tue=2, etc.)
+
   const [recurringPattern, setRecurringPattern] = useState(() => {
     const saved = localStorage.getItem('arikanaRecurringPattern');
     if (saved) return JSON.parse(saved);
     return {
-      0: [], // Sunday - Rest Day
-      1: [ // Monday
+      0: [],
+      1: [
         { id: 1, name: 'Pilates Mat', time: '09:00', duration: '60 min', instructor: 'Angelina', spots: 8 },
         { id: 2, name: 'Core Strength', time: '10:30', duration: '45 min', instructor: 'Nicolas', spots: 12 },
         { id: 3, name: 'Speed Skating', time: '09:30', duration: '50 min', instructor: 'Sergey', spots: 11 },
       ],
-      2: [ // Tuesday
+      2: [
         { id: 4, name: 'Pelvic Curl Flow', time: '08:00', duration: '50 min', instructor: 'Angelina', spots: 10 },
         { id: 5, name: 'Ice Skating with Grace', time: '07:00', duration: '60 min', instructor: 'Sergey', spots: 14 },
         { id: 6, name: 'Pilates Reformer', time: '09:00', duration: '60 min', instructor: 'Nicolas', spots: 8 },
         { id: 7, name: 'Advanced Pilates', time: '18:30', duration: '60 min', instructor: 'Nicolas', spots: 6 },
       ],
-      3: [ // Wednesday
+      3: [
         { id: 8, name: 'Deep Core Activation', time: '11:00', duration: '60 min', instructor: 'Angelina', spots: 9 },
         { id: 9, name: 'Pilates Mat', time: '17:00', duration: '50 min', instructor: 'Nicolas', spots: 15 },
         { id: 10, name: 'Speed Skating', time: '09:30', duration: '50 min', instructor: 'Sergey', spots: 11 },
       ],
-      4: [ // Thursday
+      4: [
         { id: 11, name: 'Advanced Pelvic Techniques', time: '17:00', duration: '60 min', instructor: 'Angelina', spots: 7 },
         { id: 12, name: 'Core Strength', time: '10:30', duration: '45 min', instructor: 'Nicolas', spots: 12 },
         { id: 13, name: 'Ice Skating Techniques', time: '16:00', duration: '60 min', instructor: 'Sergey', spots: 8 },
       ],
-      5: [ // Friday
+      5: [
         { id: 14, name: 'Pilates Fusion', time: '19:00', duration: '55 min', instructor: 'Angelina', spots: 12 },
         { id: 15, name: 'Pilates Reformer', time: '09:00', duration: '60 min', instructor: 'Nicolas', spots: 7 },
         { id: 16, name: 'Crossfit on Ice', time: '18:00', duration: '55 min', instructor: 'Sergey', spots: 6 },
       ],
-      6: [ // Saturday
+      6: [
         { id: 17, name: 'Pelvic Curl Flow', time: '10:30', duration: '50 min', instructor: 'Angelina', spots: 6 },
         { id: 18, name: 'Advanced Pilates', time: '18:30', duration: '60 min', instructor: 'Nicolas', spots: 5 },
         { id: 19, name: 'Speed Skating', time: '09:30', duration: '50 min', instructor: 'Sergey', spots: 11 },
@@ -146,84 +132,131 @@ export default function ArikanaApp() {
     };
   });
 
-  // Date-specific overrides (one-shot changes like canceling a single Friday)
-  // Structure: { '2026-03-13': [] } means Friday March 13 has NO classes (canceled)
-  // or { '2026-03-13': [modified classes] } means override that specific date
   const [dateOverrides, setDateOverrides] = useState(() => {
     const saved = localStorage.getItem('arikanaDateOverrides');
     if (saved) return JSON.parse(saved);
     return {};
   });
 
-  // Helper: Get classes for a specific date (merges recurring + overrides)
   const getClassesForDate = (date) => {
     const dateStr = date.toISOString().split('T')[0];
     const dayOfWeek = date.getDay();
     
-    // If this date has an override, use it
     if (dateOverrides[dateStr] !== undefined) {
       return dateOverrides[dateStr];
     }
     
-    // Otherwise, use recurring pattern for this day of week
     return recurringPattern[dayOfWeek] || [];
   };
 
-  // Brand color
   const ARIKANA_COLOR = '#B69B4D';
 
-// Firebase test function
-const testFirebase = async () => {
-  try {
-    const { addDoc, collection } = await import('firebase/firestore');
-    await addDoc(collection(db, 'test'), {
-      message: 'Firebase is working!',
-      timestamp: new Date()
-    });
-    console.log('✅ Data written to Firebase!');
-    alert('✅ Test data written to Firebase!\n\nCheck Firebase Console → Firestore → "test" collection');
-  } catch (error) {
-    console.error('❌ Error:', error);
-    alert('❌ Error: ' + error.message);
-  }
-};
+  // ===== FIRESTORE HELPERS =====
 
+  const saveBookingToFirestore = async (booking) => {
+    try {
+      const { addDoc, collection } = await import('firebase/firestore');
+      const userBookingsRef = collection(db, 'users', currentUser.id, 'bookings');
+      await addDoc(userBookingsRef, {
+        ...booking,
+        createdAt: new Date().toISOString(),
+      });
+      console.log('✅ Booking saved to Firestore');
+    } catch (error) {
+      console.error('❌ Error saving booking:', error);
+      alert('Error saving booking: ' + error.message);
+    }
+  };
+
+  const loadBookingsFromFirestore = async () => {
+    try {
+      const { collection, getDocs } = await import('firebase/firestore');
+      const userBookingsRef = collection(db, 'users', currentUser.id, 'bookings');
+      const snapshot = await getDocs(userBookingsRef);
+      
+      const firestoreBookings = snapshot.docs.map(doc => {
+        const data = doc.data();
+        return {
+          ...data,
+          id: doc.id,
+          dateObj: new Date(data.displayDate.split(', ')[1] + ' 2026'),
+        };
+      });
+      
+      setBookings(firestoreBookings);
+      console.log('✅ Bookings loaded from Firestore:', firestoreBookings.length);
+    } catch (error) {
+      console.error('❌ Error loading bookings:', error);
+      const savedBookings = localStorage.getItem('arikanaBookings');
+      if (savedBookings) {
+        setBookings(JSON.parse(savedBookings));
+      }
+    }
+  };
+
+  const deleteBookingFromFirestore = async (bookingId) => {
+    try {
+      const { doc, deleteDoc } = await import('firebase/firestore');
+      await deleteDoc(doc(db, 'users', currentUser.id, 'bookings', bookingId));
+      console.log('✅ Booking deleted from Firestore');
+    } catch (error) {
+      console.error('❌ Error deleting booking:', error);
+      alert('Error cancelling booking: ' + error.message);
+    }
+  };
+
+  const testFirebase = async () => {
+    try {
+      const { addDoc, collection } = await import('firebase/firestore');
+      await addDoc(collection(db, 'test'), {
+        message: 'Firebase is working!',
+        timestamp: new Date()
+      });
+      console.log('✅ Data written to Firebase!');
+      alert('✅ Test data written to Firebase!\n\nCheck Firebase Console → Firestore → "test" collection');
+    } catch (error) {
+      console.error('❌ Error:', error);
+      alert('❌ Error: ' + error.message);
+    }
+  };
+
+  // ===== MAIN EFFECTS =====
 
   useEffect(() => {
-    // Load EmailJS
+    console.log('✅ Firebase Auth:', auth);
+    console.log('✅ Firestore:', db);
+
     loadEmailJS();
 
-    // Check if user data exists in localStorage (mock auth for now)
     const savedUser = localStorage.getItem('arikanaUser');
     if (savedUser) {
       setCurrentUser(JSON.parse(savedUser));
     }
 
-    // Load bookings from localStorage
-    const savedBookings = localStorage.getItem('arikanaBookings');
-    if (savedBookings) {
-      setBookings(JSON.parse(savedBookings));
-    }
-
     setIsLoading(false);
   }, []);
 
-  // Save recurringPattern to localStorage whenever it changes
+  // Load bookings from Firestore when user changes
+  useEffect(() => {
+    if (currentUser && currentUser.id) {
+      loadBookingsFromFirestore();
+    }
+  }, [currentUser]);
+
   useEffect(() => {
     localStorage.setItem('arikanaRecurringPattern', JSON.stringify(recurringPattern));
   }, [recurringPattern]);
 
-  // Save dateOverrides to localStorage whenever it changes
   useEffect(() => {
     localStorage.setItem('arikanaDateOverrides', JSON.stringify(dateOverrides));
   }, [dateOverrides]);
 
-  // Save healthData to localStorage whenever it changes
   useEffect(() => {
     localStorage.setItem('arikanaHealthData', JSON.stringify(healthData));
   }, [healthData]);
 
-  // Auth Screens
+  // ===== AUTH SCREEN =====
+
   const AuthScreen = () => {
     const [formData, setFormData] = useState({
       firstName: '',
@@ -258,7 +291,6 @@ const testFirebase = async () => {
       try {
         setIsSending(true);
         
-        // Using EmailJS to send email
         if (window.emailjs) {
           const templateParams = {
             to_email: 'nicolasboitout@hotmail.com',
@@ -282,7 +314,6 @@ const testFirebase = async () => {
         }
       } catch (error) {
         console.error('Email sending failed:', error);
-        // Don't prevent signup if email fails
       } finally {
         setIsSending(false);
       }
@@ -313,7 +344,6 @@ const testFirebase = async () => {
           return;
         }
 
-        // Mock authentication - save to localStorage
         const userData = {
           firstName: formData.firstName,
           lastName: formData.lastName,
@@ -322,14 +352,12 @@ const testFirebase = async () => {
           id: Date.now()
         };
 
-        // Send sign-up email
         await sendSignUpEmail(userData);
 
         localStorage.setItem('arikanaUser', JSON.stringify(userData));
         setCurrentUser(userData);
         setSuccess('Account created successfully! Welcome to Arikana! 🎉');
       } else {
-        // Sign In mode
         if (!formData.email || !formData.password) {
           setError('Email and password are required');
           return;
@@ -339,7 +367,6 @@ const testFirebase = async () => {
           return;
         }
 
-        // Mock sign in - for demo, accept any email
         const userData = {
           firstName: 'Anya',
           lastName: 'Glushkova',
@@ -355,14 +382,10 @@ const testFirebase = async () => {
 
     return (
       <div className="h-screen flex flex-col items-center justify-center max-w-md mx-auto overflow-y-auto" style={{ backgroundColor: ARIKANA_COLOR }}>
-        {/* Logo Section */}
         <div className="text-center mb-8 flex-1 flex flex-col items-center justify-center py-8">
-          {/* Spiral Logo */}
           <div className="relative w-32 h-32 mb-6 flex items-center justify-center">
             <svg viewBox="0 0 200 200" className="w-full h-full">
-              {/* Outer circle */}
               <circle cx="100" cy="100" r="90" fill="none" stroke="white" strokeWidth="15" opacity="0.9"/>
-              {/* Spiral */}
               <path
                 d="M 100 20 Q 150 50 150 100 Q 150 150 100 150 Q 50 150 50 100 Q 50 60 90 50 Q 130 45 140 85"
                 fill="none"
@@ -370,11 +393,9 @@ const testFirebase = async () => {
                 strokeWidth="12"
                 strokeLinecap="round"
               />
-              {/* Center circle */}
               <circle cx="100" cy="100" r="25" fill="white" opacity="0.9"/>
               <circle cx="100" cy="100" r="15" fill={ARIKANA_COLOR}/>
             </svg>
-            {/* Light rays */}
             <div className="absolute inset-0 flex items-center justify-center">
               <div className="w-40 h-40 relative">
                 <div className="absolute top-0 left-1/2 transform -translate-x-1/2 w-3 h-8 bg-white rounded-full" style={{opacity: 0.9}}></div>
@@ -388,7 +409,6 @@ const testFirebase = async () => {
           <p className="text-white text-opacity-90 text-sm tracking-wide">Yoga • Pilates • Mindfulness</p>
         </div>
 
-        {/* Form Section */}
         <div className="w-full px-6 pb-12">
           <form onSubmit={handleSignUp} className="space-y-4">
             {authMode === 'signup' && (
@@ -432,7 +452,6 @@ const testFirebase = async () => {
               />
             )}
 
-            {/* Password with eye toggle */}
             <div className="relative">
               <input
                 type={showPassword ? "text" : "password"}
@@ -447,11 +466,7 @@ const testFirebase = async () => {
                 onClick={() => setShowPassword(!showPassword)}
                 className="absolute right-3 top-1/2 transform -translate-y-1/2 text-stone-500 hover:text-stone-700 transition-colors"
               >
-                {showPassword ? (
-                  <EyeOff className="w-5 h-5" />
-                ) : (
-                  <Eye className="w-5 h-5" />
-                )}
+                {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
               </button>
             </div>
 
@@ -470,11 +485,7 @@ const testFirebase = async () => {
                   onClick={() => setShowConfirmPassword(!showConfirmPassword)}
                   className="absolute right-3 top-1/2 transform -translate-y-1/2 text-stone-500 hover:text-stone-700 transition-colors"
                 >
-                  {showConfirmPassword ? (
-                    <EyeOff className="w-5 h-5" />
-                  ) : (
-                    <Eye className="w-5 h-5" />
-                  )}
+                  {showConfirmPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
                 </button>
               </div>
             )}
@@ -491,7 +502,6 @@ const testFirebase = async () => {
             </button>
           </form>
 
-          {/* Toggle Auth Mode */}
           <div className="text-center mt-6">
             <p className="text-white text-opacity-80 text-sm">
               {authMode === 'signup' ? 'Already have an account?' : "Don't have an account?"}{' '}
@@ -510,7 +520,6 @@ const testFirebase = async () => {
           </div>
         </div>
 
-        {/* Test Email Button */}
         <div className="w-full text-center py-4 border-t border-white border-opacity-20">
           <button
             onClick={async () => {
@@ -548,7 +557,6 @@ const testFirebase = async () => {
           </button>
         </div>
 
-        {/* Footer */}
         <div className="w-full text-center pb-6">
           <p className="text-white text-opacity-70 text-xs">POWERED BY</p>
           <p className="text-white font-light text-sm">arikana studios</p>
@@ -557,7 +565,6 @@ const testFirebase = async () => {
     );
   };
 
-  // Show auth screen if not logged in
   if (isLoading) {
     return <div className="h-screen flex items-center justify-center" style={{ backgroundColor: ARIKANA_COLOR }}></div>;
   }
@@ -566,9 +573,8 @@ const testFirebase = async () => {
     return <AuthScreen />;
   }
 
-  // Main app continues from here...
+  // ===== HOME TAB =====
 
-  // Home Tab Content
   const HomeTab = ({ bookings, setBookings, healthData, setHealthData, testFirebase }) => {
     const [showHealthForm, setShowHealthForm] = useState(false);
     const [healthForm, setHealthForm] = useState(healthData.bodyRegions);
@@ -576,53 +582,49 @@ const testFirebase = async () => {
     const count100 = useCountUp(100, 1200);
     const [bookingToCancel, setBookingToCancel] = useState(null);
 
-    // Get next 2 upcoming sessions based on current time
     const getNextUpcomingSessions = () => {
       const now = new Date();
       const allSessions = [];
 
-      // Class schedule - comprehensive
       const classSchedule = {
-        '2026-03-09': [ // Monday
+        '2026-03-09': [
           { id: 1, name: 'Pilates Mat', time: '09:00', instructor: 'Angelina', spots: 8 },
           { id: 2, name: 'Core Strength', time: '10:30', instructor: 'Nicolas', spots: 12 },
           { id: 3, name: 'Speed Skating', time: '09:30', instructor: 'Sergey', spots: 11 },
         ],
-        '2026-03-10': [ // Tuesday
+        '2026-03-10': [
           { id: 4, name: 'Pilates Reformer', time: '08:00', instructor: 'Nicolas', spots: 10 },
           { id: 5, name: 'Pelvic Curl Flow', time: '10:00', instructor: 'Angelina', spots: 9 },
           { id: 6, name: 'Ice Skating with Grace', time: '14:00', instructor: 'Sergey', spots: 7 },
           { id: 7, name: 'Advanced Pilates', time: '18:00', instructor: 'Nicolas', spots: 5 },
         ],
-        '2026-03-11': [ // Wednesday (today)
+        '2026-03-11': [
           { id: 8, name: 'Deep Core Activation', time: '09:00', instructor: 'Angelina', spots: 6 },
           { id: 9, name: 'Pilates Mat', time: '11:00', instructor: 'Nicolas', spots: 8 },
           { id: 10, name: 'Speed Skating', time: '15:00', instructor: 'Sergey', spots: 10 },
         ],
-        '2026-03-12': [ // Thursday
+        '2026-03-12': [
           { id: 11, name: 'Advanced Pelvic Techniques', time: '10:00', instructor: 'Angelina', spots: 4 },
           { id: 12, name: 'Core Strength', time: '12:00', instructor: 'Nicolas', spots: 9 },
           { id: 13, name: 'Ice Skating Techniques', time: '16:00', instructor: 'Sergey', spots: 6 },
         ],
-        '2026-03-13': [ // Friday
+        '2026-03-13': [
           { id: 14, name: 'Pilates Fusion', time: '09:30', instructor: 'Angelina', spots: 7 },
           { id: 15, name: 'Pilates Reformer', time: '14:00', instructor: 'Nicolas', spots: 11 },
           { id: 16, name: 'Crossfit on Ice', time: '17:00', instructor: 'Sergey', spots: 8 },
         ],
-        '2026-03-14': [ // Saturday
+        '2026-03-14': [
           { id: 17, name: 'Pelvic Curl Flow', time: '10:00', instructor: 'Angelina', spots: 5 },
           { id: 18, name: 'Advanced Pilates', time: '15:00', instructor: 'Nicolas', spots: 9 },
           { id: 19, name: 'Speed Skating', time: '17:30', instructor: 'Sergey', spots: 12 },
         ],
-        // Sunday 2026-03-15: REST DAY - NO CLASSES
-        '2026-03-16': [ // Monday
+        '2026-03-16': [
           { id: 20, name: 'Pilates Mat', time: '09:00', instructor: 'Angelina', spots: 8 },
           { id: 21, name: 'Pilates Reformer', time: '14:00', instructor: 'Nicolas', spots: 10 },
           { id: 22, name: 'Ice Skating with Grace', time: '16:30', instructor: 'Sergey', spots: 7 },
         ],
       };
 
-      // Flatten all sessions with dates
       Object.keys(classSchedule).forEach(dateStr => {
         const [year, month, day] = dateStr.split('-').map(Number);
         classSchedule[dateStr].forEach(session => {
@@ -630,7 +632,6 @@ const testFirebase = async () => {
           const [hours, minutes] = session.time.split(':').map(Number);
           sessionTime.setHours(hours, minutes, 0, 0);
 
-          // Get day name
           const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
           const dayName = dayNames[sessionTime.getDay()];
           const dateStr2 = sessionTime.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
@@ -647,25 +648,13 @@ const testFirebase = async () => {
         });
       });
 
-      // Filter sessions that are in the future (after now)
       const futureSessions = allSessions.filter(s => s.dateObj > now);
-
-      // Sort by date/time
       futureSessions.sort((a, b) => a.dateObj - b.dateObj);
-
-      // Return only next 2
       return futureSessions.slice(0, 2);
     };
 
     const nextSessions = getNextUpcomingSessions();
 
-
-
-
-    
-
-
-    
     return (
       <div className="pb-28">
         {/* Test Firebase Button */}
@@ -680,12 +669,15 @@ const testFirebase = async () => {
         </div>
 
         {/* Header with gradient */}
-        <div style={{ background: `linear-gradient(to bottom, ${ARIKANA_COLOR}, ${ARIKANA_COLOR}cc)` }} className="text-white px-6 py-6"></div>
+        <div style={{ background: `linear-gradient(to bottom, ${ARIKANA_COLOR}, ${ARIKANA_COLOR}cc)` }} className="text-white px-6 py-6">
+          <p className="text-sm font-light mb-1">Hi, Anechka</p>
+          <h1 className="text-2xl font-light">Welcome to Arikana Studio</h1>
+        </div>
+
         {/* Achievements Section */}
         <div className="px-6 mt-6 mb-8">
           <h2 className="text-2xl font-bold text-stone-900 mb-4">Achievements</h2>
           <div className="flex gap-3 overflow-x-auto pb-2 snap-x">
-            {/* Card 1 - Animated Count */}
             <div
               style={{ backgroundColor: ARIKANA_COLOR }}
               className="flex-shrink-0 w-40 text-white rounded-3xl p-5 snap-center relative"
@@ -695,7 +687,6 @@ const testFirebase = async () => {
 Since Feb 11, 2025</p>
             </div>
 
-            {/* Card 2 */}
             <div
               style={{ backgroundColor: ARIKANA_COLOR }}
               className="flex-shrink-0 w-40 text-white rounded-3xl p-5 snap-center relative"
@@ -712,7 +703,6 @@ Since Mar 1, 2026</p>
           <h2 className="text-2xl font-bold text-stone-900 mb-4">My Booking</h2>
           {(() => {
             const now = new Date();
-            // Filter out past bookings and get closest 3
             const futureBookings = bookings.filter(b => b.dateObj > now);
             
             if (futureBookings.length > 0) {
@@ -782,13 +772,11 @@ Since Mar 1, 2026</p>
           {showHealthForm && (
             <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4 overflow-y-auto">
               <div className="bg-white rounded-3xl w-full max-w-md shadow-2xl my-8">
-                {/* Header */}
                 <div style={{ background: `linear-gradient(to bottom, ${ARIKANA_COLOR}, ${ARIKANA_COLOR}cc)` }} className="text-white px-6 py-4 rounded-t-3xl">
                   <h3 className="text-xl font-bold">Health Assessment</h3>
                   <p className="text-xs text-yellow-100 mt-1">Let us know which areas need attention</p>
                 </div>
 
-                {/* Body Regions List */}
                 <div className="px-6 py-6 max-h-96 overflow-y-auto">
                   <div className="space-y-4">
                     {[
@@ -857,7 +845,6 @@ Since Mar 1, 2026</p>
                   </div>
                 </div>
 
-                {/* Action Buttons */}
                 <div className="px-6 py-4 border-t border-stone-200 flex gap-3 rounded-b-3xl bg-stone-50">
                   <button
                     type="button"
@@ -905,7 +892,15 @@ Since Mar 1, 2026</p>
                         <p className="text-sm text-stone-700 mb-6">Are you sure you want to cancel this booking?</p>
                         <div className="flex gap-3">
                           <button type="button" onClick={() => setBookingToCancel(null)} className="flex-1 border-2 border-stone-300 text-stone-900 py-3 rounded-xl font-semibold hover:bg-stone-50 transition-colors cursor-pointer">Keep</button>
-                          <button type="button" onClick={() => { const updatedBookings = bookings.filter(b => b.id !== bookingToCancel.id); setBookings(updatedBookings); localStorage.setItem('arikanaBookings', JSON.stringify(updatedBookings)); setBookingToCancel(null); }} style={{ backgroundColor: ARIKANA_COLOR }} className="flex-1 text-white py-3 rounded-xl font-semibold hover:opacity-90 transition-opacity cursor-pointer">Cancel</button>
+                          <button type="button" onClick={async () => { 
+                            if (bookingToCancel.id) {
+                              await deleteBookingFromFirestore(bookingToCancel.id);
+                            }
+                            const updatedBookings = bookings.filter(b => b.id !== bookingToCancel.id); 
+                            setBookings(updatedBookings); 
+                            localStorage.setItem('arikanaBookings', JSON.stringify(updatedBookings)); 
+                            setBookingToCancel(null); 
+                          }} style={{ backgroundColor: ARIKANA_COLOR }} className="flex-1 text-white py-3 rounded-xl font-semibold hover:opacity-90 transition-opacity cursor-pointer">Cancel</button>
                         </div>
                       </>
                     ) : (
@@ -927,7 +922,8 @@ Since Mar 1, 2026</p>
     );
   };
 
-  // Book Tab Content - Calendar + Classes by Date
+  // ===== BOOK TAB =====
+
   const BookTab = ({ 
     bookings, setBookings, 
     bookingView, setBookingView, 
@@ -939,7 +935,6 @@ Since Mar 1, 2026</p>
   }) => {
     const [selectedInstructor, setSelectedInstructor] = useState('all');
 
-    // Class descriptions
     const classDescriptions = {
       'Pilates Reformer': 'Challenge your body with our dynamic reformer pilates classes. Using state-of-the-art equipment, build strength, flexibility, and endurance while improving posture and alignment.',
       'Pilates Mat': 'Master core strength through controlled movements on the mat. Perfect for all levels, this class focuses on building a strong foundation and improving body awareness.',
@@ -955,21 +950,12 @@ Since Mar 1, 2026</p>
       'Crossfit on Ice': 'Combine crossfit intensity with ice skating challenges for a unique full-body workout experience.',
     };
 
-    // Class schedule by date (mapping dates to classes)
-    // Sunday (2026-03-08) - NO CLASSES (Rest day)
-    // Monday (2026-03-09) - has classes
-    // Tuesday (2026-03-10) - has classes  
-    // etc.
-    // NOTE: classSchedule is now passed as a prop from parent component
-
     const instructors = {
       nicolas: { name: 'Nicolas', title: 'Pilates Specialist', rating: 4.9, reviews: 127, bio: 'Pilates and Pushups', photo: 'https://i.ibb.co/xKGQ2P8B/Nicolas-Boitout.png' },
       angelina: { name: 'Angelina', title: 'Pilates Master', rating: 5.0, reviews: 48, bio: 'Pelvic Curl Goddess', photo: 'https://i.ibb.co/8g8sMgRj/Angelina-Tricolici.png' },
       sergey: { name: 'Sergey', title: 'Crossfit Coach', rating: 4.8, reviews: 95, bio: 'Siberian Crossfitter', photo: 'https://i.ibb.co/nNGSPCsY/Sergey.png' },
     };
 
-    // Generate 7 days starting from bookingCalendarStart (not selectedDate)
-    // Calendar is RECURRING - same schedule repeats every week (Mon-Sun pattern)
     const getDayDates = () => {
       const dates = [];
       const startDate = bookingCalendarStart || new Date();
@@ -983,25 +969,21 @@ Since Mar 1, 2026</p>
 
     const dayDates = getDayDates();
 
-    // Format date for display
     const formatDate = (date) => {
       const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
       return days[date.getDay()];
     };
 
-    // Get instructor data
     const getInstructorData = (instructorName) => {
       const key = instructorName.toLowerCase();
       return instructors[key] || null;
     };
 
-    // Format date for class detail view
     const formatDateDetail = (date) => {
       const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
       return `${days[date.getDay()]}, ${date.getDate()} Mar`;
     };
 
-    // Check if session is in the past
     const isSessionInPast = () => {
       const now = new Date();
       const sessionDateTime = new Date(selectedDate);
@@ -1010,15 +992,12 @@ Since Mar 1, 2026</p>
       return sessionDateTime <= now;
     };
 
-    // Handle booking confirmation
     const handleBooking = () => {
-      // Check if session is in the past and user hasn't confirmed yet
       if (isSessionInPast() && bookingView !== 'warning') {
         setBookingView('warning');
         return;
       }
 
-      // Create booking object
       const newBooking = {
         id: Date.now(),
         className: selectedBookingClass.name,
@@ -1030,70 +1009,65 @@ Since Mar 1, 2026</p>
         classId: selectedBookingClass.id,
       };
 
-      // Add time to dateObj for accurate sorting
       const [hours, minutes] = selectedBookingClass.time.split(':').map(Number);
       newBooking.dateObj.setHours(hours, minutes, 0, 0);
 
-      // Add to bookings array
       const updatedBookings = [...bookings, newBooking];
-
-      // Sort by date/time (closest first)
       updatedBookings.sort((a, b) => a.dateObj - b.dateObj);
 
-      // Save to state
       setBookings(updatedBookings);
 
-      // Save to localStorage
-      localStorage.setItem('arikanaBookings', JSON.stringify(updatedBookings));
+      // Save to localStorage (fallback)
+      // localStorage.setItem('arikanaBookings', JSON.stringify(updatedBookings));
 
-      // Show confirmation page
+      // Save to Firestore
+      saveBookingToFirestore({
+        className: newBooking.className,
+        instructor: newBooking.instructor,
+        time: newBooking.time,
+        duration: newBooking.duration,
+        displayDate: newBooking.displayDate,
+        classId: newBooking.classId,
+        dateObj: newBooking.dateObj.toISOString(),
+      });
+
       setLastBookedClass(newBooking);
       setSelectedBookingClass(null);
       setBookingView('confirmation');
     };
 
-    // CONFIRMATION PAGE - shown when bookingView === 'confirmation'
     if (bookingView === 'confirmation' && lastBookedClass) {
       console.log('🟢 CONFIRMATION PAGE RENDERING', { class: lastBookedClass.className });
       return (
         <div className="pb-28 flex flex-col bg-white">
-          {/* Header */}
           <div style={{ backgroundColor: ARIKANA_COLOR }} className="text-white px-6 py-3">
             <h1 className="text-lg font-light text-center">Booking Confirmation</h1>
           </div>
 
-          {/* Content */}
           <div className="px-6 py-4 flex flex-col items-center">
-            {/* Success Icon */}
             <div className="text-5xl mb-3">✅</div>
             
-            {/* Success Message */}
             <h2 className="text-xl font-bold text-stone-900 mb-1">You're Booked!</h2>
             <p className="text-sm text-stone-600 mb-6">Your spot is confirmed. See you soon!</p>
 
-            {/* Booking Details - 2 Column Grid */}
             <div className="w-full bg-stone-100 rounded-2xl p-4 mb-6">
               <div className="grid grid-cols-2 gap-4">
-                {/* Class */}
                 <div>
                   <p className="text-xs text-stone-500 uppercase tracking-widest font-bold mb-2">Class</p>
                   <p className="text-sm font-bold text-stone-900">{lastBookedClass.className}</p>
                 </div>
                 
-                {/* Instructor */}
                 <div>
                   <p className="text-xs text-stone-500 uppercase tracking-widest font-bold mb-2">Instructor</p>
                   <p className="text-sm font-bold text-stone-900">{lastBookedClass.instructor}</p>
                 </div>
 
-                {/* Date & Time */}
                 <div>
                   <p className="text-xs text-stone-500 uppercase tracking-widest font-bold mb-2">Date & Time</p>
                   <p className="text-sm text-stone-900 font-semibold">{lastBookedClass.displayDate}</p>
                   <p className="text-sm font-bold text-stone-900">{lastBookedClass.time}</p>
                 </div>
 
-                {/* Duration */}
                 <div>
                   <p className="text-xs text-stone-500 uppercase tracking-widest font-bold mb-2">Duration</p>
                   <p className="text-sm font-bold text-stone-900">{lastBookedClass.duration}</p>
@@ -1102,7 +1076,6 @@ Since Mar 1, 2026</p>
             </div>
           </div>
 
-          {/* Button */}
           <div className="px-6 pb-4 mt-auto">
             <button
               style={{ backgroundColor: ARIKANA_COLOR }}
@@ -1120,18 +1093,15 @@ Since Mar 1, 2026</p>
       );
     }
     
-    // WARNING PAGE - shown when bookingView === 'warning'
     if (bookingView === 'warning' && selectedBookingClass) {
       return (
         <div className="pb-28">
-          {/* Header */}
           <div style={{ backgroundColor: ARIKANA_COLOR }} className="text-white px-6 py-4 flex justify-between items-center">
             <button onClick={() => { setBookingView('detail'); }} className="text-2xl">←</button>
             <h1 className="text-lg font-light flex-1 text-center">Warning</h1>
             <div className="w-8"></div>
           </div>
 
-          {/* Warning Content */}
           <div className="px-6 py-8">
             <div className="text-center mb-6">
               <div className="text-6xl mb-4">⚠️</div>
@@ -1139,20 +1109,17 @@ Since Mar 1, 2026</p>
               <p className="text-stone-600 text-base">This class has already started or passed.</p>
             </div>
 
-            {/* Session Details */}
             <div className="bg-orange-50 border-2 border-orange-200 rounded-2xl p-4 mb-6">
               <p className="text-sm font-semibold text-stone-900 mb-2">{selectedBookingClass.name}</p>
               <p className="text-xs text-stone-600">{formatDateDetail(selectedDate)} • {selectedBookingClass.time}</p>
               <p className="text-xs text-stone-500 mt-2">with {selectedBookingClass.instructor}</p>
             </div>
 
-            {/* Warning Message */}
             <div className="bg-amber-50 border border-amber-300 rounded-lg p-4 mb-8">
               <p className="text-sm text-amber-900">You can still book this session if you'd like to add it to your history, but it won't appear in your upcoming bookings.</p>
             </div>
           </div>
 
-          {/* Buttons */}
           <div className="fixed bottom-24 left-0 right-0 max-w-md mx-auto px-6 pb-4 flex gap-3">
             <button 
               style={{ borderColor: ARIKANA_COLOR, color: ARIKANA_COLOR }}
@@ -1176,7 +1143,6 @@ Since Mar 1, 2026</p>
       );
     }
 
-    // BOOKING DETAIL VIEW - shown when bookingView === 'detail'
     if (bookingView === 'detail' && selectedBookingClass) {
       const instructor = getInstructorData(selectedBookingClass.instructor);
       const description = classDescriptions[selectedBookingClass.name] || 'Professional class instruction.';
@@ -1184,31 +1150,25 @@ Since Mar 1, 2026</p>
 
       return (
         <div className="pb-28">
-          {/* Header */}
           <div style={{ backgroundColor: ARIKANA_COLOR }} className="text-white px-6 py-4 flex justify-between items-center">
             <button onClick={() => setBookingView('classes')} className="text-2xl">←</button>
             <h1 className="text-lg font-light flex-1 text-center">Book Class</h1>
             <button className="text-2xl">⬆️</button>
           </div>
 
-          {/* Class Details */}
           <div className="px-6 py-6">
-            {/* Class Title */}
             <h2 className="text-2xl font-bold text-stone-900 mb-2">{selectedBookingClass.name}</h2>
 
-            {/* Date and Time */}
             <p className="text-stone-600 text-base mb-6">
               {formatDateDetail(selectedDate)} • {selectedBookingClass.time} ({selectedBookingClass.duration})
             </p>
 
-            {/* Past Session Warning Badge */}
             {sessionInPast && (
               <div className="bg-orange-100 border-l-4 border-orange-500 p-3 mb-6 rounded">
                 <p className="text-orange-800 text-sm font-semibold">⚠️ This session is in the past</p>
               </div>
             )}
 
-            {/* Staff Section */}
             <div className="mb-8">
               <p className="text-xs text-stone-500 uppercase tracking-wide mb-3">Staff</p>
               <div className="flex items-center gap-3">
@@ -1221,7 +1181,6 @@ Since Mar 1, 2026</p>
               </div>
             </div>
 
-            {/* Description */}
             <div className="mb-8">
               <p className="text-xs text-stone-500 uppercase tracking-wide mb-3">Description</p>
               <p className="text-base text-stone-700 leading-relaxed mb-2">{description}</p>
@@ -1229,7 +1188,6 @@ Since Mar 1, 2026</p>
             </div>
           </div>
 
-          {/* Buttons */}
           <div className="fixed bottom-24 left-0 right-0 max-w-md mx-auto px-6 pb-4 flex gap-3">
             <button 
               style={{ borderColor: ARIKANA_COLOR, color: ARIKANA_COLOR }}
@@ -1250,15 +1208,12 @@ Since Mar 1, 2026</p>
       );
     }
 
-    // Classes List View - Default
     return (
       <div className="pb-28">
-        {/* Header */}
         <div style={{ backgroundColor: ARIKANA_COLOR }} className="text-white px-6 py-4">
           <h1 className="text-xl font-light">Book Classes</h1>
         </div>
 
-        {/* Calendar Day Picker */}
         <div className="px-4 py-4 overflow-x-auto scrollbar-hide">
           <div className="flex gap-2" style={{ minWidth: 'min-content' }}>
             {dayDates.map((date, idx) => {
@@ -1282,10 +1237,8 @@ Since Mar 1, 2026</p>
           </div>
         </div>
 
-        {/* Swipeable Instructor Cards */}
         <div className="overflow-x-auto scrollbar-hide px-4 py-2">
           <div className="flex gap-4" style={{ minWidth: 'min-content' }}>
-            {/* All Instructors Card */}
             <button
               onClick={() => setSelectedInstructor('all')}
               style={{
@@ -1301,7 +1254,6 @@ Since Mar 1, 2026</p>
               </div>
             </button>
 
-            {/* Individual Instructor Cards */}
             {['nicolas', 'angelina', 'sergey'].map((key) => {
               const instr = instructors[key];
               return (
@@ -1315,7 +1267,6 @@ Since Mar 1, 2026</p>
                   className="flex-shrink-0 w-56 rounded-2xl p-3 text-left transition-all hover:shadow-lg cursor-pointer overflow-hidden"
                 >
                   <div className="flex gap-2 h-20">
-                    {/* Left: Photo + Name */}
                     <div className="flex flex-col items-center flex-shrink-0">
                       <div className="w-12 h-12 rounded-full bg-white mb-1 overflow-hidden border-2" style={{ borderColor: selectedInstructor === key ? '#fff' : ARIKANA_COLOR }}>
                         <img src={instr.photo} alt={instr.name} className="w-full h-full object-cover" />
@@ -1323,7 +1274,6 @@ Since Mar 1, 2026</p>
                       <h3 className="text-xs font-bold text-center">{instr.name}</h3>
                     </div>
 
-                    {/* Right: Title and Bio */}
                     <div className="flex flex-col justify-start flex-1 min-w-0 gap-0.5">
                       <p className="text-xs opacity-80">{instr.title}</p>
                       <p className="text-xs opacity-70">{instr.bio}</p>
@@ -1335,19 +1285,17 @@ Since Mar 1, 2026</p>
           </div>
         </div>
 
-        {/* Date Display + Classes */}
         <div className="px-6 py-3 pb-4">
           <h3 className="text-sm font-bold text-stone-900 mb-3">
             {selectedDate.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
           </h3>
 
-          {/* Get classes for this date using recurring pattern */}
           {(() => {
             const classesForDay = getClassesForDate(selectedDate);
             const filteredClasses = (selectedInstructor === 'all' 
               ? classesForDay 
               : classesForDay.filter(c => c.instructor.toLowerCase() === selectedInstructor))
-              .sort((a, b) => a.time.localeCompare(b.time)); // Sort by start time
+              .sort((a, b) => a.time.localeCompare(b.time));
             
             return selectedDate.getDay() === 0 ? (
             <div className="text-center py-12">
@@ -1405,7 +1353,8 @@ Since Mar 1, 2026</p>
     );
   };
 
-  // Buy Tab Content
+  // ===== BUY TAB =====
+
   const BuyTab = () => {
     const [selectedPackage, setSelectedPackage] = useState(null);
     const [selectedAutopay, setSelectedAutopay] = useState(null);
@@ -1424,7 +1373,6 @@ Since Mar 1, 2026</p>
       { name: 'Mat&Floor Classes 1 month - Unlimited', price: '450 RON', id: 'pricing-unlimited' },
     ];
 
-    // Checkout Page
     if (selectedCheckout) {
       const checkoutData = {
         'autopay-9': { name: 'Mat&Floor Classes - 9 sessions', price: '290 RON' },
@@ -1437,37 +1385,30 @@ Since Mar 1, 2026</p>
       };
 
       const data = checkoutData[selectedCheckout];
-      const priceValue = parseInt(data.price.split(' ')[0]);
 
       return (
         <div className="pb-28">
-          {/* Header */}
           <div style={{ backgroundColor: ARIKANA_COLOR }} className="text-white px-6 py-4 flex items-center justify-between rounded-b-3xl">
             <button onClick={() => setSelectedCheckout(null)} className="text-3xl font-light">×</button>
             <h1 className="text-2xl font-light">Checkout</h1>
             <div className="w-8"></div>
           </div>
 
-          {/* Content */}
           <div className="px-6 py-6">
-            {/* Product Name */}
             <div className="bg-stone-100 rounded-lg p-4 mb-6">
               <h2 className="text-xl font-semibold text-stone-900">{data.name}</h2>
             </div>
 
-            {/* Promo Code */}
             <button className="w-full flex items-center gap-3 py-4 border-b border-stone-200 hover:bg-stone-50 transition-colors">
               <span style={{ color: ARIKANA_COLOR }} className="text-2xl">⊕</span>
               <span className="font-semibold text-stone-900 text-lg">Promo code</span>
             </button>
 
-            {/* Gift Card */}
             <button className="w-full flex items-center gap-3 py-4 border-b border-stone-200 hover:bg-stone-50 transition-colors">
               <span style={{ color: ARIKANA_COLOR }} className="text-2xl">⊕</span>
               <span className="font-semibold text-stone-900 text-lg">Gift card</span>
             </button>
 
-            {/* Payment Method */}
             <div className="py-6 border-b border-stone-200">
               <div className="flex justify-between items-center">
                 <div className="flex items-center gap-3">
@@ -1482,13 +1423,11 @@ Since Mar 1, 2026</p>
               </div>
             </div>
 
-            {/* Subtotal */}
             <div className="flex justify-between py-4 border-b-2 border-stone-300 mb-4">
               <span className="text-stone-900 font-semibold">Subtotal</span>
               <span className="text-stone-900 font-semibold">{data.price}</span>
             </div>
 
-            {/* Today's Total */}
             <div className="mb-8">
               <div className="flex justify-between mb-2">
                 <span className="text-stone-900 font-bold text-lg">Today's Total</span>
@@ -1500,13 +1439,11 @@ Since Mar 1, 2026</p>
               </div>
             </div>
 
-            {/* Info Message */}
             <div className="text-center text-stone-600 mb-8 py-8">
               <p>You will be charged Today's Total when you tap Buy</p>
             </div>
           </div>
 
-          {/* Buy Button */}
           <div className="fixed bottom-6 left-0 right-0 max-w-md mx-auto px-6">
             <button
               style={{ backgroundColor: ARIKANA_COLOR }}
@@ -1519,7 +1456,6 @@ Since Mar 1, 2026</p>
       );
     }
 
-    // Autopay Detail View
     if (selectedAutopay) {
       const autopayData = {
         'autopay-9': {
@@ -1555,19 +1491,15 @@ Since Mar 1, 2026</p>
 
       return (
         <div className="pb-28">
-          {/* Header */}
           <div style={{ backgroundColor: ARIKANA_COLOR }} className="text-white px-6 py-4 flex items-center justify-between rounded-b-3xl">
             <button onClick={() => setSelectedAutopay(null)} className="text-3xl font-light">×</button>
             <h1 className="text-lg font-light flex-1 text-center">{data.title}</h1>
             <div className="w-8"></div>
           </div>
 
-          {/* Content */}
           <div className="px-6 py-6">
-            {/* Title */}
             <h2 className="text-lg font-light text-stone-600 mb-6">{data.itemName}</h2>
 
-            {/* Items Section */}
             <div className="mb-8">
               <h3 className="text-sm font-bold text-stone-500 uppercase tracking-wide mb-4 pb-2 border-b border-stone-200">Items</h3>
               <div className="space-y-4">
@@ -1583,7 +1515,6 @@ Since Mar 1, 2026</p>
               </div>
             </div>
 
-            {/* Payment Schedule Section */}
             <div className="mb-8">
               <h3 className="text-sm font-bold text-stone-500 uppercase tracking-wide mb-4 pb-2 border-b border-stone-200">Payment Schedule</h3>
               <div className="space-y-3 mb-6">
@@ -1606,7 +1537,6 @@ Since Mar 1, 2026</p>
               </div>
             </div>
 
-            {/* Today's Total */}
             <div className="flex justify-between items-center mb-8 pb-4 border-b border-stone-200">
               <div className="flex items-center gap-2">
                 <span className="text-stone-900 font-semibold">Today's Total</span>
@@ -1616,7 +1546,6 @@ Since Mar 1, 2026</p>
             </div>
           </div>
 
-          {/* Next Button */}
           <div className="fixed bottom-6 left-0 right-0 max-w-md mx-auto px-6">
             <button
               onClick={() => setSelectedCheckout(selectedAutopay)}
@@ -1630,19 +1559,15 @@ Since Mar 1, 2026</p>
       );
     }
 
-    // Mat & Floor Classes Detail
     if (selectedPackage === 'mat-floor') {
       return (
         <div className="pb-28">
-          {/* Header */}
           <div style={{ backgroundColor: ARIKANA_COLOR }} className="text-white px-6 py-4 flex items-center gap-3">
             <button onClick={() => setSelectedPackage(null)} className="text-2xl">←</button>
             <h1 className="text-2xl font-light">Mat & Floor Classes</h1>
           </div>
 
-          {/* Content */}
           <div className="px-6 py-6">
-            {/* Autopays Section */}
             <div className="mb-8">
               <h2 className="text-2xl font-bold text-stone-900 mb-4">Autopays</h2>
               <div className="space-y-4">
@@ -1665,7 +1590,6 @@ Since Mar 1, 2026</p>
               </div>
             </div>
 
-            {/* Pricing Options Section */}
             <div>
               <h2 className="text-2xl font-bold text-stone-900 mb-4">Pricing Options</h2>
               <div className="space-y-4">
@@ -1688,7 +1612,6 @@ Since Mar 1, 2026</p>
       );
     }
 
-    // Main Buy Tab
     return (
       <div className="pb-28">
         <div style={{ background: `linear-gradient(to bottom, ${ARIKANA_COLOR}, ${ARIKANA_COLOR}cc)` }} className="text-white px-6 py-8 rounded-b-3xl">
@@ -1724,639 +1647,16 @@ Since Mar 1, 2026</p>
     );
   };
 
-  // Profile Tab Content
-  const ProfileTab = ({ recurringPattern, setRecurringPattern, dateOverrides, setDateOverrides, getClassesForDate, currentUser, setCurrentUser }) => {
+  // ===== PROFILE TAB =====
+
+  const ProfileTab = ({ currentUser, setCurrentUser }) => {
     const [selectedMenuItem, setSelectedMenuItem] = useState(null);
-    const [editingClass, setEditingClass] = useState(null);
-    const [editingDayNum, setEditingDayNum] = useState(null);
-    const [editForm, setEditForm] = useState({});
-    const [showCreateForm, setShowCreateForm] = useState(false);
-    const [newClassForm, setNewClassForm] = useState({ name: '', time: '', duration: '60 min', instructor: 'Nicolas', spots: 10, dayOfWeek: 1, recurringEveryWeek: true });
-
-    // Generate 7 days starting from TODAY
-    const getTodayPlus7Days = () => {
-      const today = new Date();
-      today.setHours(0, 0, 0, 0);
-      const days = [];
-      for (let i = 0; i < 7; i++) {
-        const date = new Date(today);
-        date.setDate(date.getDate() + i);
-        const dateStr = date.toISOString().split('T')[0];
-        days.push({ dateStr, date, dayOfWeek: date.getDay() });
-      }
-      return days;
-    };
-
-    const sevenDaysFromToday = getTodayPlus7Days();
-    
-    // Add state for tracking which date/edit mode we're in
-    const [editingDateStr, setEditingDateStr] = useState(null);
-    const [editMode, setEditMode] = useState(null); // 'dateOnly' or 'recurring'
-
-    const paymentMethods = [
-      { type: 'Mastercard', last4: '9909', expires: '09/2029' },
-    ];
-
-    const purchaseHistory = [
-      { name: 'M&F Classes - 1 Month', price: '295 RON', date: 'Purchased 20.01.2026' },
-      { name: 'M&F Classes - 1 Month', price: '295 RON', date: 'Purchased 20.01.2026' },
-    ];
 
     const handleSignOut = () => {
       localStorage.removeItem('arikanaUser');
       setCurrentUser(null);
     };
 
-    // Create New Class Form - show this with HIGH PRIORITY
-    if (showCreateForm) {
-      const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
-      
-      return (
-        <div className="pb-28">
-          {/* Header */}
-          <div style={{ background: `linear-gradient(to bottom, ${ARIKANA_COLOR}, ${ARIKANA_COLOR}cc)` }} className="text-white px-6 py-4">
-            <div className="flex items-center gap-3">
-              <button type="button" onClick={() => setShowCreateForm(false)} className="text-2xl cursor-pointer">←</button>
-              <h1 className="text-2xl font-light flex-1">Create New Class</h1>
-            </div>
-          </div>
-
-          {/* Create Form */}
-          <div className="px-6 py-6">
-            <div className="space-y-4">
-              {/* Class Name */}
-              <div>
-                <label className="text-sm font-semibold text-stone-900 block mb-2">Class Name</label>
-                <input
-                  type="text"
-                  value={newClassForm.name || ''}
-                  onChange={(e) => setNewClassForm({ ...newClassForm, name: e.target.value })}
-                  className="w-full border border-stone-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-yellow-600"
-                  placeholder="e.g., Pilates Mat"
-                />
-              </div>
-
-              {/* Day of Week */}
-              <div>
-                <label className="text-sm font-semibold text-stone-900 block mb-2">Day of Week</label>
-                <select
-                  value={newClassForm.dayOfWeek}
-                  onChange={(e) => setNewClassForm({ ...newClassForm, dayOfWeek: parseInt(e.target.value) })}
-                  className="w-full border border-stone-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-yellow-600"
-                >
-                  {dayNames.map((day, idx) => (
-                    <option key={idx} value={idx}>{day}</option>
-                  ))}
-                </select>
-              </div>
-
-              {/* Time */}
-              <div>
-                <label className="text-sm font-semibold text-stone-900 block mb-2">Start Time</label>
-                <input
-                  type="time"
-                  value={newClassForm.time || ''}
-                  onChange={(e) => setNewClassForm({ ...newClassForm, time: e.target.value })}
-                  className="w-full border border-stone-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-yellow-600"
-                />
-              </div>
-
-              {/* Duration */}
-              <div>
-                <label className="text-sm font-semibold text-stone-900 block mb-2">Duration</label>
-                <input
-                  type="text"
-                  value={newClassForm.duration || ''}
-                  onChange={(e) => setNewClassForm({ ...newClassForm, duration: e.target.value })}
-                  className="w-full border border-stone-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-yellow-600"
-                  placeholder="e.g., 60 min"
-                />
-              </div>
-
-              {/* Instructor */}
-              <div>
-                <label className="text-sm font-semibold text-stone-900 block mb-2">Instructor</label>
-                <select
-                  value={newClassForm.instructor || ''}
-                  onChange={(e) => setNewClassForm({ ...newClassForm, instructor: e.target.value })}
-                  className="w-full border border-stone-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-yellow-600"
-                >
-                  <option value="Nicolas">Nicolas</option>
-                  <option value="Angelina">Angelina</option>
-                  <option value="Sergey">Sergey</option>
-                </select>
-              </div>
-
-              {/* Available Spots */}
-              <div>
-                <label className="text-sm font-semibold text-stone-900 block mb-2">Available Spots</label>
-                <input
-                  type="number"
-                  value={newClassForm.spots || 10}
-                  onChange={(e) => setNewClassForm({ ...newClassForm, spots: parseInt(e.target.value) })}
-                  className="w-full border border-stone-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-yellow-600"
-                />
-              </div>
-
-              {/* Recurring Every Week */}
-              <div>
-                <label className="text-sm font-semibold text-stone-900 block mb-3">Schedule Type</label>
-                <label className="flex items-center gap-3 cursor-pointer">
-                  <input
-                    type="checkbox"
-                    checked={newClassForm.recurringEveryWeek}
-                    onChange={(e) => setNewClassForm({ ...newClassForm, recurringEveryWeek: e.target.checked })}
-                    className="w-4 h-4 cursor-pointer"
-                  />
-                  <span className="text-sm text-stone-700">
-                    {newClassForm.recurringEveryWeek ? '🔄 Recurring every week' : '📅 One-time class'}
-                  </span>
-                </label>
-                <p className="text-xs text-stone-500 mt-2">
-                  {newClassForm.recurringEveryWeek 
-                    ? 'This class will repeat every week on the selected day' 
-                    : 'This class will only appear on the specific date selected'}
-                </p>
-              </div>
-            </div>
-
-            {/* Action Buttons */}
-            <div className="flex gap-3 mt-6">
-              <button
-                type="button"
-                onClick={() => setShowCreateForm(false)}
-                className="flex-1 text-stone-600 border-2 border-stone-300 py-3 rounded-lg font-semibold hover:bg-stone-50 transition-colors cursor-pointer"
-              >
-                Cancel
-              </button>
-              <button
-                type="button"
-                onClick={() => {
-                  if (!newClassForm.name || !newClassForm.time) {
-                    alert('Please fill in class name and time');
-                    return;
-                  }
-                  
-                  // Generate next unique ID across all classes
-                  const allClasses = Object.values(recurringPattern).flat().concat(Object.values(dateOverrides).flat());
-                  const newId = Math.max(...allClasses.map(c => c.id || 0), 0) + 1;
-                  
-                  const newClass = {
-                    id: newId,
-                    name: newClassForm.name,
-                    time: newClassForm.time,
-                    duration: newClassForm.duration,
-                    instructor: newClassForm.instructor,
-                    spots: newClassForm.spots,
-                  };
-                  
-                  if (newClassForm.recurringEveryWeek) {
-                    // Save to recurring pattern (for the selected day of week)
-                    const updatedPattern = { ...recurringPattern };
-                    if (!updatedPattern[newClassForm.dayOfWeek]) {
-                      updatedPattern[newClassForm.dayOfWeek] = [];
-                    }
-                    updatedPattern[newClassForm.dayOfWeek].push(newClass);
-                    setRecurringPattern(updatedPattern);
-                  } else {
-                    // Save to date overrides (one-time class)
-                    const today = new Date();
-                    today.setHours(0, 0, 0, 0);
-                    const specificDate = new Date(today);
-                    specificDate.setDate(specificDate.getDate() + (newClassForm.dayOfWeek - today.getDay() + 7) % 7);
-                    if (specificDate <= today) {
-                      specificDate.setDate(specificDate.getDate() + 7);
-                    }
-                    const dateStr = specificDate.toISOString().split('T')[0];
-                    
-                    const updatedOverrides = { ...dateOverrides };
-                    if (!updatedOverrides[dateStr]) {
-                      updatedOverrides[dateStr] = [];
-                    }
-                    updatedOverrides[dateStr].push(newClass);
-                    setDateOverrides(updatedOverrides);
-                  }
-                  
-                  setShowCreateForm(false);
-                  setNewClassForm({ name: '', time: '', duration: '60 min', instructor: 'Nicolas', spots: 10, dayOfWeek: 1, recurringEveryWeek: true });
-                  alert('✓ Class created successfully!');
-                }}
-                style={{ backgroundColor: ARIKANA_COLOR }}
-                className="flex-1 text-white py-3 rounded-lg font-semibold hover:opacity-90 transition-opacity cursor-pointer"
-              >
-                ✓ Create Class
-              </button>
-            </div>
-          </div>
-        </div>
-      );
-    }
-
-    // Edit Class Modal - only for Lead Trainer
-    if (selectedMenuItem === 'calendar' && currentUser?.role === 'lead-trainer' && editingClass) {
-      return (
-        <div className="pb-28">
-          {/* Header */}
-          <div style={{ background: `linear-gradient(to bottom, ${ARIKANA_COLOR}, ${ARIKANA_COLOR}cc)` }} className="text-white px-6 py-4">
-            <div className="flex items-center gap-3">
-              <button onClick={() => { setEditingClass(null); setEditingDateStr(null); setEditMode(null); }} className="text-2xl">←</button>
-              <h1 className="text-2xl font-light flex-1">Edit Class</h1>
-            </div>
-          </div>
-
-          {/* Edit Form */}
-          <div className="px-6 py-6">
-            {/* Date Display */}
-            {editingDateStr && (
-              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
-                <p className="text-xs text-blue-900 font-semibold">Date</p>
-                <p className="text-sm text-blue-900 mt-1">
-                  {new Date(editingDateStr + 'T00:00:00').toLocaleDateString('en-US', { 
-                    weekday: 'long', 
-                    year: 'numeric', 
-                    month: 'long', 
-                    day: 'numeric' 
-                  })}
-                </p>
-              </div>
-            )}
-
-            {/* Edit Mode Selection */}
-            <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 mb-6">
-              <p className="text-sm font-semibold text-stone-900 mb-3">Apply changes to:</p>
-              <div className="space-y-2">
-                <label className="flex items-center gap-3 cursor-pointer">
-                  <input
-                    type="radio"
-                    name="editMode"
-                    value="dateOnly"
-                    checked={editMode === 'dateOnly'}
-                    onChange={(e) => setEditMode(e.target.value)}
-                    className="w-4 h-4"
-                  />
-                  <span className="text-sm text-stone-900">This date only</span>
-                </label>
-                <label className="flex items-center gap-3 cursor-pointer">
-                  <input
-                    type="radio"
-                    name="editMode"
-                    value="recurring"
-                    checked={editMode === 'recurring'}
-                    onChange={(e) => setEditMode(e.target.value)}
-                    className="w-4 h-4"
-                  />
-                  <span className="text-sm text-stone-900">Recurring pattern (every {new Date(editingDateStr + 'T00:00:00').toLocaleDateString('en-US', { weekday: 'long' })})</span>
-                </label>
-              </div>
-            </div>
-
-            <div className="space-y-4">
-              {/* Class Name */}
-              <div>
-                <label className="text-sm font-semibold text-stone-900 block mb-2">Class Name</label>
-                <input
-                  type="text"
-                  value={editForm.name || ''}
-                  onChange={(e) => setEditForm({ ...editForm, name: e.target.value })}
-                  className="w-full border border-stone-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-yellow-600"
-                  placeholder="e.g., Pilates Mat"
-                />
-              </div>
-
-              {/* Time */}
-              <div>
-                <label className="text-sm font-semibold text-stone-900 block mb-2">Start Time</label>
-                <input
-                  type="time"
-                  value={editForm.time || ''}
-                  onChange={(e) => setEditForm({ ...editForm, time: e.target.value })}
-                  className="w-full border border-stone-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-yellow-600"
-                />
-              </div>
-
-              {/* Duration */}
-              <div>
-                <label className="text-sm font-semibold text-stone-900 block mb-2">Duration</label>
-                <input
-                  type="text"
-                  value={editForm.duration || ''}
-                  onChange={(e) => setEditForm({ ...editForm, duration: e.target.value })}
-                  className="w-full border border-stone-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-yellow-600"
-                  placeholder="e.g., 60 min"
-                />
-              </div>
-
-              {/* Instructor */}
-              <div>
-                <label className="text-sm font-semibold text-stone-900 block mb-2">Instructor</label>
-                <select
-                  value={editForm.instructor || ''}
-                  onChange={(e) => setEditForm({ ...editForm, instructor: e.target.value })}
-                  className="w-full border border-stone-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-yellow-600"
-                >
-                  <option value="">Select Instructor</option>
-                  <option value="Nicolas">Nicolas</option>
-                  <option value="Angelina">Angelina</option>
-                  <option value="Sergey">Sergey</option>
-                </select>
-              </div>
-
-              {/* Spots */}
-              <div>
-                <label className="text-sm font-semibold text-stone-900 block mb-2">Available Spots</label>
-                <input
-                  type="number"
-                  value={editForm.spots || ''}
-                  onChange={(e) => setEditForm({ ...editForm, spots: parseInt(e.target.value) })}
-                  className="w-full border border-stone-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-yellow-600"
-                  placeholder="e.g., 10"
-                  min="1"
-                />
-              </div>
-
-              {/* Buttons */}
-              <div className="flex gap-3 mt-8">
-                <button
-                  onClick={() => {
-                    if (!editMode) {
-                      alert('Please select: This date only or Recurring pattern');
-                      return;
-                    }
-                    
-                    if (editMode === 'dateOnly') {
-                      // Delete from date override
-                      const updatedOverrides = { ...dateOverrides };
-                      if (!updatedOverrides[editingDateStr]) {
-                        updatedOverrides[editingDateStr] = getClassesForDate(new Date(editingDateStr + 'T00:00:00'));
-                      }
-                      updatedOverrides[editingDateStr] = updatedOverrides[editingDateStr].filter((_, idx) => idx !== editingClass.index);
-                      setDateOverrides(updatedOverrides);
-                    } else {
-                      // Delete from recurring pattern
-                      const dayOfWeek = new Date(editingDateStr + 'T00:00:00').getDay();
-                      const updatedPattern = { ...recurringPattern };
-                      updatedPattern[dayOfWeek] = updatedPattern[dayOfWeek].filter((_, idx) => idx !== editingClass.index);
-                      setRecurringPattern(updatedPattern);
-                    }
-                    
-                    setEditingClass(null);
-                    setEditingDateStr(null);
-                    setEditMode(null);
-                  }}
-                  className="flex-1 text-red-600 border-2 border-red-600 py-3 rounded-lg font-semibold hover:bg-red-50 transition-colors"
-                >
-                  🗑️ Delete Class
-                </button>
-                <button
-                  onClick={() => {
-                    setEditingClass(null);
-                    setEditingDateStr(null);
-                    setEditMode(null);
-                  }}
-                  className="flex-1 text-stone-600 border-2 border-stone-300 py-3 rounded-lg font-semibold hover:bg-stone-50 transition-colors"
-                >
-                  Cancel
-                </button>
-                <button
-                  onClick={() => {
-                    if (!editMode) {
-                      alert('Please select: This date only or Recurring pattern');
-                      return;
-                    }
-                    
-                    if (editMode === 'dateOnly') {
-                      // Save to date override
-                      const updatedOverrides = { ...dateOverrides };
-                      if (!updatedOverrides[editingDateStr]) {
-                        updatedOverrides[editingDateStr] = getClassesForDate(new Date(editingDateStr + 'T00:00:00'));
-                      }
-                      updatedOverrides[editingDateStr] = updatedOverrides[editingDateStr].map((cls, idx) => 
-                        idx === editingClass.index ? { ...editForm, id: cls.id } : cls
-                      );
-                      setDateOverrides(updatedOverrides);
-                    } else {
-                      // Save to recurring pattern
-                      const dayOfWeek = new Date(editingDateStr + 'T00:00:00').getDay();
-                      const updatedPattern = { ...recurringPattern };
-                      updatedPattern[dayOfWeek] = updatedPattern[dayOfWeek].map((cls, idx) => 
-                        idx === editingClass.index ? { ...editForm, id: cls.id } : cls
-                      );
-                      setRecurringPattern(updatedPattern);
-                    }
-                    
-                    setEditingClass(null);
-                    setEditingDateStr(null);
-                    setEditMode(null);
-                  }}
-                  style={{ backgroundColor: ARIKANA_COLOR }}
-                  className="flex-1 text-white py-3 rounded-lg font-semibold hover:opacity-90 transition-opacity"
-                >
-                  ✓ Save Changes
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      );
-    }
-
-    // Calendar Editor View - only for Lead Trainer  
-    if (selectedMenuItem === 'calendar' && currentUser?.role === 'lead-trainer') {
-      // Helper to format date for display
-      const formatDateLabel = (date) => {
-        const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
-        const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-        return `${days[date.getDay()]}, ${date.getDate()} ${months[date.getMonth()]}`;
-      };
-
-      // Group classes by time for a specific date
-      const getClassesByTime = (date) => {
-        const classes = getClassesForDate(date);
-        const timeGroups = {};
-        
-        classes.forEach((cls, idx) => {
-          if (!timeGroups[cls.time]) {
-            timeGroups[cls.time] = [];
-          }
-          timeGroups[cls.time].push({ ...cls, classIndex: idx });
-        });
-        
-        return Object.entries(timeGroups)
-          .sort(([timeA], [timeB]) => timeA.localeCompare(timeB))
-          .map(([time, classList]) => ({ time, classList }));
-      };
-
-      return (
-        <div className="pb-28">
-          {/* Header */}
-          <div style={{ background: `linear-gradient(to bottom, ${ARIKANA_COLOR}, ${ARIKANA_COLOR}cc)` }} className="text-white px-6 py-4">
-            <div className="flex items-center gap-3">
-              <button type="button" onClick={() => setSelectedMenuItem(null)} className="text-2xl cursor-pointer">←</button>
-              <h1 className="text-2xl font-light flex-1">Weekly Schedule</h1>
-            </div>
-            <p className="text-xs text-yellow-100 mt-2">Starting from Today</p>
-          </div>
-
-          {/* Calendar Grid - 7 Days from TODAY */}
-          <div className="px-2 py-6 overflow-x-auto scrollbar-hide">
-            <div 
-              className="grid gap-3" 
-              style={{ 
-                gridAutoColumns: 'minmax(320px, 1fr)',
-                gridAutoFlow: 'column',
-                minWidth: 'max-content'
-              }}
-            >
-              {sevenDaysFromToday.map(({ dateStr, date, dayOfWeek }) => {
-                const timeGroups = getClassesByTime(date);
-                const isToday = dateStr === new Date().toISOString().split('T')[0];
-                const isRestDay = dayOfWeek === 0;
-
-                return (
-                  <div
-                    key={dateStr}
-                    className={`border-2 rounded-xl overflow-hidden bg-white flex flex-col ${isToday ? 'border-amber-400 shadow-lg' : 'border-stone-200'}`}
-                    style={{ minWidth: '320px', minHeight: '500px' }}
-                  >
-                    {/* Date Header */}
-                    <div
-                      style={{ backgroundColor: ARIKANA_COLOR }}
-                      className="text-white px-4 py-3 text-center flex flex-col"
-                    >
-                      <p className="font-bold text-lg">{formatDateLabel(date)}</p>
-                    </div>
-
-                    {/* Classes Container */}
-                    <div className="p-3 flex-1 overflow-y-auto">
-                      {isRestDay ? (
-                        <div className="h-full flex flex-col items-center justify-center text-center py-12">
-                          <p className="text-4xl mb-3">☀️</p>
-                          <p className="text-sm font-semibold text-stone-900">Rest Day</p>
-                          <p className="text-xs text-stone-500 mt-2">Recharge & Recover!</p>
-                        </div>
-                      ) : timeGroups.length === 0 ? (
-                        <div className="h-full flex items-center justify-center text-center py-12">
-                          <p className="text-sm text-stone-500">No classes scheduled</p>
-                        </div>
-                      ) : (
-                        <div className="space-y-3">
-                          {timeGroups.map(({ time, classList }, timeIdx) => (
-                            <div key={timeIdx}>
-                              <p className="text-sm font-bold text-stone-700 px-2 mb-2">{time}</p>
-                              <div className={`grid gap-2 ${classList.length > 1 ? 'grid-cols-2' : 'grid-cols-1'}`}>
-                                {classList.map((cls, clsIdx) => (
-                                  <button
-                                    type="button"
-                                    key={clsIdx}
-                                    onClick={() => {
-                                      setEditingClass({ index: cls.classIndex });
-                                      setEditingDateStr(dateStr);
-                                      setEditForm({ ...cls });
-                                      setEditMode(null); // Reset mode selection
-                                    }}
-                                    style={{ borderColor: ARIKANA_COLOR, backgroundColor: `${ARIKANA_COLOR}10` }}
-                                    className="border-l-4 rounded px-2.5 py-2 text-left hover:bg-amber-100 transition-colors cursor-pointer text-sm"
-                                  >
-                                    <p className="font-semibold text-stone-900 leading-snug">{cls.name}</p>
-                                    <p className="text-xs text-stone-600 leading-snug">{cls.instructor}</p>
-                                    <p className="text-xs text-stone-500 leading-snug">{cls.duration}</p>
-                                    <p className="text-xs text-stone-400 mt-1 italic">tap to edit</p>
-                                  </button>
-                                ))}
-                              </div>
-                            </div>
-                          ))}
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-
-          {/* Create New Class Button */}
-          <div className="px-6 mt-6 pb-6">
-            <button
-              type="button"
-              onClick={() => setShowCreateForm(true)}
-              style={{ backgroundColor: ARIKANA_COLOR }}
-              className="w-full text-white py-3 rounded-lg font-semibold hover:opacity-90 transition-opacity cursor-pointer"
-            >
-              + Create New Class
-            </button>
-          </div>
-        </div>
-      );
-    }
-
-
-    // Payment Methods Detail View
-    if (selectedMenuItem === 'payment-methods') {
-      return (
-        <div className="pb-28">
-          {/* Header */}
-          <div style={{ background: `linear-gradient(to bottom, ${ARIKANA_COLOR}, ${ARIKANA_COLOR}cc)` }} className="text-white px-6 py-4">
-            <div className="flex items-center gap-3">
-              <button onClick={() => setSelectedMenuItem(null)} className="text-2xl">←</button>
-              <h1 className="text-2xl font-light flex-1">Payment Methods</h1>
-            </div>
-          </div>
-
-          {/* Content */}
-          <div className="px-6 py-6">
-            {/* Payment Methods */}
-            <div className="mb-8">
-              <h3 className="text-lg font-bold text-stone-900 mb-4">Payment Methods</h3>
-              <div className="space-y-4">
-                {paymentMethods.map((card, i) => (
-                  <div key={i} className="flex items-center justify-between bg-white border border-stone-200 rounded-lg p-4">
-                    <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 bg-black rounded flex items-center justify-center">
-                        <span className="text-red-500 font-bold">●●</span>
-                      </div>
-                      <div>
-                        <p className="font-medium text-stone-900">{card.type}</p>
-                        <p className="text-sm text-stone-600">•••• •••• •••• {card.last4}</p>
-                        <p className="text-xs text-stone-500">Expires {card.expires}</p>
-                      </div>
-                    </div>
-                    <button className="text-stone-400 hover:text-red-600 transition-colors">🗑️</button>
-                  </div>
-                ))}
-              </div>
-
-              <button
-                style={{ backgroundColor: ARIKANA_COLOR }}
-                className="w-full text-white font-medium py-3 rounded-lg mt-4 hover:opacity-90 transition-opacity"
-              >
-                Add a Card
-              </button>
-            </div>
-
-            {/* Purchase History */}
-            <div>
-              <h3 className="text-lg font-bold text-stone-900 mb-4">Purchase History</h3>
-              <div className="space-y-4">
-                {purchaseHistory.map((item, i) => (
-                  <div key={i} className="border-b border-stone-200 pb-4">
-                    <div className="flex justify-between items-start">
-                      <div>
-                        <p className="font-bold text-stone-900">{item.name}</p>
-                        <p className="text-sm text-stone-500">{item.date}</p>
-                      </div>
-                      <p className="font-bold text-stone-900">{item.price}</p>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-        </div>
-      );
-    }
-
-    // Main Profile Menu View
     return (
       <div className="pb-28">
         <div style={{ background: `linear-gradient(to bottom, ${ARIKANA_COLOR}, ${ARIKANA_COLOR}cc)` }} className="text-white px-6 py-8 rounded-b-3xl">
@@ -2364,7 +1664,6 @@ Since Mar 1, 2026</p>
         </div>
 
         <div className="px-6 mt-8">
-          {/* User Card */}
           <div className="bg-white border-2 border-stone-200 rounded-2xl p-6 mb-6 text-center">
             <div style={{ backgroundColor: `${ARIKANA_COLOR}20` }} className="w-16 h-16 mx-auto mb-4 rounded-full flex items-center justify-center">
               <User style={{ color: ARIKANA_COLOR }} className="w-8 h-8" />
@@ -2379,13 +1678,11 @@ Since Mar 1, 2026</p>
             <p className="text-xs text-stone-500">{currentUser.mobile}</p>
           </div>
 
-          {/* Menu Items */}
           <div className="space-y-2">
             {[
-              ...(currentUser.role === 'lead-trainer' ? [{ label: 'Class Schedule', icon: '📋', id: 'calendar' }] : []),
               { label: 'Booking History', icon: '📅', id: 'bookings' },
               { label: 'Membership', icon: '🎫', id: 'membership' },
-              { label: 'Payment Methods', icon: '💳', id: 'payment-methods' },
+              { label: 'Payment Methods', icon: '💳', id: 'payment' },
               { label: 'Notifications', icon: '🔔', id: 'notifications' },
               { label: 'Preferences', icon: '⚙️', id: 'preferences' },
               { label: 'Help & Support', icon: '❓', id: 'help' },
@@ -2406,22 +1703,9 @@ Since Mar 1, 2026</p>
           </div>
 
           <button 
-            onClick={() => {
-              if (confirm('Clear all date-specific changes and restore full schedule? This cannot be undone.')) {
-                localStorage.removeItem('arikanaDateOverrides');
-                alert('Schedule reset! Reloading...');
-                location.reload();
-              }
-            }}
-            className="w-full font-medium py-3 border-2 border-red-300 text-red-600 rounded-xl hover:bg-red-50 transition-colors mt-4"
-          >
-            🔄 Reset Schedule
-          </button>
-
-          <button 
             onClick={handleSignOut}
             style={{ color: ARIKANA_COLOR, borderColor: ARIKANA_COLOR }} 
-            className="w-full font-medium py-3 border-2 rounded-xl hover:opacity-80 transition-opacity mt-2"
+            className="w-full font-medium py-3 border-2 rounded-xl hover:opacity-80 transition-opacity mt-4"
           >
             Sign Out
           </button>
@@ -2430,7 +1714,8 @@ Since Mar 1, 2026</p>
     );
   };
 
-  // More Tab Content
+  // ===== MORE TAB =====
+
   const MoreTab = () => (
     <div className="pb-28">
       <div style={{ background: `linear-gradient(to bottom, ${ARIKANA_COLOR}, ${ARIKANA_COLOR}cc)` }} className="text-white px-6 py-8 rounded-b-3xl">
@@ -2484,26 +1769,16 @@ Since Mar 1, 2026</p>
       getClassesForDate={getClassesForDate}
     />,
     buy: <BuyTab />,
-    profile: <ProfileTab 
-      recurringPattern={recurringPattern} 
-      setRecurringPattern={setRecurringPattern} 
-      dateOverrides={dateOverrides}
-      setDateOverrides={setDateOverrides}
-      getClassesForDate={getClassesForDate}
-      currentUser={currentUser} 
-      setCurrentUser={setCurrentUser} 
-    />,
+    profile: <ProfileTab currentUser={currentUser} setCurrentUser={setCurrentUser} />,
     more: <MoreTab />,
   };
 
   return (
     <div className="bg-white h-screen flex flex-col max-w-md mx-auto relative overflow-hidden">
-      {/* Main Content */}
       <div className="flex-1 overflow-y-auto scrollbar-hide">
         {tabContent[activeTab]}
       </div>
 
-      {/* Bottom Navigation */}
       <nav className="fixed bottom-0 left-0 right-0 max-w-md mx-auto bg-white border-t border-stone-200 flex justify-around items-center h-24 px-4">
         {[
           { id: 'home', icon: Home, label: 'Home' },
