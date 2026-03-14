@@ -2098,7 +2098,7 @@ Since Mar 1, 2026</p>
               <div className="flex gap-3" style={{ minWidth: 'min-content' }}>
                 {days.map((date, idx) => {
                   const dayName = dayNames[date.getDay()];
-                  const classes = classSchedule[dayName] || [];
+                  const classes = classScheduleByDay[dayName] || [];
                   const isToday = idx === 0;
                   
                   return (
