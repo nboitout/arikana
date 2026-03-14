@@ -174,17 +174,40 @@ export default function ArikanaApp() {
       const userBookingsRef = collection(db, 'users', currentUser.id, 'bookings');
       const snapshot = await getDocs(userBookingsRef);
       
+      console.log('📦 Snapshot docs count:', snapshot.docs.length);
+      
+      if (snapshot.empty) {
+        console.log('ℹ️ No bookings found in Firestore');
+        setBookings([]);
+        return;
+      }
+      
       const firestoreBookings = snapshot.docs.map(doc => {
         const data = doc.data();
+        console.log('📋 Raw booking data:', data);
+        
+        // Parse dateObj safely
+        let dateObj;
+        if (typeof data.dateObj === 'string') {
+          dateObj = new Date(data.dateObj);
+        } else if (data.dateObj && typeof data.dateObj.toDate === 'function') {
+          // Handle Firestore Timestamp
+          dateObj = data.dateObj.toDate();
+        } else {
+          // Fallback: try to parse displayDate
+          const today = new Date();
+          dateObj = today;
+        }
+        
         return {
-          className: data.className,
-          instructor: data.instructor,
-          time: data.time,
-          duration: data.duration,
-          displayDate: data.displayDate,
-          classId: data.classId,
           id: doc.id,
-          dateObj: new Date(data.dateObj), // Use the stored ISO string
+          className: data.className || '',
+          instructor: data.instructor || '',
+          time: data.time || '',
+          duration: data.duration || '',
+          displayDate: data.displayDate || '',
+          classId: data.classId || '',
+          dateObj: dateObj,
         };
       });
       
@@ -192,9 +215,15 @@ export default function ArikanaApp() {
       console.log('✅ Bookings loaded from Firestore:', firestoreBookings.length);
     } catch (error) {
       console.error('❌ Error loading bookings:', error);
+      console.log('⚠️ Falling back to localStorage');
       const savedBookings = localStorage.getItem('arikanaBookings');
       if (savedBookings) {
-        setBookings(JSON.parse(savedBookings));
+        try {
+          setBookings(JSON.parse(savedBookings));
+        } catch (e) {
+          console.error('Failed to parse localStorage bookings');
+          setBookings([]);
+        }
       }
     }
   };
