@@ -165,11 +165,38 @@ export default function ArikanaApp() {
       await addDoc(userBookingsRef, {
         ...booking,
         createdAt: new Date().toISOString(),
+        attended: false, // New field for attendance tracking
       });
       console.log('✅ Booking saved to Firestore');
     } catch (error) {
       console.error('❌ Error saving booking:', error);
       alert('Error saving booking: ' + error.message);
+    }
+  };
+
+  const saveAttendanceToFirestore = async (classData, attendanceRecords) => {
+    try {
+      if (!currentUser || !currentUser.id) {
+        console.log('⚠️ No currentUser, skipping attendance save');
+        return;
+      }
+
+      // Save attendance record for this class
+      const attendanceRef = collection(db, 'users', String(currentUser.id), 'attendance');
+      const timestamp = new Date().toISOString();
+      
+      await addDoc(attendanceRef, {
+        className: classData.name,
+        classTime: classData.time,
+        classDate: new Date().toISOString().split('T')[0],
+        recordedAt: timestamp,
+        attendance: attendanceRecords, // Array of {name, health, attended: boolean}
+      });
+
+      console.log('✅ Attendance saved to Firestore');
+    } catch (error) {
+      console.error('❌ Error saving attendance:', error);
+      alert('Error saving attendance: ' + error.message);
     }
   };
 
@@ -1691,11 +1718,54 @@ Since Mar 1, 2026</p>
   const ProfileTab = ({ currentUser, setCurrentUser }) => {
     const [selectedMenuItem, setSelectedMenuItem] = useState(null);
     const [selectedClass, setSelectedClass] = useState(null);
+    const [attendanceCheckboxes, setAttendanceCheckboxes] = useState({});
 
     const handleSignOut = () => {
       localStorage.removeItem('arikanaUser');
       setCurrentUser(null);
     };
+
+    // Booking History View (for all users)
+    if (selectedMenuItem === 'bookings') {
+      const pastBookings = [
+        { className: 'Pilates Mat', date: 'Mar 10, 2026', time: '09:00', instructor: 'Angelina', attended: true },
+        { className: 'Core Strength', date: 'Mar 08, 2026', time: '10:30', instructor: 'Nicolas', attended: true },
+        { className: 'Pelvic Curl Flow', date: 'Mar 05, 2026', time: '08:00', instructor: 'Angelina', attended: false, noShow: true },
+        { className: 'Pilates Reformer', date: 'Mar 03, 2026', time: '09:00', instructor: 'Nicolas', attended: true },
+      ];
+
+      return (
+        <div className="pb-28">
+          <div style={{ backgroundColor: ARIKANA_COLOR }} className="text-white px-6 py-4 flex items-center gap-3">
+            <button onClick={() => setSelectedMenuItem(null)} className="text-2xl">←</button>
+            <h1 className="text-2xl font-light">Booking History</h1>
+          </div>
+
+          <div className="px-6 py-6">
+            <div className="space-y-3">
+              {pastBookings.map((booking, i) => (
+                <div key={i} className="border border-stone-200 rounded-lg p-4">
+                  <div className="flex justify-between items-start mb-2">
+                    <div>
+                      <p className="font-bold text-stone-900">{booking.className}</p>
+                      <p className="text-sm text-stone-600">📅 {booking.date} • 🕐 {booking.time}</p>
+                      <p className="text-xs text-stone-600">with {booking.instructor}</p>
+                    </div>
+                    {booking.attended ? (
+                      <span className="bg-green-100 text-green-800 text-xs font-bold px-2 py-1 rounded">✅ Attended</span>
+                    ) : booking.noShow ? (
+                      <span className="bg-red-100 text-red-800 text-xs font-bold px-2 py-1 rounded">❌ No-Show</span>
+                    ) : (
+                      <span className="bg-gray-100 text-gray-800 text-xs font-bold px-2 py-1 rounded">🗑️ Cancelled</span>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      );
+    }
 
     // Create New Class View
     if (selectedMenuItem === 'class-schedule' && currentUser.role === 'lead-trainer' && selectedClass === 'create-new') {
@@ -1901,56 +1971,101 @@ Since Mar 1, 2026</p>
       );
     }
 
-    // Attendance View
-    if (selectedMenuItem === 'attendance' && currentUser.role === 'lead-trainer') {
-      if (selectedClass) {
-        const attendanceList = [
-          { name: 'Sarah Johnson', health: 'Lower back pain' },
-          { name: 'Emma Davis', health: 'Neck tension' },
-          { name: 'Lisa Chen', health: 'No issues' },
-        ];
+    // Attendance View - Detailed (with checkbox tracking)
+    if (selectedMenuItem === 'attendance' && currentUser.role === 'lead-trainer' && selectedClass) {
+      const attendanceList = [
+        { id: 'sarah', name: 'Sarah Johnson', health: 'Lower back pain' },
+        { id: 'emma', name: 'Emma Davis', health: 'Neck tension' },
+        { id: 'lisa', name: 'Lisa Chen', health: 'No issues' },
+      ];
 
-        return (
-          <div className="pb-28">
-            <div style={{ backgroundColor: ARIKANA_COLOR }} className="text-white px-6 py-4 flex items-center gap-3">
-              <button onClick={() => setSelectedClass(null)} className="text-2xl">←</button>
-              <h1 className="text-2xl font-light">{selectedClass.name}</h1>
-            </div>
-
-            <div className="px-6 py-6">
-              <div className="bg-stone-100 rounded-lg p-4 mb-6">
-                <p className="text-sm text-stone-600">🕐 {selectedClass.time}</p>
-                <p className="text-sm text-stone-600">👥 {attendanceList.length} members booked</p>
-              </div>
-
-              <h3 className="font-bold text-stone-900 mb-3">Mark Attendance</h3>
-              <div className="space-y-2">
-                {attendanceList.map((member, i) => (
-                  <div key={i} className="flex items-center gap-3 border border-stone-200 rounded-lg p-3 bg-white">
-                    <input type="checkbox" className="w-5 h-5" />
-                    <div className="flex-1">
-                      <p className="font-medium text-stone-900">{member.name}</p>
-                      <p className="text-xs text-stone-600">{member.health}</p>
-                    </div>
-                  </div>
-                ))}
-              </div>
-
-              <button
-                onClick={() => {
-                  alert('✅ Attendance saved!');
-                  setSelectedClass(null);
-                }}
-                style={{ backgroundColor: ARIKANA_COLOR }}
-                className="w-full text-white py-3 rounded-lg font-semibold hover:opacity-90 transition-opacity mt-6 cursor-pointer"
-              >
-                💾 Save Attendance
-              </button>
-            </div>
-          </div>
-        );
+      // Initialize checkboxes if not already done
+      if (Object.keys(attendanceCheckboxes).length === 0) {
+        const initialState = {};
+        attendanceList.forEach(member => {
+          initialState[member.id] = false;
+        });
+        setAttendanceCheckboxes(initialState);
       }
 
+      const handleSaveAttendance = async () => {
+        // Build attendance records
+        const attendanceRecords = attendanceList.map(member => ({
+          name: member.name,
+          health: member.health,
+          attended: attendanceCheckboxes[member.id] || false,
+        }));
+
+        // Identify no-shows (booked but not attended)
+        const noShows = attendanceList.filter(member => !attendanceCheckboxes[member.id]).map(m => m.name);
+
+        console.log('📝 Attendance Summary:');
+        console.log('✅ Attended:', attendanceRecords.filter(a => a.attended).map(a => a.name));
+        console.log('❌ No-shows:', noShows);
+
+        // Save to Firestore
+        await saveAttendanceToFirestore(selectedClass, attendanceRecords);
+
+        // Show summary
+        alert(`✅ Attendance saved!\n\nAttended: ${attendanceRecords.filter(a => a.attended).length}\nNo-shows: ${noShows.length}`);
+        setSelectedClass(null);
+        setAttendanceCheckboxes({});
+      };
+
+      return (
+        <div className="pb-28">
+          <div style={{ backgroundColor: ARIKANA_COLOR }} className="text-white px-6 py-4 flex items-center gap-3">
+            <button onClick={() => setSelectedClass(null)} className="text-2xl">←</button>
+            <h1 className="text-2xl font-light">{selectedClass.name}</h1>
+          </div>
+
+          <div className="px-6 py-6">
+            <div className="bg-stone-100 rounded-lg p-4 mb-6">
+              <p className="text-sm text-stone-600">🕐 {selectedClass.time}</p>
+              <p className="text-sm text-stone-600">👥 {attendanceList.length} members booked</p>
+              <p className="text-xs text-stone-600 mt-2">Attended: <span className="font-bold text-green-600">{Object.values(attendanceCheckboxes).filter(Boolean).length}</span> | No-show: <span className="font-bold text-red-600">{Object.values(attendanceCheckboxes).filter(v => !v).length}</span></p>
+            </div>
+
+            <h3 className="font-bold text-stone-900 mb-3">Mark Attendance</h3>
+            <div className="space-y-2">
+              {attendanceList.map((member) => (
+                <div key={member.id} className="flex items-center gap-3 border border-stone-200 rounded-lg p-3 bg-white">
+                  <input 
+                    type="checkbox" 
+                    className="w-5 h-5 cursor-pointer"
+                    checked={attendanceCheckboxes[member.id] || false}
+                    onChange={(e) => {
+                      setAttendanceCheckboxes({
+                        ...attendanceCheckboxes,
+                        [member.id]: e.target.checked
+                      });
+                    }}
+                  />
+                  <div className="flex-1">
+                    <p className="font-medium text-stone-900">{member.name}</p>
+                    <p className="text-xs text-stone-600">{member.health}</p>
+                  </div>
+                  <span className="text-sm">
+                    {attendanceCheckboxes[member.id] ? '✅' : '❌'}
+                  </span>
+                </div>
+              ))}
+            </div>
+
+            <button
+              onClick={handleSaveAttendance}
+              style={{ backgroundColor: ARIKANA_COLOR }}
+              className="w-full text-white py-3 rounded-lg font-semibold hover:opacity-90 transition-opacity mt-6 cursor-pointer"
+            >
+              💾 Save Attendance
+            </button>
+          </div>
+        </div>
+      );
+    }
+
+    // Attendance View - List (select class)
+    if (selectedMenuItem === 'attendance' && currentUser.role === 'lead-trainer' && !selectedClass) {
       return (
         <div className="pb-28">
           <div style={{ backgroundColor: ARIKANA_COLOR }} className="text-white px-6 py-4 flex items-center gap-3">
