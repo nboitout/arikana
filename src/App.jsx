@@ -177,9 +177,14 @@ export default function ArikanaApp() {
       const firestoreBookings = snapshot.docs.map(doc => {
         const data = doc.data();
         return {
-          ...data,
+          className: data.className,
+          instructor: data.instructor,
+          time: data.time,
+          duration: data.duration,
+          displayDate: data.displayDate,
+          classId: data.classId,
           id: doc.id,
-          dateObj: new Date(data.displayDate.split(', ')[1] + ' 2026'),
+          dateObj: new Date(data.dateObj), // Use the stored ISO string
         };
       });
       
