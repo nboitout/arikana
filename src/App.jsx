@@ -2041,11 +2041,22 @@ Since Mar 1, 2026</p>
               attendanceList.forEach(record => {
                 const member = allAvailableMembers.find(m => m.name === record.name);
                 if (member) {
+                  // Member exists in available list
                   membersToShow.push(member);
                   initialCheckboxes[member.id] = record.attended !== false;
                   console.log('✅ Loaded:', record.name, '- Attended:', record.attended);
                 } else {
-                  console.warn('⚠️ Member not found in available list:', record.name);
+                  // Member was added and not in available list - create from Firestore record
+                  console.log('⚠️ Member not in available list, creating from saved record:', record.name);
+                  const generatedId = record.name.toLowerCase().replace(/\s+/g, '_');
+                  const createdMember = {
+                    id: generatedId,
+                    name: record.name,
+                    health: record.health || 'No issues'
+                  };
+                  membersToShow.push(createdMember);
+                  initialCheckboxes[generatedId] = record.attended !== false;
+                  console.log('✅ Created member from record:', record.name, '- Attended:', record.attended);
                 }
               });
               
@@ -2821,12 +2832,14 @@ Since Mar 1, 2026</p>
             // Show success message
             alert(`✅ Attendance saved!\n\nTotal: ${currentAttendanceList.length} members\nAttended: ${attended.length}\nNo-shows: ${noShows.length}`);
             
-            // After showing alert, return to list
+            // After showing alert, return to list and refresh counts
             setTimeout(() => {
               setSelectedClass(null);
               setAttendanceCheckboxes({});
               setCurrentAttendanceList([]);
               setAttendanceSaved(false);
+              // Trigger refresh of attendance list to reload card counts
+              setAttendanceRefresh(prev => prev + 1);
             }, 500);
           } else {
             alert(`❌ Error: ${result.message}`);
