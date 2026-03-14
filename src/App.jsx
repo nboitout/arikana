@@ -1742,6 +1742,7 @@ Since Mar 1, 2026</p>
   // Profile Tab Content
   const ProfileTab = ({ recurringPattern, setRecurringPattern, dateOverrides, setDateOverrides, getClassesForDate, currentUser, setCurrentUser, markClassAsNew, markClassAsUpdated }) => {
     const [selectedMenuItem, setSelectedMenuItem] = useState(null);
+    const [selectedClass, setSelectedClass] = useState(null);
     const [editingClass, setEditingClass] = useState(null);
     const [editingDayNum, setEditingDayNum] = useState(null);
     const [editForm, setEditForm] = useState({});
@@ -2334,6 +2335,181 @@ Since Mar 1, 2026</p>
       );
     }
 
+    // Attendance View - List of today's classes
+    if (selectedMenuItem === 'attendance' && currentUser?.role === 'lead-trainer' && !selectedClass) {
+      const [selectedAttendanceClass, setSelectedAttendanceClass] = useState(null);
+      
+      return (
+        <div className="pb-28">
+          <div style={{ background: `linear-gradient(to bottom, ${ARIKANA_COLOR}, ${ARIKANA_COLOR}cc)` }} className="text-white px-6 py-4">
+            <div className="flex items-center gap-3">
+              <button onClick={() => setSelectedMenuItem(null)} className="text-2xl">←</button>
+              <h1 className="text-2xl font-light flex-1">Attendance</h1>
+            </div>
+          </div>
+
+          <div className="px-6 py-6">
+            <p className="text-stone-600 text-sm mb-4">View class bookings and mark member attendance.</p>
+            
+            <div className="space-y-4">
+              <h3 className="font-bold text-stone-900">Today's Classes</h3>
+              
+              {[
+                { id: 1, name: 'Pilates Mat', time: '09:00 - 10:00', members: 3 },
+                { id: 2, name: 'Core Strength', time: '10:30 - 11:15', members: 3 },
+              ].map((cls) => (
+                <div key={cls.id} className="border border-stone-200 rounded-lg p-4">
+                  <div className="flex justify-between items-start mb-3">
+                    <div>
+                      <p className="font-bold text-stone-900">{cls.name}</p>
+                      <p className="text-sm text-stone-600">🕐 {cls.time}</p>
+                    </div>
+                    <span style={{ backgroundColor: ARIKANA_COLOR }} className="text-white text-xs font-bold px-2 py-1 rounded">
+                      {cls.members} members
+                    </span>
+                  </div>
+                  <button 
+                    onClick={() => setSelectedAttendanceClass(cls)}
+                    style={{ borderColor: ARIKANA_COLOR, color: ARIKANA_COLOR }}
+                    className="w-full border-2 py-2 rounded-lg font-semibold hover:bg-yellow-50 transition-colors text-sm cursor-pointer"
+                  >
+                    View & Mark Attendance
+                  </button>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    // Attendance Detail View - Mark attendance for a specific class
+    if (selectedMenuItem === 'attendance' && currentUser?.role === 'lead-trainer' && selectedClass) {
+      const [attendanceCheckboxes, setAttendanceCheckboxes] = useState({
+        'sarah': true,
+        'emma': true,
+        'lisa': true,
+      });
+      const [currentAttendanceList, setCurrentAttendanceList] = useState([
+        { id: 'sarah', name: 'Sarah Johnson', health: 'Lower back pain' },
+        { id: 'emma', name: 'Emma Davis', health: 'Neck tension' },
+        { id: 'lisa', name: 'Lisa Chen', health: 'No issues' },
+      ]);
+      const [selectedMemberToAdd, setSelectedMemberToAdd] = useState('');
+
+      const allMembers = [
+        { id: 'sarah', name: 'Sarah Johnson', health: 'Lower back pain' },
+        { id: 'emma', name: 'Emma Davis', health: 'Neck tension' },
+        { id: 'lisa', name: 'Lisa Chen', health: 'No issues' },
+        { id: 'jane', name: 'Jane Smith', health: 'Knee pain' },
+        { id: 'susan', name: 'Susan Brown', health: 'No issues' },
+        { id: 'alice', name: 'Alice Wilson', health: 'Shoulder tension' },
+      ];
+
+      const addMemberToAttendance = () => {
+        if (!selectedMemberToAdd) return;
+        
+        const memberToAdd = allMembers.find(m => m.id === selectedMemberToAdd);
+        if (memberToAdd && !currentAttendanceList.find(m => m.id === selectedMemberToAdd)) {
+          setCurrentAttendanceList([...currentAttendanceList, memberToAdd]);
+          setAttendanceCheckboxes({
+            ...attendanceCheckboxes,
+            [selectedMemberToAdd]: true
+          });
+          setSelectedMemberToAdd('');
+        }
+      };
+
+      const handleSaveAttendance = () => {
+        const attended = currentAttendanceList.filter(m => attendanceCheckboxes[m.id] !== false).map(m => m.name);
+        const noShows = currentAttendanceList.filter(m => attendanceCheckboxes[m.id] === false).map(m => m.name);
+        
+        alert(`✅ Attendance saved!\n\nAttended: ${attended.length}\nNo-shows: ${noShows.length}`);
+        setSelectedClass(null);
+        setAttendanceCheckboxes({});
+        setCurrentAttendanceList([]);
+      };
+
+      return (
+        <div className="pb-28">
+          <div style={{ backgroundColor: ARIKANA_COLOR }} className="text-white px-6 py-4 flex items-center gap-3">
+            <button onClick={() => setSelectedClass(null)} className="text-2xl">←</button>
+            <h1 className="text-2xl font-light">{selectedClass.name}</h1>
+          </div>
+
+          <div className="px-6 py-6">
+            <div className="bg-stone-100 rounded-lg p-4 mb-6">
+              <p className="text-sm text-stone-600">🕐 {selectedClass.time}</p>
+              <p className="text-sm text-stone-600">👥 {currentAttendanceList.length} members</p>
+              <p className="text-xs text-stone-600 mt-2">Attended: <span className="font-bold text-green-600">{Object.values(attendanceCheckboxes).filter(Boolean).length}</span> | No-show: <span className="font-bold text-red-600">{Object.values(attendanceCheckboxes).filter(v => v === false).length}</span></p>
+            </div>
+
+            {/* Add Missing Members */}
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
+              <h3 className="font-bold text-stone-900 mb-3">➕ Add Missing Member</h3>
+              <div className="flex gap-2">
+                <select 
+                  value={selectedMemberToAdd}
+                  onChange={(e) => setSelectedMemberToAdd(e.target.value)}
+                  className="flex-1 border border-stone-300 rounded-lg px-3 py-2 text-sm focus:outline-none"
+                >
+                  <option value="">Select a member...</option>
+                  {allMembers
+                    .filter(m => !currentAttendanceList.find(a => a.id === m.id))
+                    .map(member => (
+                      <option key={member.id} value={member.id}>{member.name}</option>
+                    ))}
+                </select>
+                <button 
+                  onClick={addMemberToAttendance}
+                  style={{ backgroundColor: ARIKANA_COLOR }}
+                  className="text-white px-4 rounded-lg font-semibold hover:opacity-90 transition-opacity text-sm cursor-pointer"
+                >
+                  Add
+                </button>
+              </div>
+            </div>
+
+            <h3 className="font-bold text-stone-900 mb-2">Mark Absent/No-Show</h3>
+            <p className="text-xs text-stone-600 mb-3">Uncheck members who did not attend</p>
+            
+            <div className="space-y-2">
+              {currentAttendanceList.map((member) => (
+                <div key={member.id} className="flex items-center gap-3 border border-stone-200 rounded-lg p-3 bg-white">
+                  <input 
+                    type="checkbox" 
+                    className="w-5 h-5 cursor-pointer"
+                    checked={attendanceCheckboxes[member.id] !== false}
+                    onChange={(e) => {
+                      setAttendanceCheckboxes({
+                        ...attendanceCheckboxes,
+                        [member.id]: e.target.checked ? true : false
+                      });
+                    }}
+                  />
+                  <div className="flex-1">
+                    <p className="font-medium text-stone-900">{member.name}</p>
+                    <p className="text-xs text-stone-600">{member.health}</p>
+                  </div>
+                  <span className="text-sm">
+                    {attendanceCheckboxes[member.id] !== false ? '✅' : '❌'}
+                  </span>
+                </div>
+              ))}
+            </div>
+
+            <button
+              onClick={handleSaveAttendance}
+              style={{ backgroundColor: ARIKANA_COLOR }}
+              className="w-full text-white py-3 rounded-lg font-semibold hover:opacity-90 transition-opacity mt-6 cursor-pointer"
+            >
+              💾 Save Attendance
+            </button>
+          </div>
+        </div>
+      );
+    }
+
     // Booking History View
     if (selectedMenuItem === 'bookings') {
       return (
@@ -2617,7 +2793,10 @@ Since Mar 1, 2026</p>
           {/* Menu Items */}
           <div className="space-y-2">
             {[
-              ...(currentUser.role === 'lead-trainer' ? [{ label: 'Class Schedule', icon: '📋', id: 'calendar' }] : []),
+              ...(currentUser.role === 'lead-trainer' ? [
+                { label: 'Class Schedule', icon: '📋', id: 'calendar' },
+                { label: 'Attendance', icon: '✅', id: 'attendance' }
+              ] : []),
               { label: 'Booking History', icon: '📅', id: 'bookings' },
               { label: 'Membership', icon: '🎫', id: 'membership' },
               { label: 'Payment Methods', icon: '💳', id: 'payment-methods' },
