@@ -1977,6 +1977,7 @@ Since Mar 1, 2026</p>
     const [editForm, setEditForm] = useState({});
     const [showCreateForm, setShowCreateForm] = useState(false);
     const [newClassForm, setNewClassForm] = useState({ name: '', time: '', duration: '60 min', instructor: 'Nicolas', spots: 10, dayOfWeek: 1, recurringEveryWeek: true });
+    const [attendanceRefresh, setAttendanceRefresh] = useState(0); // Force re-render every 30 seconds
 
     // Generate 7 days starting from TODAY
     const getTodayPlus7Days = () => {
@@ -2018,6 +2019,17 @@ Since Mar 1, 2026</p>
         setSelectedMemberToAdd('');
       }
     }, [selectedClass]);
+
+    // Refresh attendance list every 30 seconds when viewing attendance (updates which classes show)
+    useEffect(() => {
+      if (selectedMenuItem === 'attendance' && !selectedClass) {
+        const interval = setInterval(() => {
+          setAttendanceRefresh(prev => prev + 1);
+        }, 30000); // 30 seconds
+        
+        return () => clearInterval(interval);
+      }
+    }, [selectedMenuItem, selectedClass]);
 
     const paymentMethods = [
       { type: 'Mastercard', last4: '9909', expires: '09/2029' },
@@ -2558,8 +2570,50 @@ Since Mar 1, 2026</p>
 
     // Attendance List View - Show today's classes
     if (selectedMenuItem === 'attendance' && currentUser?.role === 'lead-trainer' && !selectedClass) {
+      // Get all classes from now until end of day
+      const now = new Date();
+      const endOfDay = new Date(now);
+      endOfDay.setHours(23, 59, 59);
+      
+      // Collect all classes from now until end of day
+      const upcomingClasses = [];
+      
+      // Check today's classes (recurring + overrides)
+      const todayClasses = getClassesForDate(now);
+      todayClasses.forEach(cls => {
+        const [hours, minutes] = cls.time.split(':').map(Number);
+        const classTime = new Date(now);
+        classTime.setHours(hours, minutes, 0);
+        
+        // Show classes from now until end of day
+        if (classTime >= now && classTime <= endOfDay) {
+          // Count members booked for this class
+          const membersBooked = bookings.filter(b => 
+            b.classId === cls.id && 
+            new Date(b.dateObj).toDateString() === now.toDateString()
+          ).length;
+          
+          upcomingClasses.push({
+            id: cls.id,
+            name: cls.name,
+            time: cls.time,
+            instructor: cls.instructor,
+            members: membersBooked || 0,
+            duration: cls.duration,
+            classObj: cls
+          });
+        }
+      });
+      
+      // Sort by time
+      upcomingClasses.sort((a, b) => {
+        const [aH, aM] = a.time.split(':').map(Number);
+        const [bH, bM] = b.time.split(':').map(Number);
+        return (aH * 60 + aM) - (bH * 60 + bM);
+      });
+
       return (
-        <div className="pb-28">
+        <div className="pb-28" key={`attendance-list-${attendanceRefresh}`}>
           <div style={{ background: `linear-gradient(to bottom, ${ARIKANA_COLOR}, ${ARIKANA_COLOR}cc)` }} className="text-white px-6 py-4">
             <div className="flex items-center gap-3">
               <button onClick={() => setSelectedMenuItem(null)} className="text-2xl">←</button>
@@ -2568,35 +2622,40 @@ Since Mar 1, 2026</p>
           </div>
 
           <div className="px-6 py-6">
-            <p className="text-stone-600 text-sm mb-4">View class bookings and mark member attendance.</p>
+            <p className="text-stone-600 text-sm mb-4">All classes available today. Mark attendance anytime.</p>
             
-            <div className="space-y-4">
-              <h3 className="font-bold text-stone-900">Today's Classes</h3>
-              
-              {[
-                { id: 1, name: 'Pilates Mat', time: '09:00 - 10:00', members: 3 },
-                { id: 2, name: 'Core Strength', time: '10:30 - 11:15', members: 3 },
-              ].map((cls) => (
-                <div key={cls.id} className="border border-stone-200 rounded-lg p-4">
-                  <div className="flex justify-between items-start mb-3">
-                    <div>
-                      <p className="font-bold text-stone-900">{cls.name}</p>
-                      <p className="text-sm text-stone-600">🕐 {cls.time}</p>
+            {upcomingClasses.length > 0 ? (
+              <div className="space-y-4">
+                <h3 className="font-bold text-stone-900">Today's Classes</h3>
+                
+                {upcomingClasses.map((cls) => (
+                  <div key={cls.id} className="border border-stone-200 rounded-lg p-4 bg-white">
+                    <div className="flex justify-between items-start mb-3">
+                      <div className="flex-1">
+                        <p className="font-bold text-stone-900">{cls.name}</p>
+                        <p className="text-sm text-stone-600">👤 {cls.instructor}</p>
+                        <p className="text-sm text-stone-600">🕐 {cls.time} • {cls.duration}</p>
+                      </div>
+                      <span style={{ backgroundColor: ARIKANA_COLOR }} className="text-white text-xs font-bold px-2 py-1 rounded whitespace-nowrap ml-2">
+                        {cls.members} member{cls.members !== 1 ? 's' : ''}
+                      </span>
                     </div>
-                    <span style={{ backgroundColor: ARIKANA_COLOR }} className="text-white text-xs font-bold px-2 py-1 rounded">
-                      {cls.members} members
-                    </span>
+                    <button 
+                      onClick={() => setSelectedClass(cls.classObj)}
+                      style={{ borderColor: ARIKANA_COLOR, color: ARIKANA_COLOR }}
+                      className="w-full border-2 py-2 rounded-lg font-semibold hover:bg-yellow-50 transition-colors text-sm cursor-pointer"
+                    >
+                      View & Mark Attendance
+                    </button>
                   </div>
-                  <button 
-                    onClick={() => setSelectedClass(cls)}
-                    style={{ borderColor: ARIKANA_COLOR, color: ARIKANA_COLOR }}
-                    className="w-full border-2 py-2 rounded-lg font-semibold hover:bg-yellow-50 transition-colors text-sm cursor-pointer"
-                  >
-                    View & Mark Attendance
-                  </button>
-                </div>
-              ))}
-            </div>
+                ))}
+              </div>
+            ) : (
+              <div className="bg-stone-100 rounded-lg p-6 text-center">
+                <p className="text-stone-600 font-semibold">No classes today</p>
+                <p className="text-sm text-stone-500 mt-2">All classes for today have passed</p>
+              </div>
+            )}
           </div>
         </div>
       );
