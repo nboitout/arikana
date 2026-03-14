@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Home, Calendar, ShoppingBag, User, MoreHorizontal, ChevronRight, Eye, EyeOff } from 'lucide-react';
 import './App.css';
 import { auth, db } from './firebase-config';
+import { addDoc, collection, getDocs, doc, deleteDoc } from 'firebase/firestore';
 
 // EmailJS configuration
 const EMAILJS_SERVICE_ID = 'service_arikana';
@@ -155,8 +156,15 @@ export default function ArikanaApp() {
 
   const saveBookingToFirestore = async (booking) => {
     try {
-      const { addDoc, collection } = await import('firebase/firestore');
-      const userBookingsRef = collection(db, 'users', currentUser.id, 'bookings');
+      console.log('🔍 saveBookingToFirestore called with:', { userId: currentUser.id, booking });
+      console.log('🔍 userId type:', typeof currentUser.id, 'value:', currentUser.id);
+      
+      if (!currentUser || !currentUser.id) {
+        console.log('⚠️ No currentUser or id, skipping Firestore save');
+        return;
+      }
+      
+      const userBookingsRef = collection(db, 'users', String(currentUser.id), 'bookings');
       await addDoc(userBookingsRef, {
         ...booking,
         createdAt: new Date().toISOString(),
@@ -170,8 +178,17 @@ export default function ArikanaApp() {
 
   const loadBookingsFromFirestore = async () => {
     try {
-      const { collection, getDocs } = await import('firebase/firestore');
-      const userBookingsRef = collection(db, 'users', currentUser.id, 'bookings');
+      console.log('🔍 loadBookingsFromFirestore called');
+      console.log('🔍 currentUser:', currentUser);
+      console.log('🔍 userId type:', typeof currentUser?.id, 'value:', currentUser?.id);
+      
+      if (!currentUser || !currentUser.id) {
+        console.log('⚠️ No currentUser or id, skipping load');
+        setBookings([]);
+        return;
+      }
+      
+      const userBookingsRef = collection(db, 'users', String(currentUser.id), 'bookings');
       const snapshot = await getDocs(userBookingsRef);
       
       console.log('📦 Snapshot docs count:', snapshot.docs.length);
@@ -182,8 +199,8 @@ export default function ArikanaApp() {
         return;
       }
       
-      const firestoreBookings = snapshot.docs.map(doc => {
-        const data = doc.data();
+      const firestoreBookings = snapshot.docs.map(docSnapshot => {
+        const data = docSnapshot.data();
         console.log('📋 Raw booking data:', data);
         
         // Parse dateObj safely
@@ -194,13 +211,13 @@ export default function ArikanaApp() {
           // Handle Firestore Timestamp
           dateObj = data.dateObj.toDate();
         } else {
-          // Fallback: try to parse displayDate
+          // Fallback: use today
           const today = new Date();
           dateObj = today;
         }
         
         return {
-          id: doc.id,
+          id: docSnapshot.id,
           className: data.className || '',
           instructor: data.instructor || '',
           time: data.time || '',
@@ -230,8 +247,14 @@ export default function ArikanaApp() {
 
   const deleteBookingFromFirestore = async (bookingId) => {
     try {
-      const { doc, deleteDoc } = await import('firebase/firestore');
-      await deleteDoc(doc(db, 'users', currentUser.id, 'bookings', bookingId));
+      console.log('🔍 deleteBookingFromFirestore called with:', { userId: currentUser?.id, bookingId });
+      
+      if (!currentUser || !currentUser.id) {
+        console.log('⚠️ No currentUser or id, skipping Firestore delete');
+        return;
+      }
+      
+      await deleteDoc(doc(db, 'users', String(currentUser.id), 'bookings', bookingId));
       console.log('✅ Booking deleted from Firestore');
     } catch (error) {
       console.error('❌ Error deleting booking:', error);
@@ -241,7 +264,6 @@ export default function ArikanaApp() {
 
   const testFirebase = async () => {
     try {
-      const { addDoc, collection } = await import('firebase/firestore');
       await addDoc(collection(db, 'test'), {
         message: 'Firebase is working!',
         timestamp: new Date()
@@ -383,7 +405,7 @@ export default function ArikanaApp() {
           lastName: formData.lastName,
           email: formData.email,
           mobile: formData.mobile,
-          id: Date.now()
+          id: String(Date.now())  // Convert to string for Firestore
         };
 
         await sendSignUpEmail(userData);
@@ -406,7 +428,7 @@ export default function ArikanaApp() {
           lastName: 'Glushkova',
           email: formData.email,
           mobile: '+40 123 456 789',
-          id: Date.now(),
+          id: String(Date.now()),  // Convert to string for Firestore
           role: 'lead-trainer'
         };
         localStorage.setItem('arikanaUser', JSON.stringify(userData));
