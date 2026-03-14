@@ -1722,11 +1722,39 @@ Since Mar 1, 2026</p>
     const [selectedMenuItem, setSelectedMenuItem] = useState(null);
     const [selectedClass, setSelectedClass] = useState(null);
     const [attendanceCheckboxes, setAttendanceCheckboxes] = useState({});
+    const [formData, setFormData] = useState({
+      name: '',
+      instructor: 'nicolas',
+      timeStart: '09:00',
+      duration: '60',
+      recurring: false,
+    });
 
     const handleSignOut = () => {
       localStorage.removeItem('arikanaUser');
       setCurrentUser(null);
     };
+
+    // Update form data when editing a class
+    useEffect(() => {
+      if (selectedClass && typeof selectedClass === 'object' && selectedClass.edit) {
+        setFormData({
+          name: selectedClass.name || '',
+          instructor: 'nicolas',
+          timeStart: selectedClass.time || '09:00',
+          duration: '60',
+          recurring: true,
+        });
+      } else if (selectedClass === 'create-new') {
+        setFormData({
+          name: '',
+          instructor: 'nicolas',
+          timeStart: '09:00',
+          duration: '60',
+          recurring: false,
+        });
+      }
+    }, [selectedClass]);
 
     // Booking History View (for all users)
     if (selectedMenuItem === 'bookings') {
@@ -1772,14 +1800,6 @@ Since Mar 1, 2026</p>
 
     // Create New Class View
     if (selectedMenuItem === 'class-schedule' && currentUser.role === 'lead-trainer' && selectedClass === 'create-new') {
-      const [formData, setFormData] = useState({
-        name: '',
-        instructor: 'nicolas',
-        timeStart: '09:00',
-        duration: '60',
-        recurring: false,
-      });
-
       const instructors = [
         { id: 'nicolas', name: 'Nicolas' },
         { id: 'angelina', name: 'Angelina' },
@@ -1885,14 +1905,6 @@ Since Mar 1, 2026</p>
 
     // Edit Class View
     if (selectedMenuItem === 'class-schedule' && currentUser.role === 'lead-trainer' && typeof selectedClass === 'object' && selectedClass?.edit) {
-      const [formData, setFormData] = useState({
-        name: selectedClass.name || '',
-        instructor: 'nicolas',
-        timeStart: selectedClass.time || '09:00',
-        duration: '60',
-        recurring: true,
-      });
-
       const instructors = [
         { id: 'nicolas', name: 'Nicolas' },
         { id: 'angelina', name: 'Angelina' },
