@@ -152,6 +152,44 @@ export default function ArikanaApp() {
     return {};
   });
 
+  // Track newly created classes (classId -> createdAt timestamp)
+  const [newClassesIds, setNewClassesIds] = useState(new Set());
+  
+  // Track updated classes (classId -> updatedAt timestamp)
+  const [updatedClassesIds, setUpdatedClassesIds] = useState(new Set());
+
+  // Helper function to mark a class as new
+  const markClassAsNew = (classId) => {
+    const newSet = new Set(newClassesIds);
+    newSet.add(classId);
+    setNewClassesIds(newSet);
+    
+    // Remove "new" badge after 24 hours
+    setTimeout(() => {
+      setNewClassesIds(prev => {
+        const updated = new Set(prev);
+        updated.delete(classId);
+        return updated;
+      });
+    }, 24 * 60 * 60 * 1000);
+  };
+
+  // Helper function to mark a class as updated
+  const markClassAsUpdated = (classId) => {
+    const newSet = new Set(updatedClassesIds);
+    newSet.add(classId);
+    setUpdatedClassesIds(newSet);
+    
+    // Remove "updated" badge after 24 hours
+    setTimeout(() => {
+      setUpdatedClassesIds(prev => {
+        const updated = new Set(prev);
+        updated.delete(classId);
+        return updated;
+      });
+    }, 24 * 60 * 60 * 1000);
+  };
+
   // Helper: Get classes for a specific date (merges recurring + overrides)
   const getClassesForDate = (date) => {
     const dateStr = date.toISOString().split('T')[0];
@@ -901,7 +939,8 @@ Since Mar 1, 2026</p>
     selectedBookingClass, setSelectedBookingClass,
     selectedDate, setSelectedDate,
     bookingCalendarStart,
-    recurringPattern, dateOverrides, getClassesForDate
+    recurringPattern, dateOverrides, getClassesForDate,
+    newClassesIds, updatedClassesIds
   }) => {
     const [selectedInstructor, setSelectedInstructor] = useState('all');
 
@@ -1328,7 +1367,17 @@ Since Mar 1, 2026</p>
           ) : (
             <div className="space-y-2">
               {filteredClasses.map((cls) => (
-                <div key={cls.id} className="bg-white border border-stone-200 rounded-lg p-3 hover:shadow-md transition-all">
+                <div key={cls.id} className="bg-white border border-stone-200 rounded-lg p-3 hover:shadow-md transition-all relative">
+                  {/* New/Updated Badges */}
+                  <div className="absolute top-2 right-2 flex gap-1">
+                    {newClassesIds.has(cls.id) && (
+                      <span className="bg-green-100 text-green-800 text-xs font-bold px-2 py-0.5 rounded-full">🆕 New</span>
+                    )}
+                    {updatedClassesIds.has(cls.id) && (
+                      <span className="bg-blue-100 text-blue-800 text-xs font-bold px-2 py-0.5 rounded-full">✏️ Updated</span>
+                    )}
+                  </div>
+
                   <div className="flex justify-between items-start mb-1">
                     <div>
                       <h4 className="font-semibold text-stone-900 text-xs">{cls.name}</h4>
@@ -1691,7 +1740,7 @@ Since Mar 1, 2026</p>
   };
 
   // Profile Tab Content
-  const ProfileTab = ({ recurringPattern, setRecurringPattern, dateOverrides, setDateOverrides, getClassesForDate, currentUser, setCurrentUser }) => {
+  const ProfileTab = ({ recurringPattern, setRecurringPattern, dateOverrides, setDateOverrides, getClassesForDate, currentUser, setCurrentUser, markClassAsNew, markClassAsUpdated }) => {
     const [selectedMenuItem, setSelectedMenuItem] = useState(null);
     const [editingClass, setEditingClass] = useState(null);
     const [editingDayNum, setEditingDayNum] = useState(null);
@@ -1901,6 +1950,9 @@ Since Mar 1, 2026</p>
                     }
                     updatedOverrides[dateStr].push(newClass);
                     setDateOverrides(updatedOverrides);
+                    
+                    // Mark this class as NEW in the Book tab
+                    markClassAsNew(newClass.id);
                   }
                   
                   setShowCreateForm(false);
@@ -2100,6 +2152,9 @@ Since Mar 1, 2026</p>
                         idx === editingClass.index ? { ...editForm, id: cls.id } : cls
                       );
                       setDateOverrides(updatedOverrides);
+                      
+                      // Mark this class as UPDATED in the Book tab
+                      markClassAsUpdated(editForm.id);
                     } else {
                       // Save to recurring pattern
                       const dayOfWeek = new Date(editingDateStr + 'T00:00:00').getDay();
@@ -2108,6 +2163,9 @@ Since Mar 1, 2026</p>
                         idx === editingClass.index ? { ...editForm, id: cls.id } : cls
                       );
                       setRecurringPattern(updatedPattern);
+                      
+                      // Mark this class as UPDATED in the Book tab
+                      markClassAsUpdated(editForm.id);
                     }
                     
                     setEditingClass(null);
@@ -2448,6 +2506,8 @@ Since Mar 1, 2026</p>
       recurringPattern={recurringPattern}
       dateOverrides={dateOverrides}
       getClassesForDate={getClassesForDate}
+      newClassesIds={newClassesIds}
+      updatedClassesIds={updatedClassesIds}
     />,
     buy: <BuyTab />,
     profile: <ProfileTab 
@@ -2457,7 +2517,9 @@ Since Mar 1, 2026</p>
       setDateOverrides={setDateOverrides}
       getClassesForDate={getClassesForDate}
       currentUser={currentUser} 
-      setCurrentUser={setCurrentUser} 
+      setCurrentUser={setCurrentUser}
+      markClassAsNew={markClassAsNew}
+      markClassAsUpdated={markClassAsUpdated}
     />,
     more: <MoreTab />,
   };
