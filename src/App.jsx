@@ -346,11 +346,16 @@ export default function ArikanaApp() {
     
     // If this date has an override, use it
     if (dateOverrides[dateStr] !== undefined) {
+      console.log(`getClassesForDate(${dateStr}): Found override, returning ${dateOverrides[dateStr].length} classes`);
       return dateOverrides[dateStr];
     }
     
     // Otherwise, use recurring pattern for this day of week
-    return recurringPattern[dayOfWeek] || [];
+    const result = recurringPattern[dayOfWeek] || [];
+    if (dayOfWeek === 1 && result.length > 0) {
+      console.log(`getClassesForDate(${dateStr}): Monday found - returning ${result.length} classes`);
+    }
+    return result;
   };
 
   // Brand color
@@ -805,13 +810,23 @@ export default function ArikanaApp() {
       now.setHours(0, 0, 0, 0);
       const allSessions = [];
 
+      console.log('📅 BOOKING TAB: Searching for next sessions. Today:', now.toISOString().split('T')[0]);
+      console.log('Current recurringPattern keys:', Object.keys(recurringPattern));
+      console.log('recurringPattern[1] (Monday):', recurringPattern[1]);
+
       // Check next 60 days for classes
       for (let i = 0; i < 60; i++) {
         const checkDate = new Date(now);
         checkDate.setDate(checkDate.getDate() + i);
+        const dayOfWeek = checkDate.getDay();
+        const dateStr = checkDate.toISOString().split('T')[0];
         
         // Get classes for this date using recurring pattern
         const classesForDay = getClassesForDate(checkDate);
+        
+        if (i < 10) {
+          console.log(`  Day ${i}: ${dateStr} (dayOfWeek=${dayOfWeek}) - Found ${classesForDay.length} classes`);
+        }
         
         classesForDay.forEach((classData, idx) => {
           const sessionTime = new Date(checkDate);
@@ -823,7 +838,7 @@ export default function ArikanaApp() {
             // Get day name
             const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
             const dayName = dayNames[sessionTime.getDay()];
-            const dateStr = sessionTime.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
+            const dateStr2 = sessionTime.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
             
             allSessions.push({
               id: `${checkDate.toISOString().split('T')[0]}-${idx}`, // Unique ID from date + index
@@ -833,7 +848,7 @@ export default function ArikanaApp() {
               instructor: classData.instructor,
               spots: classData.spots,
               dateObj: sessionTime,
-              displayDate: `${dayName}, ${dateStr}`,
+              displayDate: `${dayName}, ${dateStr2}`,
             });
           }
         });
@@ -841,6 +856,8 @@ export default function ArikanaApp() {
         // Stop if we have enough sessions
         if (allSessions.length >= 2) break;
       }
+
+      console.log('📊 Found', allSessions.length, 'sessions:', allSessions.map(s => `${s.displayDate} - ${s.name}`));
 
       // Sort by date/time
       allSessions.sort((a, b) => a.dateObj - b.dateObj);
@@ -2317,6 +2334,8 @@ Since Mar 1, 2026</p>
                     return;
                   }
                   
+                  console.log('💾 SAVING CLASS - dayOfWeek from form:', newClassForm.dayOfWeek, typeof newClassForm.dayOfWeek);
+                  
                   // Generate next unique ID across all classes
                   const allClasses = Object.values(recurringPattern).flat().concat(Object.values(dateOverrides).flat());
                   const newId = Math.max(...allClasses.map(c => c.id || 0), 0) + 1;
@@ -2334,10 +2353,13 @@ Since Mar 1, 2026</p>
                     // Save to recurring pattern (for the selected day of week)
                     const updatedPattern = { ...recurringPattern };
                     const dayNum = parseInt(newClassForm.dayOfWeek); // ✅ Convert string to number
+                    console.log('Converting dayOfWeek:', newClassForm.dayOfWeek, '→', dayNum);
                     if (!updatedPattern[dayNum]) {
                       updatedPattern[dayNum] = [];
                     }
                     updatedPattern[dayNum].push(newClass);
+                    console.log('✅ Saved class to key:', dayNum, 'Content:', updatedPattern[dayNum]);
+                    console.log('Pattern keys after save:', Object.keys(updatedPattern));
                     setRecurringPattern(updatedPattern);
                   } else {
                     // Save to date overrides (one-time class)
@@ -2697,6 +2719,7 @@ Since Mar 1, 2026</p>
                         <button
                           type="button"
                           onClick={() => {
+                            console.log('🔘 ADD CLASS button clicked - dayOfWeek from map:', dayOfWeek, typeof dayOfWeek);
                             setShowCreateForm(true);
                             setNewClassForm({ name: '', time: '', duration: '60 min', instructor: 'Nicolas', spots: 10, dayOfWeek: dayOfWeek, recurringEveryWeek: true });
                           }}
