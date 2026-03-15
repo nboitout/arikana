@@ -2220,12 +2220,12 @@ Since Mar 1, 2026</p>
               <div>
                 <label className="text-sm font-semibold text-stone-900 block mb-2">Day of Week</label>
                 <select
-                  value={newClassForm.dayOfWeek}
+                  value={String(newClassForm.dayOfWeek)}
                   onChange={(e) => setNewClassForm({ ...newClassForm, dayOfWeek: parseInt(e.target.value) })}
                   className="w-full border border-stone-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-yellow-600"
                 >
                   {dayNames.map((day, idx) => (
-                    <option key={idx} value={idx}>{day}</option>
+                    <option key={idx} value={String(idx)}>{day}</option>
                   ))}
                 </select>
               </div>
@@ -2699,7 +2699,10 @@ Since Mar 1, 2026</p>
           <div className="px-6 mt-6 pb-6">
             <button
               type="button"
-              onClick={() => setShowCreateForm(true)}
+              onClick={() => {
+                setShowCreateForm(true);
+                setNewClassForm({ name: '', time: '', duration: '60 min', instructor: 'Nicolas', spots: 10, dayOfWeek: dayOfWeek, recurringEveryWeek: true });
+              }}
               style={{ backgroundColor: ARIKANA_COLOR }}
               className="w-full text-white py-3 rounded-lg font-semibold hover:opacity-90 transition-opacity cursor-pointer"
             >
