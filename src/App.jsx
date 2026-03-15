@@ -328,22 +328,34 @@ export default function ArikanaApp() {
     };
   };
 
-  const [recurringPattern, setRecurringPattern] = useState(getDefaultRecurringPattern());
+  // Start with empty pattern - will be populated from Firestore or defaults
+  const [recurringPattern, setRecurringPattern] = useState({
+    0: [], 1: [], 2: [], 3: [], 4: [], 5: [], 6: []
+  });
 
   // Date-specific overrides (one-shot changes like canceling a single Friday)
   // Structure: { '2026-03-13': [] } means Friday March 13 has NO classes (canceled)
   // or { '2026-03-13': [modified classes] } means override that specific date
   const [dateOverrides, setDateOverrides] = useState({});
+  
+  // Flag to prevent saving to Firestore before initial load completes
+  const [scheduleLoaded, setScheduleLoaded] = useState(false);
 
   // Helper: Load class schedule from Firestore
   const loadClassScheduleFromFirestore = async () => {
     try {
+      console.log('📥 Loading class schedule from Firestore...');
       const docRef = doc(db, 'classSchedules', 'default');
       const docSnap = await getDoc(docRef);
       
       if (docSnap.exists()) {
         const data = docSnap.data();
-        console.log('📥 Loaded class schedule from Firestore');
+        console.log('✅ Found schedule in Firestore');
+        console.log('📋 Loaded data:', {
+          recurringPattern: Object.keys(data.recurringPattern || {}).map(k => `${k}:${(data.recurringPattern[k] || []).length}classes`),
+          dateOverridesCount: Object.keys(data.dateOverrides || {}).length,
+          lastUpdated: data.lastUpdated
+        });
         
         // Normalize keys if needed
         let pattern = data.recurringPattern || {};
@@ -369,13 +381,21 @@ export default function ArikanaApp() {
   // Helper: Save class schedule to Firestore
   const saveClassScheduleToFirestore = async (pattern, overrides) => {
     try {
+      console.log('📤 Saving to Firestore...');
       const docRef = doc(db, 'classSchedules', 'default');
-      await setDoc(docRef, {
+      const dataToSave = {
         recurringPattern: pattern,
         dateOverrides: overrides,
         lastUpdated: new Date().toISOString()
+      };
+      console.log('📋 Data being saved:', {
+        recurringPattern: Object.keys(pattern).map(k => `${k}:${pattern[k].length}classes`),
+        dateOverridesCount: Object.keys(overrides).length,
+        timestamp: dataToSave.lastUpdated
       });
-      console.log('✅ Saved class schedule to Firestore');
+      
+      await setDoc(docRef, dataToSave);
+      console.log('✅ Successfully saved class schedule to Firestore');
     } catch (error) {
       console.error('❌ Error saving schedule to Firestore:', error);
     }
@@ -429,27 +449,35 @@ export default function ArikanaApp() {
         setDateOverrides(schedule.dateOverrides);
         console.log('📅 Class schedule loaded from Firestore');
       } else {
-        console.log('📅 Using default class schedule');
+        // Only use defaults if Firestore is empty
+        console.log('📅 Firestore empty - using default class schedule');
+        setRecurringPattern(getDefaultRecurringPattern());
       }
+      setScheduleLoaded(true);
     };
     loadSchedule();
 
     setIsLoading(false);
   }, []);
 
-  // Save recurringPattern to Firestore whenever it changes
+  // Save class schedule to Firestore whenever it changes (but NOT before initial load)
   useEffect(() => {
-    if (Object.values(recurringPattern).some(arr => arr.length > 0)) {
+    if (!scheduleLoaded) {
+      console.log('⏳ Skipping save - waiting for initial load to complete');
+      return;
+    }
+    
+    const hasClasses = Object.values(recurringPattern).some(arr => arr.length > 0);
+    const hasOverrides = Object.keys(dateOverrides).length > 0;
+    
+    console.log('💾 Schedule changed - hasClasses:', hasClasses, 'hasOverrides:', hasOverrides);
+    console.log('recurringPattern[1] (Monday):', recurringPattern[1]?.length || 0, 'classes');
+    
+    if (hasClasses || hasOverrides) {
+      console.log('🔄 Saving schedule to Firestore');
       saveClassScheduleToFirestore(recurringPattern, dateOverrides);
     }
-  }, [recurringPattern]);
-
-  // Save dateOverrides to Firestore whenever it changes
-  useEffect(() => {
-    if (Object.keys(dateOverrides).length > 0) {
-      saveClassScheduleToFirestore(recurringPattern, dateOverrides);
-    }
-  }, [dateOverrides]);
+  }, [recurringPattern, dateOverrides, scheduleLoaded]);
 
   // Save healthData to localStorage whenever it changes
   useEffect(() => {
