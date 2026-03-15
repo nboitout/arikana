@@ -3,7 +3,7 @@ import { Home, Calendar, ShoppingBag, User, MoreHorizontal, ChevronRight, Eye, E
 import './App.css';
 import { initializeApp } from 'firebase/app';
 import { getAuth } from 'firebase/auth';
-import { getFirestore, addDoc, collection, getDocs } from 'firebase/firestore';
+import { getFirestore, addDoc, collection, getDocs, getDoc, setDoc, doc } from 'firebase/firestore';
 
 // EmailJS configuration - You'll need to sign up at emailjs.com
 const EMAILJS_SERVICE_ID = 'service_arikana'; // Replace with your service ID
@@ -290,23 +290,8 @@ export default function ArikanaApp() {
     today.setHours(0, 0, 0, 0);
     return today;
   });
-  // Recurring weekly pattern (Mon=1, Tue=2, etc.)
-  const [recurringPattern, setRecurringPattern] = useState(() => {
-    const saved = localStorage.getItem('arikanaRecurringPattern');
-    if (saved) {
-      const parsed = JSON.parse(saved);
-      console.log('📥 Loaded from localStorage - raw keys:', Object.keys(parsed));
-      
-      // Normalize string keys to numeric keys (Safari compatibility fix)
-      const normalized = {};
-      for (let i = 0; i < 7; i++) {
-        normalized[i] = parsed[i] || parsed[String(i)] || [];
-      }
-      console.log('✅ Normalized keys:', Object.keys(normalized));
-      return normalized;
-    }
-    
-    // Default pattern with numeric keys
+  // Recurring weekly pattern (Mon=1, Tue=2, etc.) - will be loaded from Firestore
+  const getDefaultRecurringPattern = () => {
     return {
       0: [], // Sunday - Rest Day
       1: [ // Monday
@@ -341,16 +326,60 @@ export default function ArikanaApp() {
         { id: 19, name: 'Speed Skating', time: '09:30', duration: '50 min', instructor: 'Sergey', spots: 11 },
       ],
     };
-  });
+  };
+
+  const [recurringPattern, setRecurringPattern] = useState(getDefaultRecurringPattern());
 
   // Date-specific overrides (one-shot changes like canceling a single Friday)
   // Structure: { '2026-03-13': [] } means Friday March 13 has NO classes (canceled)
   // or { '2026-03-13': [modified classes] } means override that specific date
-  const [dateOverrides, setDateOverrides] = useState(() => {
-    const saved = localStorage.getItem('arikanaDateOverrides');
-    if (saved) return JSON.parse(saved);
-    return {};
-  });
+  const [dateOverrides, setDateOverrides] = useState({});
+
+  // Helper: Load class schedule from Firestore
+  const loadClassScheduleFromFirestore = async () => {
+    try {
+      const docRef = doc(db, 'classSchedules', 'default');
+      const docSnap = await getDoc(docRef);
+      
+      if (docSnap.exists()) {
+        const data = docSnap.data();
+        console.log('📥 Loaded class schedule from Firestore');
+        
+        // Normalize keys if needed
+        let pattern = data.recurringPattern || {};
+        const normalized = {};
+        for (let i = 0; i < 7; i++) {
+          normalized[i] = pattern[i] || pattern[String(i)] || [];
+        }
+        
+        return {
+          recurringPattern: normalized,
+          dateOverrides: data.dateOverrides || {}
+        };
+      } else {
+        console.log('📁 No schedule found in Firestore, using defaults');
+        return null;
+      }
+    } catch (error) {
+      console.error('❌ Error loading schedule from Firestore:', error);
+      return null;
+    }
+  };
+
+  // Helper: Save class schedule to Firestore
+  const saveClassScheduleToFirestore = async (pattern, overrides) => {
+    try {
+      const docRef = doc(db, 'classSchedules', 'default');
+      await setDoc(docRef, {
+        recurringPattern: pattern,
+        dateOverrides: overrides,
+        lastUpdated: new Date().toISOString()
+      });
+      console.log('✅ Saved class schedule to Firestore');
+    } catch (error) {
+      console.error('❌ Error saving schedule to Firestore:', error);
+    }
+  };
 
   // Helper: Get classes for a specific date (merges recurring + overrides)
   const getClassesForDate = (date) => {
@@ -392,17 +421,34 @@ export default function ArikanaApp() {
       setBookings(JSON.parse(savedBookings));
     }
 
+    // Load class schedule from Firestore
+    const loadSchedule = async () => {
+      const schedule = await loadClassScheduleFromFirestore();
+      if (schedule) {
+        setRecurringPattern(schedule.recurringPattern);
+        setDateOverrides(schedule.dateOverrides);
+        console.log('📅 Class schedule loaded from Firestore');
+      } else {
+        console.log('📅 Using default class schedule');
+      }
+    };
+    loadSchedule();
+
     setIsLoading(false);
   }, []);
 
-  // Save recurringPattern to localStorage whenever it changes
+  // Save recurringPattern to Firestore whenever it changes
   useEffect(() => {
-    localStorage.setItem('arikanaRecurringPattern', JSON.stringify(recurringPattern));
+    if (Object.values(recurringPattern).some(arr => arr.length > 0)) {
+      saveClassScheduleToFirestore(recurringPattern, dateOverrides);
+    }
   }, [recurringPattern]);
 
-  // Save dateOverrides to localStorage whenever it changes
+  // Save dateOverrides to Firestore whenever it changes
   useEffect(() => {
-    localStorage.setItem('arikanaDateOverrides', JSON.stringify(dateOverrides));
+    if (Object.keys(dateOverrides).length > 0) {
+      saveClassScheduleToFirestore(recurringPattern, dateOverrides);
+    }
   }, [dateOverrides]);
 
   // Save healthData to localStorage whenever it changes
@@ -2330,6 +2376,8 @@ Since Mar 1, 2026</p>
                     return;
                   }
                   
+                  console.log('🔘 FORM SUBMIT - dayOfWeek:', newClassForm.dayOfWeek, 'recurringEveryWeek:', newClassForm.recurringEveryWeek);
+                  
                   // Generate next unique ID across all classes
                   const allClasses = Object.values(recurringPattern).flat().concat(Object.values(dateOverrides).flat());
                   const newId = Math.max(...allClasses.map(c => c.id || 0), 0) + 1;
@@ -2343,15 +2391,20 @@ Since Mar 1, 2026</p>
                     spots: newClassForm.spots,
                   };
                   
+                  console.log('📝 New class object:', newClass);
+                  
                   if (newClassForm.recurringEveryWeek) {
                     // Save to recurring pattern (for the selected day of week)
                     const updatedPattern = { ...recurringPattern };
-                    const dayNum = parseInt(newClassForm.dayOfWeek); // ✅ Convert string to number
+                    const dayNum = parseInt(newClassForm.dayOfWeek);
+                    console.log('💾 Saving to recurringPattern[' + dayNum + ']');
                     if (!updatedPattern[dayNum]) {
                       updatedPattern[dayNum] = [];
                     }
                     updatedPattern[dayNum].push(newClass);
+                    console.log('✅ Class added. Updated Monday array length:', updatedPattern[1]?.length || 0);
                     setRecurringPattern(updatedPattern);
+                    console.log('✅ Called setRecurringPattern');
                   } else {
                     // Save to date overrides (one-time class)
                     const today = new Date();
@@ -2710,6 +2763,7 @@ Since Mar 1, 2026</p>
                         <button
                           type="button"
                           onClick={() => {
+                            console.log('🔘 + Add Class button clicked on day:', dayOfWeek);
                             setShowCreateForm(true);
                             setNewClassForm({ name: '', time: '', duration: '60 min', instructor: 'Nicolas', spots: 10, dayOfWeek: dayOfWeek, recurringEveryWeek: true });
                           }}
