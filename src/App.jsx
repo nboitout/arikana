@@ -2333,10 +2333,11 @@ Since Mar 1, 2026</p>
                   if (newClassForm.recurringEveryWeek) {
                     // Save to recurring pattern (for the selected day of week)
                     const updatedPattern = { ...recurringPattern };
-                    if (!updatedPattern[newClassForm.dayOfWeek]) {
-                      updatedPattern[newClassForm.dayOfWeek] = [];
+                    const dayNum = parseInt(newClassForm.dayOfWeek); // ✅ Convert string to number
+                    if (!updatedPattern[dayNum]) {
+                      updatedPattern[dayNum] = [];
                     }
-                    updatedPattern[newClassForm.dayOfWeek].push(newClass);
+                    updatedPattern[dayNum].push(newClass);
                     setRecurringPattern(updatedPattern);
                   } else {
                     // Save to date overrides (one-time class)
@@ -2689,25 +2690,27 @@ Since Mar 1, 2026</p>
                         </div>
                       )}
                     </div>
+                    
+                    {/* Create New Class Button - Inside each day card */}
+                    {!isRestDay && (
+                      <div className="px-3 pb-3 border-t border-stone-200">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setShowCreateForm(true);
+                            setNewClassForm({ name: '', time: '', duration: '60 min', instructor: 'Nicolas', spots: 10, dayOfWeek: dayOfWeek, recurringEveryWeek: true });
+                          }}
+                          style={{ backgroundColor: ARIKANA_COLOR }}
+                          className="w-full text-white py-2 rounded font-semibold hover:opacity-90 transition-opacity cursor-pointer text-sm"
+                        >
+                          + Add Class
+                        </button>
+                      </div>
+                    )}
                   </div>
                 );
               })}
             </div>
-          </div>
-
-          {/* Create New Class Button */}
-          <div className="px-6 mt-6 pb-6">
-            <button
-              type="button"
-              onClick={() => {
-                setShowCreateForm(true);
-                setNewClassForm({ name: '', time: '', duration: '60 min', instructor: 'Nicolas', spots: 10, dayOfWeek: dayOfWeek, recurringEveryWeek: true });
-              }}
-              style={{ backgroundColor: ARIKANA_COLOR }}
-              className="w-full text-white py-3 rounded-lg font-semibold hover:opacity-90 transition-opacity cursor-pointer"
-            >
-              + Create New Class
-            </button>
           </div>
         </div>
       );
