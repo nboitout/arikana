@@ -1251,8 +1251,9 @@ Since Mar 1, 2026</p>
 
     const instructors = {
       nicolas: { name: 'Nicolas', title: 'Pilates Specialist', rating: 4.9, reviews: 127, bio: 'Pilates and Pushups', photo: 'https://i.ibb.co/xKGQ2P8B/Nicolas-Boitout.png' },
-      angelina: { name: 'Angelina', title: 'Pilates Master', rating: 5.0, reviews: 48, bio: 'Pelvic Curl Goddess', photo: 'https://i.ibb.co/8g8sMgRj/Angelina-Tricolici.png' },
-      sergey: { name: 'Sergey', title: 'Crossfit Coach', rating: 4.8, reviews: 95, bio: 'Siberian Crossfitter', photo: 'https://i.ibb.co/nNGSPCsY/Sergey.png' },
+      angelina: { name: 'Angelina', title: 'Pilates Master', rating: 5.0, reviews: 48, bio: 'Pelvic Curl Goddess', photo: 'https://i.ibb.co/C5q8nBPm/Angelina-Tricolici.png' },
+      sergey: { name: 'Sergey', title: 'Crossfit Coach', rating: 4.8, reviews: 95, bio: 'Siberian Crossfitter', photo: 'https://i.ibb.co/LDBQTFX2/Sergey.png' },
+      anya: { name: 'Anya', title: 'Pilates Instructor', rating: 4.9, reviews: 36, bio: 'Mindful movement and control', photo: 'https://i.ibb.co/67qmZDzG/Anya.png' },
     };
 
     // Generate 7 days starting from bookingCalendarStart (not selectedDate)
@@ -2036,6 +2037,11 @@ Since Mar 1, 2026</p>
     const [attendanceRefresh, setAttendanceRefresh] = useState(0); // Force re-render every 30 seconds
     const [attendanceSaved, setAttendanceSaved] = useState(false); // Track if attendance was just saved
     const [attendanceListData, setAttendanceListData] = useState([]); // Loaded attendance data with actual counts
+    const leadTrainerProfile = {
+      name: 'Anya Glushkova',
+      title: 'Lead Trainer',
+      photo: 'https://i.ibb.co/67qmZDzG/Anya.png',
+    };
 
     // Generate 7 days starting from TODAY
     const getTodayPlus7Days = () => {
@@ -2351,6 +2357,7 @@ Since Mar 1, 2026</p>
                   <option value="Nicolas">Nicolas</option>
                   <option value="Angelina">Angelina</option>
                   <option value="Sergey">Sergey</option>
+                  <option value="Anya">Anya</option>
                 </select>
               </div>
 
@@ -2573,6 +2580,7 @@ Since Mar 1, 2026</p>
                   <option value="Nicolas">Nicolas</option>
                   <option value="Angelina">Angelina</option>
                   <option value="Sergey">Sergey</option>
+                  <option value="Anya">Anya</option>
                 </select>
               </div>
 
@@ -3226,10 +3234,14 @@ Since Mar 1, 2026</p>
         <div className="px-6 mt-8">
           {/* User Card */}
           <div className="bg-white border-2 border-stone-200 rounded-2xl p-6 mb-6 text-center">
-            <div style={{ backgroundColor: `${ARIKANA_COLOR}20` }} className="w-16 h-16 mx-auto mb-4 rounded-full flex items-center justify-center">
-              <User style={{ color: ARIKANA_COLOR }} className="w-8 h-8" />
+            <div className="w-20 h-20 mx-auto mb-4 rounded-full overflow-hidden border-2 border-stone-200">
+              <img
+                src={leadTrainerProfile.photo}
+                alt={leadTrainerProfile.name}
+                className="w-full h-full object-cover"
+              />
             </div>
-            <h2 className="text-xl font-bold text-stone-900">{currentUser.firstName} {currentUser.lastName}</h2>
+            <h2 className="text-xl font-bold text-stone-900">{leadTrainerProfile.name}</h2>
             {currentUser.role === 'lead-trainer' ? (
               <p style={{ color: ARIKANA_COLOR }} className="text-sm font-semibold mt-1">🌟 Lead Trainer</p>
             ) : (
