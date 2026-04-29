@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Home, Calendar, ShoppingBag, User, MoreHorizontal, ChevronRight, Eye, EyeOff } from 'lucide-react';
 import './App.css';
+import nicolasPhoto from '../Nicolas Boitout.png';
 import { initializeApp } from 'firebase/app';
 import { getAuth } from 'firebase/auth';
 import { getFirestore, addDoc, collection, getDocs, getDoc, setDoc, doc } from 'firebase/firestore';
@@ -1250,7 +1251,7 @@ Since Mar 1, 2026</p>
     // NOTE: classSchedule is now passed as a prop from parent component
 
     const instructors = {
-      nicolas: { name: 'Nicolas', title: 'Pilates Specialist', rating: 4.9, reviews: 127, bio: 'Pilates and Pushups', photo: 'https://i.ibb.co/xKGQ2P8B/Nicolas-Boitout.png' },
+      nicolas: { name: 'Nicolas', title: 'Pilates Specialist', rating: 4.9, reviews: 127, bio: 'Pilates and Pushups', photo: nicolasPhoto },
       angelina: { name: 'Angelina', title: 'Pilates Master', rating: 5.0, reviews: 48, bio: 'Pelvic Curl Goddess', photo: 'https://i.ibb.co/C5q8nBPm/Angelina-Tricolici.png' },
       sergey: { name: 'Sergey', title: 'Crossfit Coach', rating: 4.8, reviews: 95, bio: 'Siberian Crossfitter', photo: 'https://i.ibb.co/LDBQTFX2/Sergey.png' },
       anya: { name: 'Anya', title: 'Pilates Instructor', rating: 4.9, reviews: 36, bio: 'Mindful movement and control', photo: 'https://i.ibb.co/67qmZDzG/Anya.png' },
